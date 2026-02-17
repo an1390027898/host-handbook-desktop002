@@ -1,0 +1,18 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Redirecting…</title>
+<script>
+  // GitHub Pages SPA fallback: redirect to index.html in the current folder
+  (function () {
+    var p = location.pathname;
+    // If we're already at index.html, do nothing
+    if (p.endsWith('/index.html')) return;
+    // If path ends with '/', keep it; otherwise trim to folder
+    var folder = p.endsWith('/') ? p : p.substring(0, p.lastIndexOf('/') + 1);
+    location.replace(folder + 'index.html');
+  })();
+</script>
+<p style="font-family: -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial; padding:16px;">
+  Redirecting…
+</p>
