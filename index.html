@@ -7370,7 +7370,13 @@ $("#importBtn").addEventListener("click", async ()=>{
             <div class="muted" style="margin:0 0 10px">
               P1 播控台与内置播放器<strong>互斥</strong>：切换会自动停止另一边。此模式下建议使用 <b>↑↓ 调主音量</b>、<b>左右/多媒体键 切上下曲</b>、<b>字母热键 秒播</b>。
             </div>
-            <iframe id="p1ConsoleFrame" title="P1 播控台"></iframe>
+            
+            <div class="row" id="p1TopActions" style="gap:8px; flex-wrap:wrap; margin:8px 0 10px">
+              <button class="btn" id="btnP1ImportMain" type="button" title="导入音频到 P1（手机建议从 文件 App 选择已下载的 mp3）">导入到P1</button>
+              <button class="btn" id="btnP1SyncFromBuiltin" type="button" title="把内置播放器已导入的曲库同步到 P1">同步内置曲库到P1</button>
+              <span class="muted small">提示：iOS 音乐库(Apple Music)无法导入；请从“文件App”选择本地/已下载音频。</span>
+            </div>
+<iframe id="p1ConsoleFrame" title="P1 播控台"></iframe>
           </div>
 
 
@@ -11840,7 +11846,61 @@ function bindViralContentGen(){
 
     __p1ConsoleLoaded = true;
     fr.__p1ready = false;
-    fr.addEventListener("load", ()=>{ fr.__p1ready = true; }, {once:true});
+    fr.addEventListener("load", ()=>{ fr.__p1ready = true; }
+
+  // -------------------------
+  // P1 bridge helpers (parent -> iframe)
+  // -------------------------
+  function __p1Frame(){
+    return $("#p1ConsoleFrame");
+  }
+  function __p1Win(){
+    const fr = __p1Frame();
+    return fr && fr.contentWindow ? fr.contentWindow : null;
+  }
+  function __wait(ms){ return new Promise(r=>setTimeout(r, ms)); }
+  async function __ensureP1Ready(){
+    ensureP1ConsoleLoaded();
+    const fr = __p1Frame();
+    if(!fr) return null;
+    // wait a short while for iframe to load and expose API
+    for(let i=0;i<30;i++){
+      const w = __p1Win();
+      if(w && w.__p1_importFromParent) return w;
+      await __wait(100);
+    }
+    return __p1Win();
+  }
+  async function __p1Import(files){
+    const w = await __ensureP1Ready();
+    if(!w || !w.__p1_importFromParent){
+      toast("P1 未就绪：请先切到 P1 播控台再试一次");
+      return;
+    }
+    try{
+      toast("P1：开始导入…");
+      await w.__p1_importFromParent(files);
+    }catch(e){
+      console.error(e);
+      toast("P1 导入失败：请换格式或稍后重试");
+    }
+  }
+  async function __p1Sync(){
+    const w = await __ensureP1Ready();
+    if(!w || !w.__p1_syncFromParent){
+      toast("P1 未就绪：请先切到 P1 播控台再试一次");
+      return;
+    }
+    try{
+      await w.__p1_syncFromParent();
+    }catch(e){
+      console.error(e);
+      toast("同步失败：请稍后重试");
+    }
+  }
+
+
+, {once:true});
     fr.srcdoc = tpl.innerHTML;
   }
 
@@ -11955,6 +12015,39 @@ function isTextInputFocusedMain(el){
 
     // External tools entry (placed next to P1)
     const b2 = $("#btnMusicExtTools");
+    // P1 top action buttons (outside iframe)
+    $("#btnP1ImportMain")?.addEventListener("click", ()=>{
+      // dynamic picker (iOS friendly), then send to P1 iframe
+      try{
+        const ua = navigator.userAgent || "";
+        const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+        const inp = document.createElement("input");
+        inp.type = "file";
+        inp.multiple = true;
+        inp.accept = isIOS ? "" : "audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus,.caf";
+        inp.style.position="fixed"; inp.style.left="-10000px"; inp.style.top="-10000px";
+        document.body.appendChild(inp);
+        inp.addEventListener("change", async ()=>{
+          const files = inp.files;
+          try{
+            // ensure we are in P1 mode
+            try{ setMusicPlayerMode("p1"); }catch(e){}
+            await __p1Import(files);
+          }finally{
+            try{ inp.remove(); }catch(e){}
+          }
+        }, {once:true});
+        inp.click();
+      }catch(e){
+        console.error(e);
+        toast("无法打开文件选择器");
+      }
+    });
+    $("#btnP1SyncFromBuiltin")?.addEventListener("click", async ()=>{
+      try{ setMusicPlayerMode("p1"); }catch(e){}
+      await __p1Sync();
+    });
+
     const d = $("#extTools");
     if (b2 && d){
       const sync = ()=>{ b2.classList.toggle("on", !!d.open); };
@@ -13388,6 +13481,15 @@ pl.updatedAt = Date.now();
 
     var _btnUp = $("#btnUpload");
     if(_btnUp) _btnUp.addEventListener("click", function(){
+      // route btnUpload for P1 mode
+      try{
+        if((document.body.dataset.musicMode||"builtin")==="p1"){
+          // In P1 mode, import into P1 console so user能立刻看到
+          $("#btnP1ImportMain") && $("#btnP1ImportMain").click();
+          return;
+        }
+      }catch(e){}
+
       // iOS Safari: the Files picker may grey-out audio when an <input> has accept filtering,
       // and sometimes it still caches the filter even if we edit `accept` right before click.
       // Solution: create a fresh input each time on iOS (no accept), then validate after selection.
@@ -18555,6 +18657,9 @@ ${v.cta}`,
   // Ensure Schedule is activated BEFORE first render (fix iOS initial blank calendar)
   setTab("schedule");
 
+  try{ if(!sessionStorage.getItem("fix38_toast")){ sessionStorage.setItem("fix38_toast","1"); toast("FIX38 已加载"); } }catch(e){}
+
+
   try{ if(!sessionStorage.getItem("fix37_toast")){ sessionStorage.setItem("fix37_toast","1"); toast("FIX37.2 已加载"); } }catch(e){}
 
 
@@ -19768,6 +19873,13 @@ ${v.cta}`,
       }
       #playlistCard .small, #queueCard .small{ display:none; }
     }
+
+
+    /* p1ToolbarWrapFix: make toolbar buttons visible on mobile */
+    .topbar{ flex-wrap:wrap !important; row-gap:8px; }
+    .topbar .btn{ margin:0 !important; }
+    .topbar{ overflow: visible !important; }
+
 </style>
 </head>
 <body>
@@ -23650,6 +23762,25 @@ function handleSeekClick(e, kind){
       }
     };
 
+
+
+    // Expose APIs for parent page
+    window.__p1_importFromParent = async (files)=>{
+      try{
+        await importFiles(files);
+      }catch(e){
+        console.error(e);
+        toast("导入失败：请换格式或稍后重试");
+      }
+    };
+    window.__p1_syncFromParent = async ()=>{
+      try{
+        await syncFromMainLibrary();
+      }catch(e){
+        console.error(e);
+        toast("同步失败：请稍后重试");
+      }
+    };
 
 </script>
 </body>
