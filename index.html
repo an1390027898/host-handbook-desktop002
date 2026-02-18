@@ -7519,7 +7519,15 @@ $("#importBtn").addEventListener("click", async ()=>{
 
 (() => {
   // 沿用旧 key，避免你之前录入的档期/台词丢失
-  const LS_KEY = "host_handbook_major_upgrade_v1";
+  
+  // Global error surface (helps detect broken deployments)
+  window.addEventListener("error", function(ev){
+    try{ toast("脚本错误：" + (ev.message||"unknown")); }catch(e){}
+  });
+  window.addEventListener("unhandledrejection", function(ev){
+    try{ toast("脚本错误：" + (ev.reason && ev.reason.message ? ev.reason.message : "promise rejected")); }catch(e){}
+  });
+const LS_KEY = "host_handbook_major_upgrade_v1";
   const defaultState = { checks: {}, scripts: {}, bookings: {}, theme: "cream", lastExport: null };
   const $ = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -13599,6 +13607,45 @@ bindDropZones();
     }
   }
 
+  // -------------------------
+  // P1 sync: expose main library to iframe (srcdoc same-origin)
+  // -------------------------
+  async function __p1EnsureMusicReady(){
+    try{ await initMusic(); }catch(e){}
+  }
+  window.__p1ListMainTracks = async function(){
+    await __p1EnsureMusicReady();
+    return (MUSIC.tracks||[]).map(t=>({
+      id: t.id,
+      name: t.name || (t.fileName||"").replace(/\.[^/.]+$/,"") || "未命名",
+      fileName: t.fileName || (t.name||"") || "",
+      mime: t.mime || "",
+      duration: Number(t.duration||0) || 0
+    }));
+  };
+  window.__p1GetMainTrackData = async function(trackId){
+    await __p1EnsureMusicReady();
+    const t = (MUSIC.tracks||[]).find(x=>x.id===trackId);
+    if(!t) throw new Error("track not found");
+    let buf = null;
+    if(t.data && (t.data instanceof ArrayBuffer || ArrayBuffer.isView(t.data))){
+      buf = t.data instanceof ArrayBuffer ? t.data : t.data.buffer;
+    }else if(t.blob && t.blob.arrayBuffer){
+      buf = await t.blob.arrayBuffer();
+    }else{
+      throw new Error("no data");
+    }
+    return {
+      id: t.id,
+      name: t.name || (t.fileName||"").replace(/\.[^/.]+$/,"") || "未命名",
+      fileName: t.fileName || "",
+      mime: t.mime || "",
+      arrayBuffer: buf
+    };
+  };
+
+
+
   
 
   // -------------------------
@@ -18508,8 +18555,7 @@ ${v.cta}`,
   // Ensure Schedule is activated BEFORE first render (fix iOS initial blank calendar)
   setTab("schedule");
 
-  try{ if(!sessionStorage.getItem("fix36_toast")){ sessionStorage.setItem("fix36_toast","1"); toast("FIX37 已加载");
-// FIX37_P1_IMPORT_IOS } }catch(e){}
+  try{ if(!sessionStorage.getItem("fix37_toast")){ sessionStorage.setItem("fix37_toast","1"); toast("FIX37.2 已加载"); } }catch(e){}
 
 
   try{ if(!sessionStorage.getItem("fix34_toast")){ sessionStorage.setItem("fix34_toast","1"); toast("FIX35 已加载"); } }catch(e){}
@@ -19749,6 +19795,7 @@ ${v.cta}`,
     <div class="spacer"></div>
 
     <button class="btn" id="btnImport" title="导入音频（I）">导入音频</button>
+    <button class="btn" id="btnSyncMain" title="从内置播放器同步曲库">同步内置曲库</button>
     <button class="btn" id="btnExport" title="导出工程（E）">导出工程</button>
     <button class="btn" id="btnImportProject" title="导入工程">导入工程</button>
 <button class="btn danger" id="btnResetStates" title="重置已播状态（R）">状态重置</button>
@@ -21629,6 +21676,62 @@ ${v.cta}`,
       toast("导入完成");
     }
 
+    async function importArrayBufferAsCue(meta){
+      const cat = state.cats.find(c=>c.id===state.curCatId);
+      if (!cat){ toast("请先创建/选择分类"); return; }
+      ensureAudioUserGesture();
+      const {ctx} = ensureAudio();
+      const audioBuf = await ctx.decodeAudioData(meta.arrayBuffer.slice(0));
+      const peaks = computePeaks(audioBuf, 140);
+      const cue = makeCue({
+        name: meta.name || (meta.fileName||"").replace(/\.[^/.]+$/,"") || "未命名",
+        fileName: meta.fileName || "",
+        audioBuf,
+        arrayBuffer: meta.arrayBuffer,
+        peaks,
+        duration: audioBuf.duration
+      });
+      cat.cues.push(cue);
+      state.cueIndex[cue.id] = {catId: cat.id};
+      if(!state.curCueId) state.curCueId = cue.id;
+      persist();
+      render();
+    }
+
+    async function syncFromMainLibrary(){
+      try{
+        const p = window.parent;
+        if(!p || typeof p.__p1ListMainTracks!=="function" || typeof p.__p1GetMainTrackData!=="function"){
+          toast("未检测到内置曲库（请在主页面的音乐系统里先导入）");
+          return;
+        }
+        const list = await p.__p1ListMainTracks();
+        if(!list || !list.length){
+          toast("内置曲库为空：请先在内置播放器导入音频");
+          return;
+        }
+        // simple: import all into current category
+        toast(`同步中：${list.length} 首...`);
+        let ok=0, fail=0;
+        for(const item of list){
+          try{
+            const meta = await p.__p1GetMainTrackData(item.id);
+            await importArrayBufferAsCue(meta);
+            ok++;
+          }catch(e){
+            console.error(e);
+            fail++;
+          }
+        }
+        toast(`同步完成：成功 ${ok}，失败 ${fail}`);
+      }catch(err){
+        console.error(err);
+        toast("同步失败：请稍后重试");
+      }
+    }
+
+
+
     function exportProject(){
       const data = serializeProject();
       const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
@@ -22696,7 +22799,10 @@ ${v.cta}`,
       }
 
       $("#btnImport").onclick = pickAudioFiles;
-      $("#btnBrowse").onclick = pickAudioFiles;
+      
+      var bSync = $("#btnSyncMain");
+      if(bSync) bSync.onclick = syncFromMainLibrary;
+$("#btnBrowse").onclick = pickAudioFiles;
 $("#btnExport").onclick = exportProject;
       $("#btnImportProject").onclick = ()=> $("#projectInput").click();
       $("#projectInput").addEventListener("change", async (e)=>{
