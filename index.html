@@ -2107,10 +2107,218 @@ input, textarea, select{ font-size: 16px; }
   #kgGrid.mobileLandscape #kgColQueue{ height: min(78dvh, 760px) !important; }
 }
 
+
+
+/* =========================================================
+   Learn Aggregation Page + Schedule month-mode
+========================================================= */
+.learnSeg{
+  display:flex; gap:10px; flex-wrap:wrap;
+}
+.learnSeg .segbtn{
+  flex: 1 1 0;
+  min-width: 110px;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--card) 86%, transparent);
+  color: var(--text);
+  font-weight: 820;
+  letter-spacing: .2px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: 8px;
+}
+.learnSeg .segbtn.on{
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--line));
+  background: color-mix(in srgb, var(--accent) 18%, var(--card));
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+.learnPanes{ width:100%; }
+.learnPane{ display:none; }
+.learnPane.active{ display:block; }
+
+#viewLearn #hostHandbookFrame,
+#viewLearn #hostSocialFrame{
+  height: min(78vh, 920px);
+}
+@media (max-width: 640px){
+  #viewLearn #hostHandbookFrame,
+  #viewLearn #hostSocialFrame{
+    height: calc(100vh - 240px);
+  }
+}
+
+/* Schedule: month-mode = calendar only (list hidden); click event/day jumps to day info */
+#scheduleWrap.mode-month .list-card{ display:none !important; }
+#scheduleWrap.mode-month .sched-split{ grid-template-columns: 1fr !important; }
+#scheduleWrap.mode-month .cal-card{ min-height: min(76vh, 860px); }
+#scheduleWrap.mode-month .cal-title .mini{ opacity:.8; }
+
+#btnModeCal.active, #btnModeMonth.active{
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--line)) !important;
+  background: color-mix(in srgb, var(--accent) 18%, var(--card)) !important;
+}
+
+@keyframes pulseOnce {
+  0%{ transform: translateY(0); box-shadow: 0 0 0 rgba(0,0,0,0); }
+  50%{ transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+  100%{ transform: translateY(0); box-shadow: 0 0 0 rgba(0,0,0,0); }
+}
+.pulseOnce{ animation: pulseOnce .8s ease; }
+
+/* =========================================================
+   Mobile UI adjustments (m-nav3 + schedule compact rows)
+========================================================= */
+@media (max-width: 640px){
+  /* Replace bottom tabs with 3-item mobile nav */
+  .tabs > .tab{ display:none !important; }
+  #mNav3{
+    display:flex !important;
+    width: 100%;
+    gap: 10px;
+  }
+  #mNav3 .mnav-btn{
+    flex: 1 1 0;
+    min-width: 0;
+    height: var(--tap);
+    padding: 0 10px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--card) 86%, transparent);
+    color: var(--text);
+    font-weight: 750;
+    letter-spacing: .2px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 8px;
+  }
+  #mNav3 .mnav-btn.active{
+    border-color: color-mix(in srgb, var(--accent) 58%, var(--line));
+    background: color-mix(in srgb, var(--accent) 18%, var(--card));
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  }
+
+  /* Learn sheet */
+  #learnBackdrop{
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.46);
+    display:none;
+    z-index: 10000;
+  }
+  #learnBackdrop.show{ display:block; }
+  #learnSheet{
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    transform: translateY(110%);
+    transition: transform .22s ease;
+    z-index: 10001;
+    background: color-mix(in srgb, var(--card2) 92%, transparent);
+    border-top: 1px solid var(--line);
+    backdrop-filter: var(--blur);
+    border-radius: 22px 22px 0 0;
+    padding: 14px 12px calc(14px + env(safe-area-inset-bottom));
+  }
+  #learnSheet.show{ transform: translateY(0); }
+  #learnSheet .sheet-title{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 10px;
+  }
+  #learnSheet .sheet-title b{ font-size: 14px; opacity:.92; }
+  #learnSheet .sheet-grid{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  #learnSheet .sheet-btn{
+    height: 48px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--card) 86%, transparent);
+    color: var(--text);
+    font-weight: 800;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 0 14px;
+  }
+  #learnSheet .sheet-btn span{ opacity:.85; font-weight: 750; }
+  #learnSheet .sheet-close{
+    height: 34px; width: 34px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--text);
+    font-weight: 900;
+  }
+
+  /* Schedule page: actions in ONE row (scroll if needed) */
+  #viewSchedule .sched-actions{
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px !important;
+    padding-bottom: 2px;
+  }
+  #viewSchedule .sched-actions .btn{
+    flex: 0 0 auto;
+    height: 40px;
+    padding: 0 12px;
+    border-radius: 14px;
+    white-space: nowrap;
+  }
+
+  /* Schedule page: first 3 stats in ONE row; the wide card full width below */
+  #viewSchedule .sched-summary{
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px !important;
+  }
+  #viewSchedule .sched-summary .stat{
+    padding: 10px !important;
+    border-radius: 16px !important;
+  }
+  #viewSchedule .sched-summary .stat .label{ font-size: 12px !important; opacity:.86; }
+  #viewSchedule .sched-summary .stat .value{ font-size: 20px !important; line-height: 1.05 !important; }
+  #viewSchedule .sched-summary .stat .small{ font-size: 11px !important; opacity:.8; }
+  #viewSchedule .sched-summary .stat.wide{ grid-column: 1 / -1; }
+
+  /* If ultra-narrow, allow horizontal scroll for the 3 stats */
+  @media (max-width: 420px){
+    #viewSchedule .sched-summary{
+      display:flex !important;
+      overflow-x:auto !important;
+      -webkit-overflow-scrolling: touch;
+      gap: 8px !important;
+    }
+    #viewSchedule .sched-summary .stat{ min-width: 130px; flex: 0 0 auto; }
+    #viewSchedule .sched-summary .stat.wide{ min-width: 92vw; }
+  }
+}
+@media (min-width: 641px){
+  #mNav3, #learnBackdrop, #learnSheet{ display:none !important; }
+}
+
+/* Handbook & Social TOC: soften the title prominence (宣抚使) */
+
+
+
+/* iOS Safari: file input must not be display:none, or .click() may be blocked */
+.fileHidden{
+  position: fixed !important;
+  left: -10000px !important;
+  top: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+}
+
 </style>
 </head>
 <body data-music-mode="builtin" data-p1-fullscreen="0" data-now-compact="1" data-queue-grid="1">
-  <div id="buildBadge">v2.6.33</div>
 <div class="wrap">
   <header class="header">
     <div class="brand">
@@ -2149,6 +2357,37 @@ input, textarea, select{ font-size: 16px; }
       <button class="tab" id="tabMusic" role="tab" aria-selected="false">🎵 音乐系统</button>
     </div>
   </header>
+
+
+  <section class="view" id="viewLearn">
+    <div class="grid onecol">
+      <main class="cards">
+        <section class="card" style="padding:14px 14px 10px">
+          <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:10px; flex-wrap:wrap">
+            <div>
+              <h2 style="margin:0">我要学习</h2>
+              <div class="muted-small" style="margin-top:6px">在这里切换：主持人手册 / 台词 / 自媒体（不弹窗）。</div>
+            </div>
+          </div>
+
+          <div class="learnSeg" id="learnSeg" role="tablist" aria-label="学习聚合切换" style="margin-top:12px">
+            <button class="segbtn on" type="button" data-sub="handbook" role="tab" aria-selected="true">📘 主持人手册</button>
+            <button class="segbtn" type="button" data-sub="lines" role="tab" aria-selected="false">🎙 台词</button>
+            <button class="segbtn" type="button" data-sub="social" role="tab" aria-selected="false">📱 自媒体</button>
+          </div>
+        </section>
+
+        <section class="card" style="padding:0; overflow:hidden">
+          <div class="learnPanes" id="learnPanes">
+            <div class="learnPane active" id="learnPaneHandbook"></div>
+            <div class="learnPane" id="learnPaneLines"></div>
+            <div class="learnPane" id="learnPaneSocial"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </section>
+
 
   <section class="view" id="viewHandbook">
     <div class="grid onecol">
@@ -2271,7 +2510,9 @@ input, textarea, select{ font-size: 16px; }
     }
 
     /* TOC */
-    .toc-title{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
+    .toc-title{
+  align-items: center;
+display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
     .toc-title b{font-size:14px}
     .toc a{
       display:block;
@@ -2535,9 +2776,9 @@ input, textarea, select{ font-size: 16px; }
 
 <div class="page">
   <div class="layout">
-    <aside aria-label="目录">
+    <aside aria-label="宣抚使">
       <div class="toc-title">
-        <b>目录</b>
+        <b>宣抚使</b>
         <span class="tag">固定左侧</span>
       </div>
       <div class="toc">
@@ -3623,6 +3864,8 @@ input, textarea, select{ font-size: 16px; }
       <button class="btn" id="btnToday">今天</button>
       <button class="btn" id="btnPrevMonth">◀ 上月</button>
       <button class="btn" id="btnNextMonth">下月 ▶</button>
+      <button class="btn ghost" id="btnModeCal" title="显示：日历 + 当月列表">日历</button>
+      <button class="btn ghost" id="btnModeMonth" title="显示：月历档期（更大）">月历档期</button>
       <button class="btn ghost" id="btnOpenYearSummary" title="切换到年度总结（与档期记录互斥）">年度总结</button>
     </div>
   </div>
@@ -3634,7 +3877,7 @@ input, textarea, select{ font-size: 16px; }
       <div class="small" id="statMonthLabel">—</div>
     </div>
     <div class="stat">
-      <div class="label">有单天数</div>
+      <div class="label">有单数天</div>
       <div class="value" id="statDayCount">0</div>
       <div class="small">= 有单日期数量</div>
     </div>
@@ -6715,7 +6958,7 @@ $("#importBtn").addEventListener("click", async ()=>{
                 <button class="btn small primary" id="btnKtvCast" type="button" title="打开独立投放窗口（可拖到第二屏/电视）">投放窗口</button>
                 <button class="btn small" id="btnKtvFull" type="button" title="在本页面全屏覆盖显示歌词">全屏覆盖</button>
                 <button class="btn small danger" id="btnKtvStopCast" type="button" style="display:none">关闭投放</button>
-                <input id="ktvPickLrc" type="file" accept=".lrc,text/plain" style="display:none"/>
+                <input id="ktvPickLrc" type="file" accept=".lrc,text/plain" class="fileHidden">
               </div>
 
               <div class="ktvGrid">
@@ -6994,7 +7237,7 @@ $("#importBtn").addEventListener("click", async ()=>{
           </details>
 
 
-          <input id="audioFile" type="file" accept="audio/*" multiple style="display:none"/>
+          <input id="audioFile" type="file" accept="audio/*" multiple class="fileHidden">
           <audio id="audioEl" preload="metadata"></audio>
         
           </div><!-- /msBuiltinWrap -->
@@ -7092,7 +7335,7 @@ $("#importBtn").addEventListener("click", async ()=>{
                   <div class="uvrRow" style="margin-top:10px">
                     <button class="btn primary" id="btnUvrRun" type="button">开始分离</button>
                     <button class="btn" id="btnUvrCancel" type="button" style="display:none">取消</button>
-                    <input id="uvrPickFile" type="file" accept="audio/*" style="display:none"/>
+                    <input id="uvrPickFile" type="file" accept="audio/*" class="fileHidden">
                     <button class="btn ghost" id="btnUvrPickFile" type="button">选择本地文件</button>
                     <div class="muted-small" id="uvrMsg" style="margin-left:auto"></div>
                   </div>
@@ -7626,7 +7869,11 @@ $("#importBtn").addEventListener("click", async ()=>{
                         <div class="s">${ev.weddingHotel||""}</div>`;
         el.addEventListener("click", (e)=> {
           e.stopPropagation();
-          openBooking(ev.id);
+          if (window.__schedViewMode && window.__schedViewMode()==="month"){
+            try{ window.__jumpToDayInfo && window.__jumpToDayInfo(iso, ev.id); }catch(_e){}
+          } else {
+            openBooking(ev.id);
+          }
         });
         evWrap.appendChild(el);
       });
@@ -7635,6 +7882,9 @@ $("#importBtn").addEventListener("click", async ()=>{
         const inThisMonth = ymKey(iso) === ym;
         if (inThisMonth && events.length) {
           dayFilter = iso;
+          if (window.__schedViewMode && window.__schedViewMode()==="month"){
+            try{ window.__setSchedViewMode && window.__setSchedViewMode("calendar"); }catch(_e){}
+          }
           renderList();
           renderMonthStats();
           toast("已筛选该日档期");
@@ -7666,6 +7916,7 @@ $("#importBtn").addEventListener("click", async ()=>{
     list.forEach(b=> {
       const el = document.createElement("div");
       el.className = "item";
+      el.dataset.id = b.id || "";
       const linked = (b.linkedSections || []).map(id=> secMeta.find(s=>s.id===id)?.name).filter(Boolean);
       const chips = linked.slice(0,6).map(x=>`<span class="chip">${x}</span>`).join("");
       el.innerHTML = `
@@ -8867,6 +9118,50 @@ if (ysNotes){
   }
 
 
+
+  // Schedule view mode: calendar(list) vs month(calendar-only)
+  let __schedMode = "calendar";
+  const __SCHED_MODE_KEY = "sched_view_mode_v1";
+  function __setSchedViewMode(mode, saveIt=true){
+    const wrap = $("#scheduleWrap");
+    const btnCal = $("#btnModeCal");
+    const btnMonth = $("#btnModeMonth");
+    __schedMode = (mode==="month") ? "month" : "calendar";
+    if(saveIt){ try{ localStorage.setItem(__SCHED_MODE_KEY, __schedMode); }catch(e){} }
+    if(wrap){
+      wrap.classList.toggle("mode-month", __schedMode==="month");
+    }
+    if(btnCal) btnCal.classList.toggle("active", __schedMode==="calendar");
+    if(btnMonth) btnMonth.classList.toggle("active", __schedMode==="month");
+  }
+  function __schedViewMode(){ return __schedMode; }
+  window.__setSchedViewMode = __setSchedViewMode;
+  window.__schedViewMode = __schedViewMode;
+
+  function __jumpToDayInfo(iso, bookingId){
+    // Month-mode jump: switch back to calendar(list), filter to day, and scroll to item
+    __setSchedViewMode("calendar");
+    try{
+      dayFilter = iso || "all";
+      renderList(); renderMonthStats();
+      if(bookingId){
+        const el = document.querySelector(`#listWrap .item[data-id="${bookingId}"]`);
+        if(el){
+          el.scrollIntoView({behavior:"smooth", block:"start"});
+          el.classList.add("pulseOnce");
+          setTimeout(()=>el.classList.remove("pulseOnce"), 800);
+        }
+      }else{
+        document.querySelector("#listWrap")?.scrollTo({top:0, behavior:"smooth"});
+      }
+      toast("已跳转到当天档期");
+    }catch(e){
+      console.error(e);
+    }
+  }
+  window.__jumpToDayInfo = __jumpToDayInfo;
+
+
 function initSchedule() {
     if (!calHead) return;
     if (!_schedUxBound){
@@ -8876,6 +9171,10 @@ function initSchedule() {
     }
     // default: show schedule
     setScheduleMode("schedule");
+    // view mode (calendar vs month)
+    try{ __setSchedViewMode(localStorage.getItem(__SCHED_MODE_KEY)||"calendar", false); }catch(e){ __setSchedViewMode("calendar", false); }
+    $("#btnModeCal")?.addEventListener("click", ()=>{ __setSchedViewMode("calendar"); renderCalendar(); renderList(); renderMonthStats(); });
+    $("#btnModeMonth")?.addEventListener("click", ()=>{ __setSchedViewMode("month"); renderCalendar(); renderMonthStats(); });
     calHead.innerHTML = weekNames.map(w=>`<div style="padding:0 6px">${w}</div>`).join("");
     renderCalendar(); renderList(); renderMonthStats(); renderYearSummary();
   }
@@ -12749,7 +13048,11 @@ pl.updatedAt = Date.now();
   }
 
   function bindLibraryUI(){
-    $("#btnUpload")?.addEventListener("click", ()=> $("#audioFile")?.click());
+    var _btnUp = $("#btnUpload");
+    if(_btnUp) _btnUp.addEventListener("click", function(){
+      var inp = $("#audioFile");
+      if(inp) inp.click();
+    });
     $("#audioFile")?.addEventListener("change", async (e)=>{
       const files = e.target.files;
       await addFilesToLibrary(files, false);
@@ -15254,6 +15557,7 @@ function ktvGetP1Bridge(){
     const tMusic = $("#tabMusic");
 
     const vSchedule = $("#viewSchedule");
+    const vLearn = $("#viewLearn");
     const vHandbook = $("#viewHandbook");
     const vLines = $("#viewLines");
     const vSocial = $("#viewSocial");
@@ -15261,11 +15565,13 @@ function ktvGetP1Bridge(){
 
     const tabs = [
       ["schedule", tSchedule, vSchedule],
-      ["handbook", tHandbook, vHandbook],
-      ["lines", tLines, vLines],
-      ["social", tSocial, vSocial],
+      ["learn", tHandbook, vLearn],
+      ["handbook", tHandbook, vLearn],
+      ["lines", tLines, vLearn],
+      ["social", tSocial, vLearn],
       ["music", tMusic, vMusic],
     ];
+
 
     tabs.forEach(([key, tab, view])=>{
       tab && tab.classList.remove("active");
@@ -15283,17 +15589,21 @@ function ktvGetP1Bridge(){
     if (key==="schedule"){
       initSchedule();
       renderCalendar(); renderList(); renderMonthStats();
-    } else if (key==="social"){
-      try{ initHostSocial(); }catch(e){ console.error(e); toast("自媒体工作台初始化失败"); }
     } else if (key==="music"){
       initMusic();
-    } else if (key==="lines"){
-      initLines();
+    } else if (key==="learn" || key==="handbook" || key==="lines" || key==="social"){
+      try{ initLearn(); }catch(e){ console.error(e); }
+      try{
+        const sub = (key==="learn") ? null : key;
+        window.__setLearnSub && window.__setLearnSub(sub);
+      }catch(e){}
     } else {
       try{ initHostHandbook(); }catch(e){ console.error(e); toast("学习手册初始化失败"); }
       applyChecks(); updateProgress();
     }
-  }
+}
+  window.setTab = setTab;
+
 
   $("#tabSchedule")?.addEventListener("click", ()=>setTab("schedule"));
   $("#tabHandbook")?.addEventListener("click", ()=>setTab("handbook"));
@@ -17731,13 +18041,27 @@ ${v.cta}`,
   bindNavActive();
   bindSearch();
   initScripts();
-  initSchedule();
+
+  // Ensure Schedule is activated BEFORE first render (fix iOS initial blank calendar)
   setTab("schedule");
-})();
 
+  function __forceScheduleRender(){
+    try{
+      const view = $("#viewSchedule");
+      if(!view || !view.classList.contains("active")) return;
+      const body = $("#calBody");
+      if(body && body.children && body.children.length > 0) return;
+      initSchedule();
+      renderCalendar(); renderList(); renderMonthStats();
+    }catch(e){ console.error(e); }
+  }
 
+  requestAnimationFrame(()=>{ __forceScheduleRender(); });
+  setTimeout(__forceScheduleRender, 160);
+  window.addEventListener("pageshow", ()=> setTimeout(__forceScheduleRender, 60));
+  window.addEventListener("orientationchange", ()=> setTimeout(__forceScheduleRender, 120));
 
-  // ---- Lines Tips Toggle (inline) ----
+})();// ---- Lines Tips Toggle (inline) ----
   (function(){
     const btn = document.getElementById('btnToggleLinesTips');
     const body = document.getElementById('linesTipsBody');
@@ -18960,8 +19284,8 @@ ${v.cta}`,
 <button class="btn danger" id="btnResetStates" title="重置已播状态（R）">状态重置</button>
     <button class="btn" id="btnHelp" title="快捷键/使用说明（?）">帮助</button>
 
-    <input id="fileInput" type="file" accept="audio/*" multiple style="display:none" />
-    <input id="projectInput" type="file" accept="application/json" style="display:none" />
+    <input id="fileInput" type="file" accept="audio/*" multiple  class="fileHidden">
+    <input id="projectInput" type="file" accept="application/json"  class="fileHidden">
   </div>
 
   <div class="app" id="app">
@@ -22958,6 +23282,60 @@ function handleSeekClick(e, kind){
 
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
+})();
+</script>
+
+
+<script>
+(function(){
+  function ensureMobileNav3(){
+    var tabs = document.querySelector('.tabs');
+    if(!tabs) return;
+    if(document.getElementById('mNav3')) return;
+
+    var nav = document.createElement('div');
+    nav.id = 'mNav3';
+    nav.innerHTML = `
+      <button class="mnav-btn" type="button" data-nav="schedule">📅 档期管理</button>
+      <button class="mnav-btn" type="button" data-nav="learn">📚 我要学习</button>
+      <button class="mnav-btn" type="button" data-nav="music">🎵 音乐系统</button>
+    `;
+    tabs.appendChild(nav);
+
+    function go(which){
+      try{
+        if(typeof window.setTab === 'function') window.setTab(which);
+      }catch(e){}
+      syncActive();
+    }
+
+    nav.addEventListener('click', function(e){
+      var btn = e.target.closest('.mnav-btn');
+      if(!btn) return;
+      var which = btn.getAttribute('data-nav');
+      if(which === 'schedule') go('schedule');
+      else if(which === 'music') go('music');
+      else if(which === 'learn') go('learn');
+    });
+
+    function syncActive(){
+      var active = (document.querySelector('.tabs .tab.active')||{}).id || '';
+      nav.querySelectorAll('.mnav-btn').forEach(function(b){ b.classList.remove('active'); });
+      if(active === 'tabSchedule') nav.querySelector('[data-nav="schedule"]').classList.add('active');
+      else if(active === 'tabMusic') nav.querySelector('[data-nav="music"]').classList.add('active');
+      else nav.querySelector('[data-nav="learn"]').classList.add('active');
+    }
+
+    document.querySelectorAll('.tabs > .tab').forEach(function(tb){
+      tb.addEventListener('click', function(){ setTimeout(syncActive, 0); }, true);
+    });
+
+    syncActive();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ensureMobileNav3);
+  else ensureMobileNav3();
+  window.addEventListener('resize', function(){ ensureMobileNav3(); });
 })();
 </script>
 
