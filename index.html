@@ -2419,6 +2419,20 @@ input, textarea, select{ font-size: 16px; }
 }
 .mrow:active{ background: color-mix(in srgb, var(--card) 70%, var(--bg)); }
 
+
+/* --- FIX42: P1 actions mobile tidy --- */
+.p1ActionsCard{ padding:10px 12px; border-radius:16px; margin:10px 0 12px; }
+.p1ActionsRow{ gap:10px; flex-wrap:wrap; }
+.p1ActionsRow .btn{ flex:1 1 auto; min-width:140px; }
+.p1ActionsHint{ margin-top:8px; line-height:1.35; opacity:.85; }
+.p1HelpDetails{ margin:8px 0 0; }
+.p1HelpSummary{ border-radius:999px; padding:8px 12px; }
+.p1HelpBody{ padding:0 4px 2px; }
+@media (max-width:520px){
+  .p1ActionsRow .btn{ min-width:0; flex:1 1 48%; }
+  .p1ActionsHint{ font-size:12px; }
+}
+
 </style>
 </head>
 <body data-music-mode="builtin" data-p1-fullscreen="0" data-now-compact="1" data-queue-grid="1">
@@ -7371,10 +7385,19 @@ $("#importBtn").addEventListener("click", async ()=>{
               P1 播控台与内置播放器<strong>互斥</strong>：切换会自动停止另一边。此模式下建议使用 <b>↑↓ 调主音量</b>、<b>左右/多媒体键 切上下曲</b>、<b>字母热键 秒播</b>。
             </div>
             
-            <div class="row" id="p1TopActions" style="gap:8px; flex-wrap:wrap; margin:8px 0 10px">
-              <button class="btn" id="btnP1ImportMain" type="button">导入到P1</button>
-              <button class="btn" id="btnP1SyncFromBuiltin" type="button">同步内置曲库到P1</button>
-              <span class="muted small">iOS提示：请从“文件App”选择已下载的音频（带☁️请先点云朵下载）。Apple Music 音乐库歌曲无法导入。</span>
+            
+            <details class="p1HelpDetails">
+              <summary class="btn btn-ghost p1HelpSummary">P1 使用说明</summary>
+              <div class="p1HelpBody">
+                </div>
+            </details>
+
+            <div class="card p1ActionsCard" id="p1TopActionsCard">
+              <div class="row p1ActionsRow">
+                <button class="btn btn-primary" id="btnP1ImportMain" type="button">导入到P1</button>
+                <button class="btn" id="btnP1SyncFromBuiltin" type="button">同步内置曲库</button>
+              </div>
+              <div class="muted small p1ActionsHint">iOS：请从“文件App”选择已下载音频（带☁️先点云朵下载）。Apple Music 音乐库歌曲无法导入。</div>
             </div>
 <iframe id="p1ConsoleFrame" title="P1 播控台"></iframe>
           </div>
@@ -11846,48 +11869,63 @@ function bindViralContentGen(){
 
     __p1ConsoleLoaded = true;
     fr.__p1ready = false;
-    fr.addEventListener("load", ()=>{ fr.__p1ready = true; }, {once:true});
-    fr.srcdoc = tpl.innerHTML;
-  }
+    fr.addEventListener("load", ()=>{ fr.__p1ready = true; }
 
   // -------------------------
-  // P1 bridge helpers (parent <-> iframe)
+  // P1 bridge helpers (parent -> iframe)
   // -------------------------
-  function __p1Frame(){ return $("#p1ConsoleFrame"); }
+  function __p1Frame(){
+    return $("#p1ConsoleFrame");
+  }
   function __p1Win(){
     const fr = __p1Frame();
-    return (fr && fr.contentWindow) ? fr.contentWindow : null;
+    return fr && fr.contentWindow ? fr.contentWindow : null;
   }
   function __wait(ms){ return new Promise(r=>setTimeout(r, ms)); }
   async function __ensureP1Ready(){
     ensureP1ConsoleLoaded();
-    for(let i=0;i<40;i++){
+    const fr = __p1Frame();
+    if(!fr) return null;
+    // wait a short while for iframe to load and expose API
+    for(let i=0;i<30;i++){
       const w = __p1Win();
-      if(w && typeof w.__p1_importFromParent==="function") return w;
-      await __wait(80);
+      if(w && w.__p1_importFromParent) return w;
+      await __wait(100);
     }
     return __p1Win();
   }
-  async function __p1ImportFromParent(files){
+  async function __p1Import(files){
     const w = await __ensureP1Ready();
-    if(!w || typeof w.__p1_importFromParent!=="function"){
-      toast("P1 未就绪：请先切到 P1 播控台再试");
+    if(!w || !w.__p1_importFromParent){
+      toast("P1 未就绪：请先切到 P1 播控台再试一次");
       return;
     }
-    toast("P1：开始导入…");
-    try{ await w.__p1_importFromParent(files); }
-    catch(e){ console.error(e); toast("P1 导入失败：请换格式/稍后重试"); }
+    try{
+      toast("P1：开始导入…");
+      await w.__p1_importFromParent(files);
+    }catch(e){
+      console.error(e);
+      toast("P1 导入失败：请换格式或稍后重试");
+    }
   }
-  async function __p1SyncFromParent(){
+  async function __p1Sync(){
     const w = await __ensureP1Ready();
-    if(!w || typeof w.__p1_syncFromParent!=="function"){
-      toast("P1 未就绪：请先切到 P1 播控台再试");
+    if(!w || !w.__p1_syncFromParent){
+      toast("P1 未就绪：请先切到 P1 播控台再试一次");
       return;
     }
-    try{ await w.__p1_syncFromParent(); }
-    catch(e){ console.error(e); toast("同步失败：请稍后重试"); }
+    try{
+      await w.__p1_syncFromParent();
+    }catch(e){
+      console.error(e);
+      toast("同步失败：请稍后重试");
+    }
   }
 
+
+, {once:true});
+    fr.srcdoc = tpl.innerHTML;
+  }
 
   function setMusicPlayerMode(mode, opts={}){
     const silent = !!opts.silent;
@@ -12000,6 +12038,39 @@ function isTextInputFocusedMain(el){
 
     // External tools entry (placed next to P1)
     const b2 = $("#btnMusicExtTools");
+    // P1 top action buttons (outside iframe)
+    $("#btnP1ImportMain")?.addEventListener("click", ()=>{
+      // dynamic picker (iOS friendly), then send to P1 iframe
+      try{
+        const ua = navigator.userAgent || "";
+        const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+        const inp = document.createElement("input");
+        inp.type = "file";
+        inp.multiple = true;
+        inp.accept = isIOS ? "" : "audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus,.caf";
+        inp.style.position="fixed"; inp.style.left="-10000px"; inp.style.top="-10000px";
+        document.body.appendChild(inp);
+        inp.addEventListener("change", async ()=>{
+          const files = inp.files;
+          try{
+            // ensure we are in P1 mode
+            try{ setMusicPlayerMode("p1"); }catch(e){}
+            await __p1Import(files);
+          }finally{
+            try{ inp.remove(); }catch(e){}
+          }
+        }, {once:true});
+        inp.click();
+      }catch(e){
+        console.error(e);
+        toast("无法打开文件选择器");
+      }
+    });
+    $("#btnP1SyncFromBuiltin")?.addEventListener("click", async ()=>{
+      try{ setMusicPlayerMode("p1"); }catch(e){}
+      await __p1Sync();
+    });
+
     const d = $("#extTools");
     if (b2 && d){
       const sync = ()=>{ b2.classList.toggle("on", !!d.open); };
@@ -12017,50 +12088,6 @@ function isTextInputFocusedMain(el){
     // init
     setMusicPlayerMode(readMusicPlayerMode(), {silent:true});
     installP1KeyBridge();
-
-    // bindP1TopActions
-    (function(){
-      var bImp = $("#btnP1ImportMain");
-      var bSync = $("#btnP1SyncFromBuiltin");
-      if(bImp && !bImp.__bound){
-        bImp.__bound = true;
-        bImp.addEventListener("click", function(){
-          setMusicPlayerMode("p1");
-          try{
-            var ua = navigator.userAgent || "";
-            var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
-            var inp = document.createElement("input");
-            inp.type = "file";
-            inp.multiple = true;
-            if(!isIOS) inp.accept = "audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus,.caf";
-            inp.style.position="fixed";
-            inp.style.left="-99999px";
-            inp.style.top="-99999px";
-            document.body.appendChild(inp);
-            inp.addEventListener("change", function(){
-              var files = inp.files;
-              try{ inp.value = ""; }catch(e){}
-              try{ inp.remove(); }catch(e){}
-              if(!files || !files.length) return;
-              __p1ImportFromParent(files);
-            }, {once:true});
-            inp.click();
-          }catch(err){
-            console.error(err);
-            toast("无法打开文件选择器");
-          }
-        });
-      }
-      if(bSync && !bSync.__bound){
-        bSync.__bound = true;
-        bSync.addEventListener("click", async function(){
-          setMusicPlayerMode("p1");
-          await __p1SyncFromParent();
-        });
-      }
-    })();
-
-
   }
 
 function saveMusicPrefs(){
@@ -13477,11 +13504,11 @@ pl.updatedAt = Date.now();
 
     var _btnUp = $("#btnUpload");
     if(_btnUp) _btnUp.addEventListener("click", function(){
-      // routeUploadToP1
+      // route btnUpload for P1 mode
       try{
         if((document.body.dataset.musicMode||"builtin")==="p1"){
-          var b = $("#btnP1ImportMain");
-          if(b) b.click();
+          // In P1 mode, import into P1 console so user能立刻看到
+          $("#btnP1ImportMain") && $("#btnP1ImportMain").click();
           return;
         }
       }catch(e){}
@@ -18653,7 +18680,7 @@ ${v.cta}`,
   // Ensure Schedule is activated BEFORE first render (fix iOS initial blank calendar)
   setTab("schedule");
 
-  try{ if(!sessionStorage.getItem("fix41_toast")){ sessionStorage.setItem("fix41_toast","1"); toast("FIX41 已加载"); } }catch(e){}
+  try{ if(!sessionStorage.getItem("fix38_toast")){ sessionStorage.setItem("fix38_toast","1"); toast("FIX42 已加载"); } }catch(e){}
 
 
   try{ if(!sessionStorage.getItem("fix37_toast")){ sessionStorage.setItem("fix37_toast","1"); toast("FIX37.2 已加载"); } }catch(e){}
@@ -19870,9 +19897,12 @@ ${v.cta}`,
       #playlistCard .small, #queueCard .small{ display:none; }
     }
 
-    /* p1ToolbarWrapFix: toolbar wrap on mobile */
+
+    /* p1ToolbarWrapFix: make toolbar buttons visible on mobile */
     .topbar{ flex-wrap:wrap !important; row-gap:8px; }
     .topbar .btn{ margin:0 !important; }
+    .topbar{ overflow: visible !important; }
+
 </style>
 </head>
 <body>
@@ -20489,12 +20519,44 @@ ${v.cta}`,
       }
     }
 
+    
+async function probeDurationFromBlob(blob){
+      return await new Promise((resolve)=>{
+        try{
+          const a = document.createElement("audio");
+          a.preload = "metadata";
+          const url = URL.createObjectURL(blob);
+          a.src = url;
+          a.onloadedmetadata = ()=>{
+            const d = Number(a.duration||0) || 0;
+            try{ URL.revokeObjectURL(url); }catch(e){}
+            resolve(d);
+          };
+          a.onerror = ()=>{
+            try{ URL.revokeObjectURL(url); }catch(e){}
+            resolve(0);
+          };
+        }catch(e){
+          resolve(0);
+        }
+      });
+    }
+
     async function decodeFile(file){
       const {ctx} = ensureAudio();
       const buf = await file.arrayBuffer();
-      const audioBuf = await ctx.decodeAudioData(buf.slice(0));
-      return {arrayBuffer: buf, audioBuf};
+      try{
+        const audioBuf = await ctx.decodeAudioData(buf.slice(0));
+        return {arrayBuffer: buf, audioBuf, duration: audioBuf.duration, mime: file.type || ""};
+      }catch(err){
+        // iOS / 部分格式在 WebAudio 解码可能失败：回退到“媒体元素模式”，仍可播放/进队列
+        const mime = file.type || "audio/mpeg";
+        const blob = new Blob([buf], {type: mime});
+        const duration = await probeDurationFromBlob(blob);
+        return {arrayBuffer: buf, audioBuf: null, duration, mime, fallback: true};
+      }
     }
+}
 
     function computePeaks(audioBuf, points=140){
       const ch = audioBuf.numberOfChannels ? audioBuf.getChannelData(0) : new Float32Array();
@@ -20570,9 +20632,9 @@ ${v.cta}`,
           node.gain.gain.cancelScheduledValues(now);
           node.gain.gain.setValueAtTime(node.gain.gain.value, now);
           node.gain.gain.linearRampToValueAtTime(0.0001, now + fadeOut);
-          setTimeout(()=>{ try{ node.source?.stop(); }catch(e){} }, Math.ceil((fadeOut+0.05)*1000));
+          setTimeout(()=>{ try{ (node.stopFn || (()=>node.source?.stop?.())).call(null); }catch(e){} }, Math.ceil((fadeOut+0.05)*1000));
         }else{
-          try{ node.source?.stop(); }catch(e){}
+          try{ (node.stopFn || (()=>node.source?.stop?.())).call(null); }catch(e){}
         }
       }catch(e){}
       delete state.playingNodes[cueId];
@@ -20630,7 +20692,7 @@ ${v.cta}`,
 
     function playCue(cueId, opts={}){
       const c = getCue(cueId);
-      if (!c || !c.audioBuf){
+      if (!c || (!c.audioBuf && !c.arrayBuffer)){
         toast("该音频块未绑定音频文件");
         return;
       }
@@ -20661,9 +20723,7 @@ ${v.cta}`,
       const g = ctx.createGain();
       g.connect(master);
 
-      const s = ctx.createBufferSource();
-      s.buffer = c.audioBuf;
-
+      // ---- create source (buffer or media element fallback) ----
       const clip = cueClip(c);
       const offset = opts.offset != null ? opts.offset : clip.start;
       const end = clip.end;
@@ -20676,17 +20736,70 @@ ${v.cta}`,
       g.gain.setValueAtTime(0.0001, now);
       g.gain.linearRampToValueAtTime(v, now + Math.max(0.001, fadeIn));
 
-      s.connect(g);
+      if (c.audioBuf){
+        const s = ctx.createBufferSource();
+        s.buffer = c.audioBuf;
+        s.connect(g);
+        try{
+          s.start(0, offset, duration);
+        }catch(e){
+          try{s.start(0, offset);}catch(e2){}
+        }
+
+        c.state = "playing";
+        c.lastPlayedAt = Date.now();
+        state.playingNodes[cueId] = {cueId, source:s, gain:g, startedAt:now, offset, duration, stopFn: ()=>{ try{s.stop();}catch(e){} }};
+        state.focusCueId = cueId;
+        state.pausedFocus = null;
+
+        updateNowPlaying(cueId, {paused:false});
+        renderGrid();
+        renderQueue();
+
+        s.onended = () => {
+          if (state.playingNodes[cueId] && state.playingNodes[cueId].source === s){
+            delete state.playingNodes[cueId];
+            c.state = "played";
+            markCuePlayedIfInQueue(cueId);
+            if (state.focusCueId === cueId){
+              state.focusCueId = null;
+              updateNowPlaying(null);
+              handleCueEnded(cueId);
+            }
+            renderGrid();
+            renderQueue();
+          }
+        };
+        return;
+      }
+
+      // Fallback: media element source (no WebAudio 解码)
+      const media = ensureMediaForCue(c);
+      if (!media || !media.el){
+        toast("该音频无法播放（浏览器不支持此格式）");
+        return;
+      }
+      // If already playing, stop it first
+      if (state.playingNodes[cueId]) stopNode(cueId, {fade:true});
 
       try{
-        s.start(0, offset, duration);
-      }catch(e){
-        try{s.start(0, offset);}catch(e2){}
-      }
+        media.el.pause();
+        media.el.currentTime = Math.max(0, offset);
+      }catch(e){}
+
+      // connect media gain to our gain node chain
+      // media.gain is already connected to master; we instead connect its source to g for per-cue fades
+      try{
+        // reconnect: media.src -> g -> master (already g->master)
+        if (media.src){
+          try{ media.src.disconnect(); }catch(e){}
+          media.src.connect(g);
+        }
+      }catch(e){}
 
       c.state = "playing";
       c.lastPlayedAt = Date.now();
-      state.playingNodes[cueId] = {cueId, source:s, gain:g, startedAt:now, offset, duration};
+      state.playingNodes[cueId] = {cueId, source: media.el, gain:g, startedAt:now, offset, duration, stopFn: ()=>{ try{ media.el.pause(); }catch(e){} } };
       state.focusCueId = cueId;
       state.pausedFocus = null;
 
@@ -20694,13 +20807,28 @@ ${v.cta}`,
       renderGrid();
       renderQueue();
 
-      s.onended = () => {
-        // node might already be stopped/replaced
-        if (state.playingNodes[cueId] && state.playingNodes[cueId].source === s){
+      const endTimer = setTimeout(()=>{
+        // stop at end
+        if (state.playingNodes[cueId] && state.playingNodes[cueId].source === media.el){
+          stopNode(cueId, {fade:true});
+          c.state = "played";
+          markCuePlayedIfInQueue(cueId);
+          if (state.focusCueId === cueId){
+            state.focusCueId = null;
+            updateNowPlaying(null);
+            handleCueEnded(cueId);
+          }
+          renderGrid();
+          renderQueue();
+        }
+      }, Math.max(0, (duration||0))*1000 + 50);
+
+      media.el.onended = ()=>{
+        try{ clearTimeout(endTimer); }catch(e){}
+        if (state.playingNodes[cueId] && state.playingNodes[cueId].source === media.el){
           delete state.playingNodes[cueId];
           c.state = "played";
           markCuePlayedIfInQueue(cueId);
-          // if this was focus, follow playlist rules
           if (state.focusCueId === cueId){
             state.focusCueId = null;
             updateNowPlaying(null);
@@ -20710,9 +20838,13 @@ ${v.cta}`,
           renderQueue();
         }
       };
+
+      try{ media.el.play(); }catch(e){ toast("播放失败：请点一下屏幕再试"); }
+      return;
+
     }
 
-    function seekTo(cueId, targetSec){
+function seekTo(cueId, targetSec){
       const c = getCue(cueId);
       if (!c) return;
       const clip = cueClip(c);
@@ -20751,6 +20883,8 @@ ${v.cta}`,
         hotkey: "",
         behavior: "default",
         lastPlayedAt: 0,
+        mediaMode: false,
+        _media: null,
       };
     }
 
@@ -21618,7 +21752,21 @@ ${v.cta}`,
       persist();
       renderCats();
       renderGrid();
+    
+    function ensureSomeCat(){
+      if (!state.cats || !state.cats.length){
+        const cat = {id: uuid(), name: "01 迎宾", order: 1, cues: []};
+        state.cats = [cat];
+        state.curCatId = cat.id;
+        persist();
+      }else if(!state.curCatId){
+        state.curCatId = state.cats[0].id;
+        persist();
+      }
+      return state.cats.find(c=>c.id===state.curCatId) || state.cats[0];
     }
+
+}
 
     function deleteCurrentCat(){
       pushUndo("删除分类");
@@ -21744,8 +21892,7 @@ ${v.cta}`,
 
     // ===== Import / Export =====
     async function importFiles(files){
-      const cat = state.cats.find(c=>c.id===state.curCatId);
-      if (!cat){ toast("请先创建/选择分类"); return; }
+      const cat = ensureSomeCat();
       ensureAudioUserGesture();
 
       const arr = Array.from(files || []);
@@ -21767,8 +21914,6 @@ ${v.cta}`,
           });
           state.cues[cue.id] = cue;
           cat.cues.push(cue.id);
-          cue.audioKey = cue.id;
-          cue.mimeType = file.type || "application/octet-stream";
           importedKeys.push(cue.audioKey);
         }catch(e){
           console.error(e);
@@ -21782,28 +21927,43 @@ ${v.cta}`,
     }
 
     async function importArrayBufferAsCue(meta){
-      const cat = state.cats.find(c=>c.id===state.curCatId);
-      if (!cat){ toast("请先创建/选择分类"); return; }
+      const cat = ensureSomeCat();
       ensureAudioUserGesture();
-      const {ctx} = ensureAudio();
-      const audioBuf = await ctx.decodeAudioData(meta.arrayBuffer.slice(0));
-      const peaks = computePeaks(audioBuf, 140);
+            const {ctx} = ensureAudio();
+      let audioBuf = null;
+      let peaks = [];
+      let dur = 0;
+      try{
+        audioBuf = await ctx.decodeAudioData(meta.arrayBuffer.slice(0));
+        peaks = computePeaks(audioBuf, 140);
+        dur = audioBuf.duration;
+      }catch(e){
+        const mime = meta.mime || "audio/mpeg";
+        const blob = new Blob([meta.arrayBuffer], {type:mime});
+        dur = await probeDurationFromBlob(blob);
+      }
       const cue = makeCue({
         name: meta.name || (meta.fileName||"").replace(/\.[^/.]+$/,"") || "未命名",
         fileName: meta.fileName || "",
         audioBuf,
         arrayBuffer: meta.arrayBuffer,
         peaks,
-        duration: audioBuf.duration
+        duration: (audioBuf ? audioBuf.duration : (dur||0))
       });
-      cat.cues.push(cue);
-      state.cueIndex[cue.id] = {catId: cat.id};
+      cue.audioKey = cue.id;
+      cue.mimeType = meta.mime || "audio/mpeg";
+      cue.mediaMode = !audioBuf;
+      state.cues[cue.id] = cue;
+      cat.cues.push(cue.id);
       if(!state.curCueId) state.curCueId = cue.id;
       persist();
-      render();
-    }
+      renderCats();
+      renderGrid();
+      renderQueue();
+}
 
     async function syncFromMainLibrary(){
+      ensureSomeCat();
       try{
         const p = window.parent;
         if(!p || typeof p.__p1ListMainTracks!=="function" || typeof p.__p1GetMainTrackData!=="function"){
@@ -22898,7 +23058,7 @@ ${v.cta}`,
           // cleanup first (iOS sometimes needs this)
           try{ inp.value = ""; }catch(e){}
           try{ inp.remove(); }catch(e){}
-          importFiles(files).catch(function(e){ console.error(e); toast('导入失败：请换格式'); });
+          importFiles(files);
         }, {once:true});
         inp.click();
       }
@@ -23073,7 +23233,7 @@ $("#btnExport").onclick = exportProject;
         e.preventDefault();
         dz.classList.remove("dropHint");
         const files = e.dataTransfer.files;
-        if (files && files.length) importFiles(files).catch(function(e){ console.error(e); toast('导入失败：请换格式'); });
+        if (files && files.length) importFiles(files);
       });
 
       // resizers
@@ -23758,20 +23918,85 @@ function handleSeekClick(e, kind){
 
 
     // Expose APIs for parent page
-    window.__p1_importFromParent = async function(files){
-      try{ await importFiles(files).catch(function(e){ console.error(e); toast('导入失败：请换格式'); }); }
-      catch(e){ console.error(e); toast("导入失败：请换格式/稍后重试"); }
+    window.__p1_importFromParent = async (files)=>{
+      try{
+        await importFiles(files);
+      }catch(e){
+        console.error(e);
+        toast("导入失败：请换格式或稍后重试");
+      }
     };
-    window.__p1_syncFromParent = async function(){
-      try{ await syncFromMainLibrary(); }
-      catch(e){ console.error(e); toast("同步失败：请稍后重试"); }
+    window.__p1_syncFromParent = async ()=>{
+      try{
+        await syncFromMainLibrary();
+      }catch(e){
+        console.error(e);
+        toast("同步失败：请稍后重试");
+      }
     };
 
 </script>
 </body>
 </html>
 
-  </template>
+ 
+    function ensureMediaForCue(cue){
+      ensureAudioUserGesture();
+      const {ctx, master} = state.audio;
+      if (!cue || !cue.arrayBuffer) return null;
+      if (cue._media && cue._media.el) return cue._media;
+
+      const mime = cue.mimeType || "audio/mpeg";
+      const blob = new Blob([cue.arrayBuffer], {type:mime});
+      const url = URL.createObjectURL(blob);
+
+      const el = document.createElement("audio");
+      el.preload = "auto";
+      el.playsInline = true;
+      el.src = url;
+
+      let src = null;
+      try{
+        src = ctx.createMediaElementSource(el);
+      }catch(e){
+        // Some browsers only allow one MediaElementSource per element; recreate element if needed
+        try{
+          const el2 = document.createElement("audio");
+          el2.preload = "auto";
+          el2.playsInline = true;
+          el2.src = url;
+          src = ctx.createMediaElementSource(el2);
+          cue._media = cue._media || {};
+          cue._media.el = el2;
+        }catch(e2){
+          console.error(e2);
+        }
+      }
+      const g = ctx.createGain();
+      if (src) src.connect(g);
+      g.connect(master);
+
+      cue._media = cue._media || {};
+      cue._media.el = cue._media.el || el;
+      cue._media.url = url;
+      cue._media.src = src;
+      cue._media.gain = g;
+
+      // update duration if unknown
+      try{
+        if (!cue.duration || cue.duration<=0){
+          cue._media.el.addEventListener("loadedmetadata", ()=>{
+            cue.duration = Number(cue._media.el.duration||0) || cue.duration || 0;
+            persist();
+            renderGrid();
+            renderQueue();
+          }, {once:true});
+        }
+      }catch(e){}
+      return cue._media;
+    }
+
+ </template>
 
 
 <script id="__mobileUIPatch_v2633_m1">
