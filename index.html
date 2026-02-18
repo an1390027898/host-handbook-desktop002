@@ -18508,7 +18508,8 @@ ${v.cta}`,
   // Ensure Schedule is activated BEFORE first render (fix iOS initial blank calendar)
   setTab("schedule");
 
-  try{ if(!sessionStorage.getItem("fix36_toast")){ sessionStorage.setItem("fix36_toast","1"); toast("FIX36 已加载"); } }catch(e){}
+  try{ if(!sessionStorage.getItem("fix36_toast")){ sessionStorage.setItem("fix36_toast","1"); toast("FIX37 已加载");
+// FIX37_P1_IMPORT_IOS } }catch(e){}
 
 
   try{ if(!sessionStorage.getItem("fix34_toast")){ sessionStorage.setItem("fix34_toast","1"); toast("FIX35 已加载"); } }catch(e){}
@@ -19753,8 +19754,8 @@ ${v.cta}`,
 <button class="btn danger" id="btnResetStates" title="重置已播状态（R）">状态重置</button>
     <button class="btn" id="btnHelp" title="快捷键/使用说明（?）">帮助</button>
 
-    <input id="fileInput" type="file" accept="audio/*" multiple  class="fileHidden">
-    <input id="projectInput" type="file" accept="application/json"  class="fileHidden">
+    <input id="fileInput" type="file" multiple class="fileHidden" style="position:fixed;left:-99999px;top:-99999px;opacity:0;width:1px;height:1px;">
+    <input id="projectInput" type="file" accept="application/json" class="fileHidden" style="position:fixed;left:-99999px;top:-99999px;opacity:0;width:1px;height:1px;">
   </div>
 
   <div class="app" id="app">
@@ -22666,10 +22667,37 @@ ${v.cta}`,
         persist();
       };
 
-      $("#btnImport").onclick = ()=> $("#fileInput").click();
-      $("#btnBrowse").onclick = ()=> $("#fileInput").click();
-      $("#fileInput").addEventListener("change", (e)=> importFiles(e.target.files));
-      $("#btnExport").onclick = exportProject;
+            function pickAudioFiles(){
+        const ua = navigator.userAgent || "";
+        const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+        const inp = document.createElement("input");
+        try{
+          if(isIOS && !window.__iosPickHintOnce){
+            window.__iosPickHintOnce = true;
+            toast("提示：若文件旁有☁️，请先在“文件App”点云朵下载后再导入");
+          }
+        }catch(e){}
+        inp.type = "file";
+        inp.multiple = true;
+        // iOS Safari: accept filter can grey-out files; leave empty to allow selection
+        if(!isIOS) inp.accept = "audio/*";
+        inp.style.position = "fixed";
+        inp.style.left = "-99999px";
+        inp.style.top = "-99999px";
+        document.body.appendChild(inp);
+        inp.addEventListener("change", ()=>{
+          const files = inp.files;
+          // cleanup first (iOS sometimes needs this)
+          try{ inp.value = ""; }catch(e){}
+          try{ inp.remove(); }catch(e){}
+          importFiles(files);
+        }, {once:true});
+        inp.click();
+      }
+
+      $("#btnImport").onclick = pickAudioFiles;
+      $("#btnBrowse").onclick = pickAudioFiles;
+$("#btnExport").onclick = exportProject;
       $("#btnImportProject").onclick = ()=> $("#projectInput").click();
       $("#projectInput").addEventListener("change", async (e)=>{
         const f = e.target.files?.[0];
@@ -23018,7 +23046,7 @@ ${v.cta}`,
         }
         if (e.key.toLowerCase() === "i"){
           e.preventDefault();
-          $("#fileInput").click();
+          pickAudioFiles();
           return;
         }
         if (e.key.toLowerCase() === "e"){
