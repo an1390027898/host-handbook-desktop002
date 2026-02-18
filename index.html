@@ -7372,9 +7372,9 @@ $("#importBtn").addEventListener("click", async ()=>{
             </div>
             
             <div class="row" id="p1TopActions" style="gap:8px; flex-wrap:wrap; margin:8px 0 10px">
-              <button class="btn" id="btnP1ImportMain" type="button" title="导入音频到 P1（手机建议从 文件 App 选择已下载的 mp3）">导入到P1</button>
-              <button class="btn" id="btnP1SyncFromBuiltin" type="button" title="把内置播放器已导入的曲库同步到 P1">同步内置曲库到P1</button>
-              <span class="muted small">提示：iOS 音乐库(Apple Music)无法导入；请从“文件App”选择本地/已下载音频。</span>
+              <button class="btn" id="btnP1ImportMain" type="button">导入到P1</button>
+              <button class="btn" id="btnP1SyncFromBuiltin" type="button">同步内置曲库到P1</button>
+              <span class="muted small">iOS提示：请从“文件App”选择已下载的音频（带☁️请先点云朵下载）。Apple Music 音乐库歌曲无法导入。</span>
             </div>
 <iframe id="p1ConsoleFrame" title="P1 播控台"></iframe>
           </div>
@@ -11846,63 +11846,48 @@ function bindViralContentGen(){
 
     __p1ConsoleLoaded = true;
     fr.__p1ready = false;
-    fr.addEventListener("load", ()=>{ fr.__p1ready = true; }
+    fr.addEventListener("load", ()=>{ fr.__p1ready = true; }, {once:true});
+    fr.srcdoc = tpl.innerHTML;
+  }
 
   // -------------------------
-  // P1 bridge helpers (parent -> iframe)
+  // P1 bridge helpers (parent <-> iframe)
   // -------------------------
-  function __p1Frame(){
-    return $("#p1ConsoleFrame");
-  }
+  function __p1Frame(){ return $("#p1ConsoleFrame"); }
   function __p1Win(){
     const fr = __p1Frame();
-    return fr && fr.contentWindow ? fr.contentWindow : null;
+    return (fr && fr.contentWindow) ? fr.contentWindow : null;
   }
   function __wait(ms){ return new Promise(r=>setTimeout(r, ms)); }
   async function __ensureP1Ready(){
     ensureP1ConsoleLoaded();
-    const fr = __p1Frame();
-    if(!fr) return null;
-    // wait a short while for iframe to load and expose API
-    for(let i=0;i<30;i++){
+    for(let i=0;i<40;i++){
       const w = __p1Win();
-      if(w && w.__p1_importFromParent) return w;
-      await __wait(100);
+      if(w && typeof w.__p1_importFromParent==="function") return w;
+      await __wait(80);
     }
     return __p1Win();
   }
-  async function __p1Import(files){
+  async function __p1ImportFromParent(files){
     const w = await __ensureP1Ready();
-    if(!w || !w.__p1_importFromParent){
-      toast("P1 未就绪：请先切到 P1 播控台再试一次");
+    if(!w || typeof w.__p1_importFromParent!=="function"){
+      toast("P1 未就绪：请先切到 P1 播控台再试");
       return;
     }
-    try{
-      toast("P1：开始导入…");
-      await w.__p1_importFromParent(files);
-    }catch(e){
-      console.error(e);
-      toast("P1 导入失败：请换格式或稍后重试");
-    }
+    toast("P1：开始导入…");
+    try{ await w.__p1_importFromParent(files); }
+    catch(e){ console.error(e); toast("P1 导入失败：请换格式/稍后重试"); }
   }
-  async function __p1Sync(){
+  async function __p1SyncFromParent(){
     const w = await __ensureP1Ready();
-    if(!w || !w.__p1_syncFromParent){
-      toast("P1 未就绪：请先切到 P1 播控台再试一次");
+    if(!w || typeof w.__p1_syncFromParent!=="function"){
+      toast("P1 未就绪：请先切到 P1 播控台再试");
       return;
     }
-    try{
-      await w.__p1_syncFromParent();
-    }catch(e){
-      console.error(e);
-      toast("同步失败：请稍后重试");
-    }
+    try{ await w.__p1_syncFromParent(); }
+    catch(e){ console.error(e); toast("同步失败：请稍后重试"); }
   }
 
-
-, {once:true});
-    fr.srcdoc = tpl.innerHTML;
-  }
 
   function setMusicPlayerMode(mode, opts={}){
     const silent = !!opts.silent;
@@ -12015,39 +12000,6 @@ function isTextInputFocusedMain(el){
 
     // External tools entry (placed next to P1)
     const b2 = $("#btnMusicExtTools");
-    // P1 top action buttons (outside iframe)
-    $("#btnP1ImportMain")?.addEventListener("click", ()=>{
-      // dynamic picker (iOS friendly), then send to P1 iframe
-      try{
-        const ua = navigator.userAgent || "";
-        const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
-        const inp = document.createElement("input");
-        inp.type = "file";
-        inp.multiple = true;
-        inp.accept = isIOS ? "" : "audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus,.caf";
-        inp.style.position="fixed"; inp.style.left="-10000px"; inp.style.top="-10000px";
-        document.body.appendChild(inp);
-        inp.addEventListener("change", async ()=>{
-          const files = inp.files;
-          try{
-            // ensure we are in P1 mode
-            try{ setMusicPlayerMode("p1"); }catch(e){}
-            await __p1Import(files);
-          }finally{
-            try{ inp.remove(); }catch(e){}
-          }
-        }, {once:true});
-        inp.click();
-      }catch(e){
-        console.error(e);
-        toast("无法打开文件选择器");
-      }
-    });
-    $("#btnP1SyncFromBuiltin")?.addEventListener("click", async ()=>{
-      try{ setMusicPlayerMode("p1"); }catch(e){}
-      await __p1Sync();
-    });
-
     const d = $("#extTools");
     if (b2 && d){
       const sync = ()=>{ b2.classList.toggle("on", !!d.open); };
@@ -12065,6 +12017,50 @@ function isTextInputFocusedMain(el){
     // init
     setMusicPlayerMode(readMusicPlayerMode(), {silent:true});
     installP1KeyBridge();
+
+    // bindP1TopActions
+    (function(){
+      var bImp = $("#btnP1ImportMain");
+      var bSync = $("#btnP1SyncFromBuiltin");
+      if(bImp && !bImp.__bound){
+        bImp.__bound = true;
+        bImp.addEventListener("click", function(){
+          setMusicPlayerMode("p1");
+          try{
+            var ua = navigator.userAgent || "";
+            var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+            var inp = document.createElement("input");
+            inp.type = "file";
+            inp.multiple = true;
+            if(!isIOS) inp.accept = "audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus,.caf";
+            inp.style.position="fixed";
+            inp.style.left="-99999px";
+            inp.style.top="-99999px";
+            document.body.appendChild(inp);
+            inp.addEventListener("change", function(){
+              var files = inp.files;
+              try{ inp.value = ""; }catch(e){}
+              try{ inp.remove(); }catch(e){}
+              if(!files || !files.length) return;
+              __p1ImportFromParent(files);
+            }, {once:true});
+            inp.click();
+          }catch(err){
+            console.error(err);
+            toast("无法打开文件选择器");
+          }
+        });
+      }
+      if(bSync && !bSync.__bound){
+        bSync.__bound = true;
+        bSync.addEventListener("click", async function(){
+          setMusicPlayerMode("p1");
+          await __p1SyncFromParent();
+        });
+      }
+    })();
+
+
   }
 
 function saveMusicPrefs(){
@@ -13481,11 +13477,11 @@ pl.updatedAt = Date.now();
 
     var _btnUp = $("#btnUpload");
     if(_btnUp) _btnUp.addEventListener("click", function(){
-      // route btnUpload for P1 mode
+      // routeUploadToP1
       try{
         if((document.body.dataset.musicMode||"builtin")==="p1"){
-          // In P1 mode, import into P1 console so user能立刻看到
-          $("#btnP1ImportMain") && $("#btnP1ImportMain").click();
+          var b = $("#btnP1ImportMain");
+          if(b) b.click();
           return;
         }
       }catch(e){}
@@ -18657,7 +18653,7 @@ ${v.cta}`,
   // Ensure Schedule is activated BEFORE first render (fix iOS initial blank calendar)
   setTab("schedule");
 
-  try{ if(!sessionStorage.getItem("fix38_toast")){ sessionStorage.setItem("fix38_toast","1"); toast("FIX38 已加载"); } }catch(e){}
+  try{ if(!sessionStorage.getItem("fix41_toast")){ sessionStorage.setItem("fix41_toast","1"); toast("FIX41 已加载"); } }catch(e){}
 
 
   try{ if(!sessionStorage.getItem("fix37_toast")){ sessionStorage.setItem("fix37_toast","1"); toast("FIX37.2 已加载"); } }catch(e){}
@@ -19874,12 +19870,9 @@ ${v.cta}`,
       #playlistCard .small, #queueCard .small{ display:none; }
     }
 
-
-    /* p1ToolbarWrapFix: make toolbar buttons visible on mobile */
+    /* p1ToolbarWrapFix: toolbar wrap on mobile */
     .topbar{ flex-wrap:wrap !important; row-gap:8px; }
     .topbar .btn{ margin:0 !important; }
-    .topbar{ overflow: visible !important; }
-
 </style>
 </head>
 <body>
@@ -22905,7 +22898,7 @@ ${v.cta}`,
           // cleanup first (iOS sometimes needs this)
           try{ inp.value = ""; }catch(e){}
           try{ inp.remove(); }catch(e){}
-          importFiles(files);
+          importFiles(files).catch(function(e){ console.error(e); toast('导入失败：请换格式'); });
         }, {once:true});
         inp.click();
       }
@@ -23080,7 +23073,7 @@ $("#btnExport").onclick = exportProject;
         e.preventDefault();
         dz.classList.remove("dropHint");
         const files = e.dataTransfer.files;
-        if (files && files.length) importFiles(files);
+        if (files && files.length) importFiles(files).catch(function(e){ console.error(e); toast('导入失败：请换格式'); });
       });
 
       // resizers
@@ -23765,21 +23758,13 @@ function handleSeekClick(e, kind){
 
 
     // Expose APIs for parent page
-    window.__p1_importFromParent = async (files)=>{
-      try{
-        await importFiles(files);
-      }catch(e){
-        console.error(e);
-        toast("导入失败：请换格式或稍后重试");
-      }
+    window.__p1_importFromParent = async function(files){
+      try{ await importFiles(files).catch(function(e){ console.error(e); toast('导入失败：请换格式'); }); }
+      catch(e){ console.error(e); toast("导入失败：请换格式/稍后重试"); }
     };
-    window.__p1_syncFromParent = async ()=>{
-      try{
-        await syncFromMainLibrary();
-      }catch(e){
-        console.error(e);
-        toast("同步失败：请稍后重试");
-      }
+    window.__p1_syncFromParent = async function(){
+      try{ await syncFromMainLibrary(); }
+      catch(e){ console.error(e); toast("同步失败：请稍后重试"); }
     };
 
 </script>
