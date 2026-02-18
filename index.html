@@ -2316,6 +2316,25 @@ input, textarea, select{ font-size: 16px; }
   opacity: 0 !important;
 }
 
+
+
+/* Calendar month nav (prev/next integrated in title) */
+.cal-title{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.monthNav{ display:flex; align-items:center; gap:10px; }
+.mnBtn{
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  color: var(--text);
+  font-weight: 900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.mnBtn:active{ transform: translateY(1px); }
+
 </style>
 </head>
 <body data-music-mode="builtin" data-p1-fullscreen="0" data-now-compact="1" data-queue-grid="1">
@@ -3862,9 +3881,7 @@ display:flex; align-items:center; justify-content:space-between; gap:10px; margi
     <div class="sched-actions">
       <button class="btn primary" id="btnAddBooking">＋ 新增档期</button>
       <button class="btn" id="btnToday">今天</button>
-      <button class="btn" id="btnPrevMonth">◀ 上月</button>
-      <button class="btn" id="btnNextMonth">下月 ▶</button>
-      <button class="btn ghost" id="btnModeCal" title="显示：日历 + 当月列表">日历</button>
+            <button class="btn ghost" id="btnModeCal" title="显示：日历 + 当月列表">日历</button>
       <button class="btn ghost" id="btnModeMonth" title="显示：月历档期（更大）">月历档期</button>
       <button class="btn ghost" id="btnOpenYearSummary" title="切换到年度总结（与档期记录互斥）">年度总结</button>
     </div>
@@ -3896,7 +3913,11 @@ display:flex; align-items:center; justify-content:space-between; gap:10px; margi
   <div class="sched-split">
     <div class="cal-card">
       <div class="cal-title">
-        <div class="month" id="calMonthTitle">—</div>
+        <div class="monthNav">
+          <button class="mnBtn" id="btnPrevMonth" type="button" aria-label="上月">‹</button>
+          <div class="month" id="calMonthTitle">—</div>
+          <button class="mnBtn" id="btnNextMonth" type="button" aria-label="下月">›</button>
+        </div>
         <div class="mini">点击日期：新增档期 / 点击卡片：编辑档期</div>
       </div>
       <div class="cal-head" id="calHead"></div>
@@ -7237,7 +7258,7 @@ $("#importBtn").addEventListener("click", async ()=>{
           </details>
 
 
-          <input id="audioFile" type="file" accept="audio/*" multiple class="fileHidden">
+          <input id="audioFile" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg" multiple class="fileHidden">
           <audio id="audioEl" preload="metadata"></audio>
         
           </div><!-- /msBuiltinWrap -->
@@ -7881,6 +7902,11 @@ $("#importBtn").addEventListener("click", async ()=>{
       cell.addEventListener("click", ()=> {
         const inThisMonth = ymKey(iso) === ym;
         if (inThisMonth && events.length) {
+          // month-mode: jump to day info instantly
+          if (window.__schedViewMode && window.__schedViewMode()==="month"){
+            try{ window.__jumpToDayInfo && window.__jumpToDayInfo(iso, (events[0]&&events[0].id)||null); }catch(_e){}
+            return;
+          }
           dayFilter = iso;
           if (window.__schedViewMode && window.__schedViewMode()==="month"){
             try{ window.__setSchedViewMode && window.__setSchedViewMode("calendar"); }catch(_e){}
@@ -9152,7 +9178,8 @@ if (ysNotes){
           setTimeout(()=>el.classList.remove("pulseOnce"), 800);
         }
       }else{
-        document.querySelector("#listWrap")?.scrollTo({top:0, behavior:"smooth"});
+        var lw = document.querySelector("#listWrap");
+        if(lw && lw.scrollTo) lw.scrollTo({top:0, behavior:"smooth"});
       }
       toast("已跳转到当天档期");
     }catch(e){
@@ -9173,8 +9200,10 @@ function initSchedule() {
     setScheduleMode("schedule");
     // view mode (calendar vs month)
     try{ __setSchedViewMode(localStorage.getItem(__SCHED_MODE_KEY)||"calendar", false); }catch(e){ __setSchedViewMode("calendar", false); }
-    $("#btnModeCal")?.addEventListener("click", ()=>{ __setSchedViewMode("calendar"); renderCalendar(); renderList(); renderMonthStats(); });
-    $("#btnModeMonth")?.addEventListener("click", ()=>{ __setSchedViewMode("month"); renderCalendar(); renderMonthStats(); });
+    var _btnModeCal = $("#btnModeCal");
+    if(_btnModeCal) _btnModeCal.addEventListener("click", function(){ __setSchedViewMode("calendar"); dayFilter="all"; renderCalendar(); renderList(); renderMonthStats(); toast("已切回：日历 + 当月列表"); });
+    var _btnModeMonth = $("#btnModeMonth");
+    if(_btnModeMonth) _btnModeMonth.addEventListener("click", function(){ __setSchedViewMode("month"); dayFilter="all"; renderCalendar(); renderMonthStats(); toast("已进入：月历档期"); });
     calHead.innerHTML = weekNames.map(w=>`<div style="padding:0 6px">${w}</div>`).join("");
     renderCalendar(); renderList(); renderMonthStats(); renderYearSummary();
   }
@@ -12449,11 +12478,28 @@ async function playTrack(index, forcePlay=true){
   async function getDurationFromBlob(blob){
     return new Promise((resolve)=>{
       const au = document.createElement("audio");
+      au.preload = "metadata";
+      au.muted = true;
+
       const url = URL.createObjectURL(blob);
       au.src = url;
-      const done = (d)=>{ try{URL.revokeObjectURL(url);}catch(e){} resolve(isFinite(d)? d : 0); };
+
+      // iOS Safari sometimes needs the element in DOM for metadata
+      au.style.position = "fixed";
+      au.style.left = "-10000px";
+      au.style.top = "-10000px";
+      document.body.appendChild(au);
+
+      const done = (d)=>{
+        try{ URL.revokeObjectURL(url); }catch(e){}
+        try{ au.remove(); }catch(e){}
+        resolve(isFinite(d) ? d : 0);
+      };
+
       au.addEventListener("loadedmetadata", ()=> done(au.duration||0), { once:true });
       au.addEventListener("error", ()=> done(0), { once:true });
+
+      try{ au.load(); }catch(e){}
     });
   }
 
@@ -12461,23 +12507,61 @@ async function playTrack(index, forcePlay=true){
     const arr = Array.from(files||[]);
     if (!arr.length) return;
 
+    let volatileCount = 0;
+
     for (const f of arr){
-      const blob = f instanceof Blob ? f : null;
+      const blob = (f instanceof Blob) ? f : null;
       if (!blob) continue;
+
       const id = idNow("trk");
       const name = (f.name||"未命名").replace(/\.[^.]+$/,"");
-      const duration = await getDurationFromBlob(blob);
-      const item = { id, name, blob, duration, createdAt: Date.now() };
+      let duration = 0;
+
+      try{ duration = await getDurationFromBlob(blob); }catch(e){ duration = 0; }
+
+      // optimistic: store blob
+      let item = { id, name, blob, duration, createdAt: Date.now(), mime: (f.type||blob.type||"") };
+
       MUSIC.tracks.push(item);
-      await dbPut("tracks", item);
+
+      // Persist to IndexedDB with fallback (iOS sometimes fails to store Blob)
+      try{
+        await dbPut("tracks", item);
+      }catch(e1){
+        try{
+          const buf = await (f.arrayBuffer ? f.arrayBuffer() : new Promise((res,rej)=>{
+            const fr = new FileReader();
+            fr.onload = ()=> res(fr.result);
+            fr.onerror = ()=> rej(fr.error);
+            fr.readAsArrayBuffer(f);
+          }));
+          item = { id, name, data: buf, duration, createdAt: Date.now(), mime: (f.type||blob.type||"audio/mpeg") };
+          MUSIC.tracks[MUSIC.tracks.length-1] = item;
+          await dbPut("tracks", item);
+        }catch(e2){
+          // as a last resort, keep in memory only
+          volatileCount++;
+          item._volatile = true;
+          item.blob = blob;
+          MUSIC.tracks[MUSIC.tracks.length-1] = item;
+          console.error("Track persist failed:", e1, e2);
+        }
+      }
+
       if (alsoAddToQueue){
         MUSIC.queue.push({ id: idNow("q"), trackId: id, title:"", start:0, end:null, loopOne:false, endMode:"next", behavior:"next" });
       }
     }
+
     renderLibrary();
     renderQueue();
     if (alsoAddToQueue) persistActivePlaylistFromQueue();
-    toast("已添加到音乐库 ✅");
+
+    if(volatileCount){
+      toast(`已导入（其中 ${volatileCount} 首为临时导入，iOS 存储限制导致关闭页面可能丢失）`);
+    } else {
+      toast("已添加到音乐库 ✅");
+    }
   }
 
   function renderPlaylists(){
@@ -13053,7 +13137,8 @@ pl.updatedAt = Date.now();
       var inp = $("#audioFile");
       if(inp) inp.click();
     });
-    $("#audioFile")?.addEventListener("change", async (e)=>{
+    var _af = $("#audioFile");
+    if(_af) _af.addEventListener("change", async (e)=>{
       const files = e.target.files;
       await addFilesToLibrary(files, false);
       e.target.value = "";
@@ -13185,6 +13270,15 @@ function bindQueueUI(){
     try{
       MUSIC.db = await openMusicDB();
       MUSIC.tracks = await dbGetAll("tracks");
+      // rebuild blob for tracks saved as ArrayBuffer fallback (iOS)
+      MUSIC.tracks = (MUSIC.tracks||[]).map(t=>{
+        try{
+          if(!t.blob && t.data){
+            t.blob = new Blob([t.data], { type: t.mime || "audio/mpeg" });
+          }
+        }catch(e){}
+        return t;
+      });
       MUSIC.playlists = await dbGetAll("playlists");
       if (!MUSIC.playlists.length){
         const pl = { id:idNow("pl"), name:"默认列表", items:[], createdAt:Date.now(), updatedAt:Date.now() };
@@ -15558,50 +15652,42 @@ function ktvGetP1Bridge(){
 
     const vSchedule = $("#viewSchedule");
     const vLearn = $("#viewLearn");
-    const vHandbook = $("#viewHandbook");
-    const vLines = $("#viewLines");
-    const vSocial = $("#viewSocial");
     const vMusic = $("#viewMusic");
 
-    const tabs = [
-      ["schedule", tSchedule, vSchedule],
-      ["learn", tHandbook, vLearn],
-      ["handbook", tHandbook, vLearn],
-      ["lines", tLines, vLearn],
-      ["social", tSocial, vLearn],
-      ["music", tMusic, vMusic],
-    ];
+    const allTabs = [tSchedule, tHandbook, tLines, tSocial, tMusic].filter(Boolean);
+    const allViews = [vSchedule, vLearn, vMusic].filter(Boolean);
 
+    const map = {
+      schedule: { tab: tSchedule, view: vSchedule },
+      music:    { tab: tMusic,    view: vMusic },
+      learn:    { tab: tHandbook, view: vLearn, sub: null },
+      handbook: { tab: tHandbook, view: vLearn, sub: "handbook" },
+      lines:    { tab: tLines,    view: vLearn, sub: "lines" },
+      social:   { tab: tSocial,   view: vLearn, sub: "social" },
+    };
 
-    tabs.forEach(([key, tab, view])=>{
-      tab && tab.classList.remove("active");
-      tab && tab.setAttribute("aria-selected","false");
-      view && view.classList.remove("active");
-    });
+    const cfg = map[which] || map.schedule;
 
-    const hit = tabs.find(x=>x[0]===which) || tabs[0];
-    const [key, tab, view] = hit;
-    tab && tab.classList.add("active");
-    tab && tab.setAttribute("aria-selected","true");
-    view && view.classList.add("active");
-    document.body.classList.toggle("musicWideHeader", key==="music");
+    allTabs.forEach(t=> t.classList.remove("active"));
+    allViews.forEach(v=> v.classList.remove("active"));
 
-    if (key==="schedule"){
+    if(cfg.tab) cfg.tab.classList.add("active");
+    if(cfg.view) cfg.view.classList.add("active");
+
+    // Dispatch
+    if(cfg === map.schedule){
       initSchedule();
       renderCalendar(); renderList(); renderMonthStats();
-    } else if (key==="music"){
+    } else if(cfg === map.music){
       initMusic();
-    } else if (key==="learn" || key==="handbook" || key==="lines" || key==="social"){
+    } else {
+      // learn aggregation
       try{ initLearn(); }catch(e){ console.error(e); }
       try{
-        const sub = (key==="learn") ? null : key;
-        window.__setLearnSub && window.__setLearnSub(sub);
+        if(typeof window.__setLearnSub === "function") window.__setLearnSub(cfg.sub);
       }catch(e){}
-    } else {
-      try{ initHostHandbook(); }catch(e){ console.error(e); toast("学习手册初始化失败"); }
-      applyChecks(); updateProgress();
     }
-}
+  }
   window.setTab = setTab;
 
 
@@ -18039,6 +18125,16 @@ ${v.cta}`,
   bindChecks();
   updateProgress();
   bindNavActive();
+  // Learn tabs route into Learn Aggregation view
+  try{
+    if(!window.__learnTabBindings_v1){
+      window.__learnTabBindings_v1 = true;
+      $("#tabHandbook") && $("#tabHandbook").addEventListener("click", function(e){ e.preventDefault(); setTab("handbook"); });
+      $("#tabLines") && $("#tabLines").addEventListener("click", function(e){ e.preventDefault(); setTab("lines"); });
+      $("#tabSocial") && $("#tabSocial").addEventListener("click", function(e){ e.preventDefault(); setTab("social"); });
+    }
+  }catch(e){}
+
   bindSearch();
   initScripts();
 
