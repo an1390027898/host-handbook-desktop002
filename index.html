@@ -2335,6 +2335,17 @@ input, textarea, select{ font-size: 16px; }
 }
 .mnBtn:active{ transform: translateY(1px); }
 
+
+
+/* Learn embedded original views */
+#viewLearn .embeddedView{
+  display:block !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+#viewLearn .embeddedView.hidden{ display:block !important; } /* in case older code adds .hidden */
+#viewLearn .embeddedView.view{ display:block !important; }
+
 </style>
 </head>
 <body data-music-mode="builtin" data-p1-fullscreen="0" data-now-compact="1" data-queue-grid="1">
@@ -7258,7 +7269,7 @@ $("#importBtn").addEventListener("click", async ()=>{
           </details>
 
 
-          <input id="audioFile" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg" multiple class="fileHidden">
+          <input id="audioFile" type="file" accept="*/*" multiple class="fileHidden">
           <audio id="audioEl" preload="metadata"></audio>
         
           </div><!-- /msBuiltinWrap -->
@@ -9187,6 +9198,49 @@ if (ysNotes){
     }
   }
   window.__jumpToDayInfo = __jumpToDayInfo;
+
+  // -------------------------
+  // Schedule month-mode delegation (robust)
+  // -------------------------
+  (function(){
+    function onReady(fn){ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", fn); else fn(); }
+
+    function isMonthMode(){
+      try{ return (typeof window.__schedViewMode==="function") && window.__schedViewMode()==="month"; }catch(e){ return false; }
+    }
+
+    onReady(function(){
+      const btnCal = $("#btnModeCal");
+      const btnMonth = $("#btnModeMonth");
+      if(btnCal && !btnCal.dataset.bound){
+        btnCal.dataset.bound = "1";
+        btnCal.addEventListener("click", function(){
+          try{ window.__setSchedViewMode && window.__setSchedViewMode("calendar"); }catch(e){}
+          try{ dayFilter="all"; renderCalendar(); renderList(); renderMonthStats(); }catch(e){}
+          toast("已切回：日历 + 当月列表");
+        });
+      }
+      if(btnMonth && !btnMonth.dataset.bound){
+        btnMonth.dataset.bound = "1";
+        btnMonth.addEventListener("click", function(){
+          try{ window.__setSchedViewMode && window.__setSchedViewMode("month"); }catch(e){}
+          try{ dayFilter="all"; renderCalendar(); renderMonthStats(); }catch(e){}
+          toast("已进入：月历档期");
+        });
+      }
+
+      // iOS sometimes prefers pointerup/touchend; add a safe handler
+      const calBodyEl = $("#calBody");
+      if(calBodyEl && !calBodyEl.dataset.tapbound){
+        calBodyEl.dataset.tapbound = "1";
+        calBodyEl.addEventListener("pointerup", function(e){
+          // no-op: actual cell handlers are attached per-cell in renderCalendar
+        });
+      }
+    });
+  })();
+
+
 
 
 function initSchedule() {
@@ -12507,9 +12561,18 @@ async function playTrack(index, forcePlay=true){
     const arr = Array.from(files||[]);
     if (!arr.length) return;
 
+    const isAudioLike = (f)=>{
+      const name = (f && f.name) ? String(f.name).toLowerCase() : "";
+      const type = (f && f.type) ? String(f.type).toLowerCase() : "";
+      if(type.startsWith("audio/")) return true;
+      return (/\.(mp3|m4a|aac|wav|flac|ogg|oga|opus|caf)$/i).test(name);
+    };
+
+    let skipNonAudio = 0;
     let volatileCount = 0;
 
     for (const f of arr){
+      if(!isAudioLike(f)){ skipNonAudio++; continue; }
       const blob = (f instanceof Blob) ? f : null;
       if (!blob) continue;
 
@@ -12557,6 +12620,10 @@ async function playTrack(index, forcePlay=true){
     renderQueue();
     if (alsoAddToQueue) persistActivePlaylistFromQueue();
 
+    if(skipNonAudio){
+      toast(`已导入音频 ✅（已跳过 ${skipNonAudio} 个非音频文件）`);
+      return;
+    }
     if(volatileCount){
       toast(`已导入（其中 ${volatileCount} 首为临时导入，iOS 存储限制导致关闭页面可能丢失）`);
     } else {
@@ -13132,6 +13199,16 @@ pl.updatedAt = Date.now();
   }
 
   function bindLibraryUI(){
+    // iOS file picker: accept filter can grey-out audio in Files; relax to allow selection
+    try{
+      var inp = $("#audioFile");
+      if(inp){
+        var ua = navigator.userAgent || "";
+        var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+        if(isIOS){ inp.accept = ""; } // allow any file; we'll validate by mime/ext later
+      }
+    }catch(e){}
+
     var _btnUp = $("#btnUpload");
     if(_btnUp) _btnUp.addEventListener("click", function(){
       var inp = $("#audioFile");
@@ -15696,6 +15773,97 @@ function ktvGetP1Bridge(){
   $("#tabLines")?.addEventListener("click", ()=>setTab("lines"));
   $("#tabSocial")?.addEventListener("click", ()=>setTab("social"));
   $("#tabMusic")?.addEventListener("click", ()=>setTab("music"));
+
+  // -------------------------
+  // Learn Aggregation (Handbook/Lines/Social) - mounted sections (no popup)
+  // -------------------------
+  let __learnMounted = false;
+  let __learnSub = "handbook";
+  const __LEARN_KEY = "learn_sub_v2";
+
+  function __isEl(x){ return !!(x && x.nodeType===1); }
+
+  function mountLearnSections(){
+    if(__learnMounted) return;
+    const paneH = $("#learnPaneHandbook");
+    const paneL = $("#learnPaneLines");
+    const paneS = $("#learnPaneSocial");
+    if(!paneH || !paneL || !paneS) return;
+
+    const vH = $("#viewHandbook");
+    const vL = $("#viewLines");
+    const vS = $("#viewSocial");
+
+    // Move whole sections so existing init functions keep working with original IDs.
+    // Remove "view" behavior by forcing display inside learn panes.
+    if(__isEl(vH) && vH.parentElement){
+      paneH.appendChild(vH);
+      vH.classList.add("embeddedView");
+      vH.classList.remove("active");
+    }
+    if(__isEl(vL) && vL.parentElement){
+      paneL.appendChild(vL);
+      vL.classList.add("embeddedView");
+      vL.classList.remove("active");
+    }
+    if(__isEl(vS) && vS.parentElement){
+      paneS.appendChild(vS);
+      vS.classList.add("embeddedView");
+      vS.classList.remove("active");
+    }
+
+    __learnMounted = true;
+  }
+
+  function setLearnSub(sub){
+    mountLearnSections();
+
+    const seg = $("#learnSeg");
+    const paneH = $("#learnPaneHandbook");
+    const paneL = $("#learnPaneLines");
+    const paneS = $("#learnPaneSocial");
+    if(!seg || !paneH || !paneL || !paneS) return;
+
+    if(!sub){
+      try{ sub = localStorage.getItem(__LEARN_KEY) || __learnSub; }catch(e){}
+    }
+    sub = (sub==="lines" || sub==="social") ? sub : "handbook";
+    __learnSub = sub;
+    try{ localStorage.setItem(__LEARN_KEY, sub); }catch(e){}
+
+    seg.querySelectorAll(".segbtn").forEach(b=>{
+      const on = b.dataset.sub === sub;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+    });
+
+    paneH.classList.toggle("active", sub==="handbook");
+    paneL.classList.toggle("active", sub==="lines");
+    paneS.classList.toggle("active", sub==="social");
+
+    // Lazy init modules after mounted
+    if(sub==="handbook"){ try{ initHostHandbook(); }catch(e){ console.error(e); } }
+    if(sub==="social"){ try{ initHostSocial(); }catch(e){ console.error(e); } }
+    if(sub==="lines"){ try{ initLines(); }catch(e){ console.error(e); } }
+  }
+
+  function initLearn(){
+    mountLearnSections();
+    const seg = $("#learnSeg");
+    if(seg && !seg.dataset.bound){
+      seg.dataset.bound = "1";
+      seg.addEventListener("click", (e)=>{
+        const b = e.target.closest(".segbtn");
+        if(!b) return;
+        setLearnSub(b.dataset.sub);
+      });
+    }
+    setLearnSub(null);
+  }
+
+  window.__setLearnSub = setLearnSub;
+
+
 // -------------------------
   // Lines module (主持台词库) v2.0
   // -------------------------
@@ -18140,6 +18308,9 @@ ${v.cta}`,
 
   // Ensure Schedule is activated BEFORE first render (fix iOS initial blank calendar)
   setTab("schedule");
+
+  try{ if(!sessionStorage.getItem("fix34_toast")){ sessionStorage.setItem("fix34_toast","1"); toast("FIX34 已加载"); } }catch(e){}
+
 
   function __forceScheduleRender(){
     try{
