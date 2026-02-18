@@ -2346,6 +2346,79 @@ input, textarea, select{ font-size: 16px; }
 #viewLearn .embeddedView.hidden{ display:block !important; } /* in case older code adds .hidden */
 #viewLearn .embeddedView.view{ display:block !important; }
 
+
+
+/* Month agenda (Schedule month-mode like app list) */
+#monthAgendaCard{ display:none; margin-top: 12px; }
+.schedule.mode-month .sched-split{ display:none; }
+.schedule.mode-month #monthAgendaCard{ display:block; }
+
+.monthAgenda{ background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow:hidden; }
+.mgroupHead{
+  display:grid;
+  grid-template-columns: 1fr auto;
+  align-items:center;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--card) 86%, var(--bg));
+}
+.mgroupHead .mmonth{
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: .5px;
+}
+.mgroupHead .mmeta{
+  text-align:right;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.15;
+}
+.mrow{
+  display:grid;
+  grid-template-columns: 96px 1fr auto;
+  align-items:center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.mrow:last-child{ border-bottom: none; }
+.mdate{
+  display:flex; flex-direction:column; gap:2px;
+  color: var(--text);
+}
+.mdate .d{
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+.mdate .t{
+  font-size: 12px;
+  color: var(--muted);
+}
+.mcenter .place{
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.mcenter .sub{
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.mright{
+  text-align:right;
+  min-width: 80px;
+}
+.mright .name{
+  font-weight: 900;
+  font-size: 16px;
+}
+.mright .small{
+  font-size: 12px;
+  color: var(--muted);
+}
+.mrow:active{ background: color-mix(in srgb, var(--card) 70%, var(--bg)); }
+
 </style>
 </head>
 <body data-music-mode="builtin" data-p1-fullscreen="0" data-now-compact="1" data-queue-grid="1">
@@ -3948,7 +4021,17 @@ display:flex; align-items:center; justify-content:space-between; gap:10px; margi
     </div>
   </div>
 </div>
-  <div class="ys-page hidden" id="yearSummaryPage">
+  
+  <!-- Month agenda (month-mode) -->
+  <div class="monthAgendaCard" id="monthAgendaCard">
+    <div class="list-title">
+      <div class="month">月历档期</div>
+      <div class="mini">按月份汇总（点击某一场：跳转到当天信息）。</div>
+    </div>
+    <div class="monthAgenda" id="monthAgenda"></div>
+  </div>
+
+<div class="ys-page hidden" id="yearSummaryPage">
   <div class="ys-topbar">
     <div class="muted-small">年度总结与档期记录互斥显示。这里按年份统计单量/收入/合作酒店。</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
@@ -7269,7 +7352,7 @@ $("#importBtn").addEventListener("click", async ()=>{
           </details>
 
 
-          <input id="audioFile" type="file" accept="*/*" multiple class="fileHidden">
+          <input id="audioFile" type="file" multiple class="fileHidden">
           <audio id="audioEl" preload="metadata"></audio>
         
           </div><!-- /msBuiltinWrap -->
@@ -7839,7 +7922,80 @@ $("#importBtn").addEventListener("click", async ()=>{
     });
   }
 
-  function renderCalendar() {
+  
+  function renderMonthAgenda(){
+    const box = $("#monthAgenda");
+    const card = $("#monthAgendaCard");
+    if(!box || !card) return;
+
+    const all = bookingList()
+      .filter(b=> b && b.date)
+      .sort((a,b)=> (a.date||"").localeCompare(b.date||"") || (a.time||"").localeCompare(b.time||""));
+
+    if(!all.length){
+      box.innerHTML = `<div class="muted-small" style="padding:12px 14px">暂无档期。你可以点“＋ 新增档期”添加。</div>`;
+      return;
+    }
+
+    // group by month (YYYY-MM)
+    const groups = new Map();
+    all.forEach(b=>{
+      const ym = String(b.date||"").slice(0,7);
+      if(!ym) return;
+      if(!groups.has(ym)) groups.set(ym, []);
+      groups.get(ym).push(b);
+    });
+
+    const months = Array.from(groups.keys()).sort();
+    box.innerHTML = "";
+
+    const moneyOf = (v)=>{
+      const n = parseFloat(String(v||"").replace(/[^\d.]/g,""));
+      return isFinite(n) ? n : 0;
+    };
+
+    months.forEach(ym=>{
+      const list = groups.get(ym) || [];
+      const count = list.length;
+      const income = list.reduce((s,b)=> s + moneyOf(b.serviceFee), 0);
+
+      const head = document.createElement("div");
+      head.className = "mgroupHead";
+      head.innerHTML = `
+        <div class="mmonth">${parseInt(ym.slice(5),10)}月</div>
+        <div class="mmeta">共计 ${count} 单<br>收入：${income ? Math.round(income) : 0} 元</div>
+      `;
+      box.appendChild(head);
+
+      list.forEach(b=>{
+        const row = document.createElement("div");
+        row.className = "mrow";
+        const day = (b.date||"").slice(8,10);
+        const timeTxt = b.time ? b.time : "";
+        const place = (b.weddingHotel || "未填写酒店") + (b.hall ? " / "+b.hall : "");
+        row.innerHTML = `
+          <div class="mdate">
+            <div class="d">${day}日</div>
+            <div class="t">${timeTxt || "—"}</div>
+          </div>
+          <div class="mcenter">
+            <div class="place">${escapeHtml(b.weddingHotel || "未填写酒店")}${b.hall ? " " + escapeHtml(b.hall) : ""}</div>
+            <div class="sub">${escapeHtml(b.groomName||"—")} / ${escapeHtml(b.brideName||"—")}</div>
+          </div>
+          <div class="mright">
+            <div class="name">${escapeHtml(b.clientName||"未命名")}</div>
+            <div class="small">${moneyOf(b.serviceFee)? ("¥"+Math.round(moneyOf(b.serviceFee))) : ""}</div>
+          </div>
+        `;
+        row.addEventListener("click", ()=> {
+          try{ __jumpToDayInfo(b.date, b.id); }catch(e){ openBooking(b.id); }
+        });
+        box.appendChild(row);
+      });
+    });
+  }
+
+function renderCalendar() {
     if (!calHead || !calBody) return;
     calHead.innerHTML = weekNames.map(w=>`<div style="padding:0 6px">${w}</div>`).join("");
 
@@ -7982,7 +8138,7 @@ $("#importBtn").addEventListener("click", async ()=>{
     const d = new Date();
     cursor = new Date(d.getFullYear(), d.getMonth(), 1);
     dayFilter = "all";
-    renderCalendar(); renderList(); renderMonthStats();
+    renderCalendar(); renderList(); renderMonthStats(); renderMonthAgenda();
   });
   $("#btnPrevMonth").addEventListener("click", ()=> {
     cursor = new Date(cursor.getFullYear(), cursor.getMonth()-1, 1);
@@ -8545,7 +8701,7 @@ modal.addEventListener("click", (e)=> {
     if (state.bookings && state.bookings[editingId]) delete state.bookings[editingId];
     save(state);
     hardCloseModal();
-    renderCalendar(); renderList(); renderMonthStats();
+    renderCalendar(); renderList(); renderMonthStats(); renderMonthAgenda();
     toast("已删除 ✅");
   });
 
@@ -8567,7 +8723,7 @@ modal.addEventListener("click", (e)=> {
     const ok = commitDraft();
     if (!ok) return;
     hardCloseModal();
-    renderCalendar(); renderList(); renderMonthStats();
+    renderCalendar(); renderList(); renderMonthStats(); renderMonthAgenda();
     toast("已保存档期 ✅");
   }
 
@@ -9176,22 +9332,35 @@ if (ysNotes){
   window.__schedViewMode = __schedViewMode;
 
   function __jumpToDayInfo(iso, bookingId){
-    // Month-mode jump: switch back to calendar(list), filter to day, and scroll to item
+    // Month-mode jump: switch back to calendar(list), jump cursor to target month, filter to day, and scroll to item
     __setSchedViewMode("calendar");
     try{
-      dayFilter = iso || "all";
-      renderList(); renderMonthStats();
-      if(bookingId){
-        const el = document.querySelector(`#listWrap .item[data-id="${bookingId}"]`);
-        if(el){
-          el.scrollIntoView({behavior:"smooth", block:"start"});
-          el.classList.add("pulseOnce");
-          setTimeout(()=>el.classList.remove("pulseOnce"), 800);
-        }
-      }else{
-        var lw = document.querySelector("#listWrap");
-        if(lw && lw.scrollTo) lw.scrollTo({top:0, behavior:"smooth"});
+      if(iso){
+        const parts = String(iso).split("-");
+        const Y = parseInt(parts[0], 10);
+        const M = parseInt(parts[1], 10);
+        if(Y && M) cursor = new Date(Y, M-1, 1);
       }
+      dayFilter = iso || "all";
+      renderCalendar(); renderList(); renderMonthStats();
+
+      const doScroll = ()=>{
+        try{
+          if(bookingId){
+            const el = document.querySelector(`#listWrap .item[data-id="${bookingId}"]`);
+            if(el){
+              el.scrollIntoView({behavior:"smooth", block:"start"});
+              el.classList.add("pulseOnce");
+              setTimeout(()=>el.classList.remove("pulseOnce"), 800);
+              return;
+            }
+          }
+          var lw = document.querySelector("#listWrap");
+          if(lw && lw.scrollTo) lw.scrollTo({top:0, behavior:"smooth"});
+        }catch(e){}
+      };
+
+      requestAnimationFrame(()=> requestAnimationFrame(doScroll));
       toast("已跳转到当天档期");
     }catch(e){
       console.error(e);
@@ -9257,7 +9426,7 @@ function initSchedule() {
     var _btnModeCal = $("#btnModeCal");
     if(_btnModeCal) _btnModeCal.addEventListener("click", function(){ __setSchedViewMode("calendar"); dayFilter="all"; renderCalendar(); renderList(); renderMonthStats(); toast("已切回：日历 + 当月列表"); });
     var _btnModeMonth = $("#btnModeMonth");
-    if(_btnModeMonth) _btnModeMonth.addEventListener("click", function(){ __setSchedViewMode("month"); dayFilter="all"; renderCalendar(); renderMonthStats(); toast("已进入：月历档期"); });
+    if(_btnModeMonth) _btnModeMonth.addEventListener("click", function(){ __setSchedViewMode("month"); dayFilter="all"; renderCalendar(); renderMonthStats(); renderMonthAgenda(); toast("已进入：月历档期"); });
     calHead.innerHTML = weekNames.map(w=>`<div style="padding:0 6px">${w}</div>`).join("");
     renderCalendar(); renderList(); renderMonthStats(); renderYearSummary();
   }
@@ -13212,7 +13381,19 @@ pl.updatedAt = Date.now();
     var _btnUp = $("#btnUpload");
     if(_btnUp) _btnUp.addEventListener("click", function(){
       var inp = $("#audioFile");
-      if(inp) inp.click();
+      if(!inp) return;
+      try{
+        var ua = navigator.userAgent || "";
+        var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+        if(isIOS){
+          try{ inp.removeAttribute("accept"); }catch(e){}
+          inp.accept = "";
+        } else {
+          inp.accept = "audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus,.caf";
+        }
+      }catch(e){}
+      try{ inp.value = ""; }catch(e){}
+      inp.click();
     });
     var _af = $("#audioFile");
     if(_af) _af.addEventListener("change", async (e)=>{
@@ -15754,7 +15935,7 @@ function ktvGetP1Bridge(){
     // Dispatch
     if(cfg === map.schedule){
       initSchedule();
-      renderCalendar(); renderList(); renderMonthStats();
+      renderCalendar(); renderList(); renderMonthStats(); renderMonthAgenda();
     } else if(cfg === map.music){
       initMusic();
     } else {
@@ -18309,7 +18490,7 @@ ${v.cta}`,
   // Ensure Schedule is activated BEFORE first render (fix iOS initial blank calendar)
   setTab("schedule");
 
-  try{ if(!sessionStorage.getItem("fix34_toast")){ sessionStorage.setItem("fix34_toast","1"); toast("FIX34 已加载"); } }catch(e){}
+  try{ if(!sessionStorage.getItem("fix34_toast")){ sessionStorage.setItem("fix34_toast","1"); toast("FIX35 已加载"); } }catch(e){}
 
 
   function __forceScheduleRender(){
