@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>新手主持人手册 v2.6.23</title>
+<title>新手主持人手册 v2.6.35 FIX36</title>
 <style>
 /* -------------------------
    Theme tokens
@@ -1895,7 +1895,7 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
 
 
 /* =========================================================
-   Mobile & Tablet UI Patch (v2.6.33-m1)
+   Mobile & Tablet UI Patch (v2.6.35 FIX36-m1)
    - bottom tab bar on phone
    - TOC drawer on phone/tablet
    - touch targets + safe-area
@@ -13380,18 +13380,36 @@ pl.updatedAt = Date.now();
 
     var _btnUp = $("#btnUpload");
     if(_btnUp) _btnUp.addEventListener("click", function(){
-      var inp = $("#audioFile");
-      if(!inp) return;
+      // iOS Safari: the Files picker may grey-out audio when an <input> has accept filtering,
+      // and sometimes it still caches the filter even if we edit `accept` right before click.
+      // Solution: create a fresh input each time on iOS (no accept), then validate after selection.
       try{
         var ua = navigator.userAgent || "";
         var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
         if(isIOS){
-          try{ inp.removeAttribute("accept"); }catch(e){}
-          inp.accept = "";
-        } else {
-          inp.accept = "audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus,.caf";
+          const dyn = document.createElement("input");
+          dyn.type = "file";
+          dyn.multiple = true;
+          dyn.accept = ""; // allow anything; we filter in addFilesToLibrary
+          dyn.style.position = "fixed";
+          dyn.style.left = "-10000px";
+          dyn.style.top = "-10000px";
+          document.body.appendChild(dyn);
+          dyn.addEventListener("change", async (e)=>{
+            try{
+              await addFilesToLibrary(dyn.files, false);
+            }finally{
+              try{ dyn.remove(); }catch(_e){}
+            }
+          }, { once:true });
+          dyn.click();
+          return;
         }
       }catch(e){}
+
+      var inp = $("#audioFile");
+      if(!inp) return;
+      try{ inp.accept = "audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus,.caf"; }catch(e){}
       try{ inp.value = ""; }catch(e){}
       inp.click();
     });
@@ -18489,6 +18507,9 @@ ${v.cta}`,
 
   // Ensure Schedule is activated BEFORE first render (fix iOS initial blank calendar)
   setTab("schedule");
+
+  try{ if(!sessionStorage.getItem("fix36_toast")){ sessionStorage.setItem("fix36_toast","1"); toast("FIX36 已加载"); } }catch(e){}
+
 
   try{ if(!sessionStorage.getItem("fix34_toast")){ sessionStorage.setItem("fix34_toast","1"); toast("FIX35 已加载"); } }catch(e){}
 
