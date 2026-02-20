@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>新手主持人手册 v2.6.35 FIX36</title>
+<title>新手主持人手册</title>
 <style>
 /* -------------------------
    Theme tokens
@@ -301,7 +301,7 @@ h1{margin:0;font-size:18px; letter-spacing:.2px}
 .sched-actions{display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:flex-end}
 
 .sched-summary{margin-top:12px; display:grid; grid-template-columns: repeat(3, 1fr); gap:10px}
-@media (max-width:780px){ .sched-summary{grid-template-columns:repeat(2, 1fr)} }
+@media (max-width:780px){ .sched-summary{grid-template-columns:1fr} }
 .stat{
   border:1px solid var(--line); border-radius:var(--radius-lg); background:var(--card2);
   padding:12px; box-shadow: var(--shadow2);
@@ -1894,540 +1894,69 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
 
 
 
-/* =========================================================
-   Mobile & Tablet UI Patch (v2.6.35 FIX36-m1)
-   - bottom tab bar on phone
-   - TOC drawer on phone/tablet
-   - touch targets + safe-area
-   - music system one-panel switcher on small screens
-========================================================= */
-:root{
-  --tap: 44px;
-  --pad: clamp(12px, 3.6vw, 18px);
-  --pad2: clamp(10px, 3.0vw, 16px);
-  --fz: clamp(13px, 3.2vw, 15px);
-  --fz2: clamp(15px, 3.8vw, 18px);
+/* -------------------------
+   Customers module
+--------------------------*/
+.custTop{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.custActions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.custFilters{display:grid;grid-template-columns: 1fr 180px 160px 200px;gap:10px;align-items:center;margin:12px 0 16px}
+.custSearch{display:flex;align-items:center;gap:10px;background:var(--btnbg2);border:1px solid var(--line);border-radius:999px;padding:10px 12px}
+.custSearch .icon{opacity:.7}
+.custSearch input{border:0;background:transparent;outline:none;width:100%;font-size:14px}
+.custSel{border:1px solid var(--line);background:var(--btnbg2);border-radius:14px;padding:10px 12px;font-size:14px}
+.custStats{display:grid;grid-template-columns: 1.2fr 1fr 1fr;gap:14px;margin:10px 0 16px}
+.custStat{background:var(--card2);border:1px solid var(--line);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow2)}
+.custList{display:grid;grid-template-columns: 1fr 1fr;gap:14px}
+.custCard{background:var(--card2);border:1px solid var(--line);border-radius:var(--radius-xl);padding:14px 16px;box-shadow:var(--shadow2);position:relative;overflow:hidden}
+.custCardHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.custName{font-weight:900;font-size:18px;letter-spacing:.2px}
+.custMeta{margin-top:6px;color:var(--muted);font-size:13px}
+.custPills{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.custPill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--chipbg);border:1px solid var(--chipbd);font-size:12px}
+.custBtns{display:flex;gap:8px;align-items:center}
+/* 客户页：编辑方式小开关（客户弹窗 / 跳档期） */
+.custModeBar{display:flex;align-items:center;gap:10px;margin-left:12px}
+.custModeLabel{font-size:12px;color:var(--muted);white-space:nowrap}
+.custModeWrap{display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--line);border-radius:999px;background:var(--card);user-select:none}
+.custModeText{font-size:12px;color:var(--muted);min-width:2.2em;text-align:center}
+.switchTiny{position:relative;display:inline-block;width:34px;height:18px}
+.switchTiny input{opacity:0;width:0;height:0}
+.sliderTiny{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--btnbg);border:1px solid var(--line);transition:.18s;border-radius:999px}
+.sliderTiny:before{position:absolute;content:"";height:14px;width:14px;left:2px;top:1px;background:var(--card2);border:1px solid var(--line);transition:.18s;border-radius:50%}
+.switchTiny input:checked + .sliderTiny{filter:brightness(1.06)}
+.switchTiny input:checked + .sliderTiny:before{transform:translateX(16px)}
+/* 顶部工具栏在窄屏换行更好看 */
+@media (max-width: 720px){
+  .custActions{flex-wrap:wrap;gap:10px}
+  .custModeBar{width:100%;margin-left:0}
 }
 
-/* Mobile typography baseline */
-body{ font-size: var(--fz); }
-
-/* Touch ergonomics */
-@media (hover:none) and (pointer:coarse){
-  .btn,.tab,.menuItem,.sbtn,.pillbtn,.daypill,.kgItem,.iconbtn,.schip,.chipBtn,.catBtn{
-    min-height: var(--tap);
-  }
-  .btn,.tab,.menuItem,.sbtn,.pillbtn{ padding-top: 11px; padding-bottom: 11px; }
+.custTiny{padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--btnbg);cursor:pointer}
+.custTiny:hover{filter:brightness(1.02)}
+.custToggle{position:absolute;right:14px;top:14px}
+.custBody{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+.custBody.hidden{display:none}
+.majorList{display:grid;grid-template-columns: 160px 1fr auto;gap:8px;align-items:center}
+.majorRow input{width:100%}
+.majorRow .sbtn{padding:8px 10px;border-radius:12px}
+.majorRemindList{display:flex;flex-direction:column;gap:10px}
+.majorItem{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;background:var(--card2);border:1px solid var(--line);border-radius:18px;padding:12px 14px}
+.majorItem b{font-weight:900}
+@media (max-width: 980px){
+  .custFilters{grid-template-columns:1fr 1fr; }
+  .custStats{grid-template-columns:1fr; }
+  .custList{grid-template-columns:1fr; }
 }
-
-/* iOS: prevent focus-zoom */
-input, textarea, select{ font-size: 16px; }
-
-/* Safe-area for fixed elements */
-@supports (padding: max(0px)){
-  .fabReload{ right: max(12px, calc(12px + env(safe-area-inset-right))); bottom: max(12px, calc(12px + env(safe-area-inset-bottom))); }
-  .clipDrawer{ bottom: max(12px, calc(12px + env(safe-area-inset-bottom))); }
-}
-
-/* Scroll: momentum */
-.nav,.kgList,.linesList,.modal-body,.pickerCats,.pickerList{ -webkit-overflow-scrolling: touch; }
-
-/* ===== TOC drawer (mobile/tablet) ===== */
-#tocBackdrop{
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.42);
-  display:none;
-  z-index: 9998;
-}
-#tocBackdrop.show{ display:block; }
-
-@media (max-width: 900px){
-  .wrap{ padding: var(--pad); }
-  .header{ padding: var(--pad2); border-radius: 22px; }
-  .brand{ align-items:center; }
-  h1{ font-size: 17px; }
-  .sub{ font-size: 12.5px; }
-  .tools{ gap: 8px; justify-content:flex-start; }
-  .theme-switch{ width: 100%; overflow:auto; }
-  .theme-switch::-webkit-scrollbar{ height: 6px; }
-  .tbtn{ white-space: nowrap; }
-
-  /* Cards tighter */
-  .card,.schedule,.aside{ border-radius: 22px; }
-  .card{ padding: 14px; }
-  .box{ border-radius: 18px; }
-  .script{ border-radius: 18px; }
-
-  /* Off-canvas aside */
-  .aside{
-    position: fixed !important;
-    left: max(10px, env(safe-area-inset-left));
-    top: max(10px, env(safe-area-inset-top));
-    bottom: max(10px, env(safe-area-inset-bottom));
-    width: min(360px, 86vw);
-    transform: translateX(calc(-100% - 18px));
-    transition: transform .18s ease;
-    z-index: 9999;
-    overflow: hidden;
-  }
-  body.tocOpen .aside{ transform: translateX(0); }
-  body.tocOpen #tocBackdrop{ display:block; }
-
-  /* When aside becomes drawer, don't waste space in layout */
-  .grid{ grid-template-columns: 1fr !important; }
-}
-
-/* ===== Phone bottom tab bar ===== */
-@media (max-width: 640px){
-  .wrap{ padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
-  .tabs{
-    position: fixed;
-    left: 0; right: 0; bottom: 0;
-    margin: 0;
-    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-    background: color-mix(in srgb, var(--card2) 92%, transparent);
-    backdrop-filter: var(--blur);
-    border-top: 1px solid var(--line);
-    border-radius: 18px 18px 0 0;
-    z-index: 9997;
-    box-shadow: 0 -18px 55px rgba(0,0,0,.12);
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    gap: 10px;
-  }
-  .tab{ padding: 12px 14px; border-radius: 16px; white-space: nowrap; }
-}
-
-/* ===== Schedule calendar: compact on phone ===== */
-@media (max-width: 520px){
-  .sched-top{ gap: 10px; }
-  .sched-actions{ width: 100%; justify-content:flex-start; }
-  .sched-summary{ grid-template-columns: repeat(2, 1fr); gap: 8px; }
-
-  /* Mobile compact: schedule stats */
-  .stat{ padding:10px 10px; border-radius: 18px; }
-  .stat .value{ font-size:18px; margin-top:4px; }
-  .stat .small{ display:none; }
-  .stat.wide{ padding:10px; }
-  .days{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; gap:6px; padding-bottom:4px; }
-  .days::-webkit-scrollbar{ display:none; }
-  .daypill{ padding:6px 8px; font-size:12px; white-space:nowrap; }
-  .sched-split{ grid-template-columns: 1fr; }
-  .cal-head,.cal-body{ gap: 6px; }
-  .day{ min-height: 78px; padding: 8px; border-radius: 18px; }
-  .events{ gap: 4px; max-height: 56px; overflow:hidden; }
-  .ev{ padding: 6px 7px; border-radius: 14px; }
-  .ev .t{ font-size: 12px; }
-  .ev .s{ display:none; }
-}
-
-
-/* ===== Schedule: ultra-small phones ===== */
-@media (max-width: 420px){
-  .sched-summary{ grid-template-columns: 1fr !important; }
-  .stat{ padding: 10px 10px; }
-}
-/* ===== Modal: bottom-sheet on small screens ===== */
-@media (max-width: 520px){
-  .modal-panel{
-    margin: 0 !important;
-    max-width: none !important;
-    width: 100% !important;
-    position: fixed !important;
-    left: 0; right: 0; bottom: 0;
-    border-radius: 22px 22px 0 0 !important;
-  }
-  .modal-head{ padding: 12px 12px; }
-  .modal-body{ padding: 12px; max-height: min(74vh, 720px); }
-  .modal-foot{ padding: 12px; }
-}
-
-/* ===== Music system: one-panel switcher on mobile/tablet ===== */
-.kgMobileSeg{
-  display:none;
-  gap: 10px;
-  align-items:center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  margin: 8px 0 10px;
-}
-.kgMobileSeg .seg{
-  display:inline-flex;
-  border:1px solid var(--line);
-  border-radius:999px;
-  overflow:hidden;
-  background: color-mix(in srgb, var(--card2) 70%, transparent);
-}
-.kgMobileSeg .segbtn{
-  padding: 10px 12px;
-  font-size: 13px;
-  color: var(--muted);
-  background: transparent;
-  border:0;
-  cursor:pointer;
-  white-space: nowrap;
-}
-.kgMobileSeg .segbtn.on{
-  color: var(--txt);
-  background: color-mix(in srgb, var(--p2) 14%, transparent);
-}
-.kgMobileSeg .mini{ font-size: 12px; color: var(--muted); }
-
-@media (max-width: 1100px){
-  .kgMobileSeg{ display:flex; }
-  /* Override the desktop multi-column splitter grid */
-  #kgGrid{
-    grid-template-columns: 1fr !important;
-    grid-template-rows: 1fr !important;
-    gap: 0 !important;
-  }
-  #kgGrid .kgResizer{ display:none !important; }
-
-  /* one-at-a-time view */
-  #kgGrid.mobilePortrait .kgCol{ display:none !important; }
-  #kgGrid.mobilePortrait .kgCol.show{ display:flex !important; }
-  #kgGrid.mobilePortrait .kgCol{ height: min(78dvh, 760px) !important; }
-}
-
-
-/* ===== Music system: landscape two-column mode (library + right panel) ===== */
-@media (max-width: 1100px) and (orientation: landscape){
-  /* override the single-column rule */
-  #kgGrid{ grid-template-columns: minmax(240px, 34vw) 1fr !important; }
-  /* portrait: one-at-a-time */
-  #kgGrid.mobilePortrait .kgCol{ display:none !important; }
-  #kgGrid.mobilePortrait .kgCol.show{ display:flex !important; }
-  /* landscape: library + (playlist OR queue) */
-  #kgGrid.mobileLandscape .kgCol{ display:none !important; }
-  #kgGrid.mobileLandscape #kgColLib{ display:flex !important; }
-  #kgGrid.mobileLandscape #kgColPl.show,
-  #kgGrid.mobileLandscape #kgColQueue.show{ display:flex !important; }
-  #kgGrid.mobileLandscape #kgColLib{ height: min(78dvh, 760px) !important; }
-  #kgGrid.mobileLandscape #kgColPl,
-  #kgGrid.mobileLandscape #kgColQueue{ height: min(78dvh, 760px) !important; }
-}
-
-
-
-/* =========================================================
-   Learn Aggregation Page + Schedule month-mode
-========================================================= */
-.learnSeg{
-  display:flex; gap:10px; flex-wrap:wrap;
-}
-.learnSeg .segbtn{
-  flex: 1 1 0;
-  min-width: 110px;
-  height: 42px;
-  padding: 0 12px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: color-mix(in srgb, var(--card) 86%, transparent);
-  color: var(--text);
-  font-weight: 820;
-  letter-spacing: .2px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap: 8px;
-}
-.learnSeg .segbtn.on{
-  border-color: color-mix(in srgb, var(--accent) 58%, var(--line));
-  background: color-mix(in srgb, var(--accent) 18%, var(--card));
-  box-shadow: 0 10px 30px rgba(0,0,0,.25);
-}
-.learnPanes{ width:100%; }
-.learnPane{ display:none; }
-.learnPane.active{ display:block; }
-
-#viewLearn #hostHandbookFrame,
-#viewLearn #hostSocialFrame{
-  height: min(78vh, 920px);
-}
-@media (max-width: 640px){
-  #viewLearn #hostHandbookFrame,
-  #viewLearn #hostSocialFrame{
-    height: calc(100vh - 240px);
-  }
-}
-
-/* Schedule: month-mode = calendar only (list hidden); click event/day jumps to day info */
-#scheduleWrap.mode-month .list-card{ display:none !important; }
-#scheduleWrap.mode-month .sched-split{ grid-template-columns: 1fr !important; }
-#scheduleWrap.mode-month .cal-card{ min-height: min(76vh, 860px); }
-#scheduleWrap.mode-month .cal-title .mini{ opacity:.8; }
-
-#btnModeCal.active, #btnModeMonth.active{
-  border-color: color-mix(in srgb, var(--accent) 58%, var(--line)) !important;
-  background: color-mix(in srgb, var(--accent) 18%, var(--card)) !important;
-}
-
-@keyframes pulseOnce {
-  0%{ transform: translateY(0); box-shadow: 0 0 0 rgba(0,0,0,0); }
-  50%{ transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,.25); }
-  100%{ transform: translateY(0); box-shadow: 0 0 0 rgba(0,0,0,0); }
-}
-.pulseOnce{ animation: pulseOnce .8s ease; }
-
-/* =========================================================
-   Mobile UI adjustments (m-nav3 + schedule compact rows)
-========================================================= */
-@media (max-width: 640px){
-  /* Replace bottom tabs with 3-item mobile nav */
-  .tabs > .tab{ display:none !important; }
-  #mNav3{
-    display:flex !important;
-    width: 100%;
-    gap: 10px;
-  }
-  #mNav3 .mnav-btn{
-    flex: 1 1 0;
-    min-width: 0;
-    height: var(--tap);
-    padding: 0 10px;
-    border-radius: 14px;
-    border: 1px solid var(--line);
-    background: color-mix(in srgb, var(--card) 86%, transparent);
-    color: var(--text);
-    font-weight: 750;
-    letter-spacing: .2px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap: 8px;
-  }
-  #mNav3 .mnav-btn.active{
-    border-color: color-mix(in srgb, var(--accent) 58%, var(--line));
-    background: color-mix(in srgb, var(--accent) 18%, var(--card));
-    box-shadow: 0 10px 30px rgba(0,0,0,.25);
-  }
-
-  /* Learn sheet */
-  #learnBackdrop{
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,.46);
-    display:none;
-    z-index: 10000;
-  }
-  #learnBackdrop.show{ display:block; }
-  #learnSheet{
-    position: fixed;
-    left: 0; right: 0; bottom: 0;
-    transform: translateY(110%);
-    transition: transform .22s ease;
-    z-index: 10001;
-    background: color-mix(in srgb, var(--card2) 92%, transparent);
-    border-top: 1px solid var(--line);
-    backdrop-filter: var(--blur);
-    border-radius: 22px 22px 0 0;
-    padding: 14px 12px calc(14px + env(safe-area-inset-bottom));
-  }
-  #learnSheet.show{ transform: translateY(0); }
-  #learnSheet .sheet-title{
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom: 10px;
-  }
-  #learnSheet .sheet-title b{ font-size: 14px; opacity:.92; }
-  #learnSheet .sheet-grid{
-    display:grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-  #learnSheet .sheet-btn{
-    height: 48px;
-    border-radius: 16px;
-    border: 1px solid var(--line);
-    background: color-mix(in srgb, var(--card) 86%, transparent);
-    color: var(--text);
-    font-weight: 800;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding: 0 14px;
-  }
-  #learnSheet .sheet-btn span{ opacity:.85; font-weight: 750; }
-  #learnSheet .sheet-close{
-    height: 34px; width: 34px;
-    border-radius: 12px;
-    border: 1px solid var(--line);
-    background: transparent;
-    color: var(--text);
-    font-weight: 900;
-  }
-
-  /* Schedule page: actions in ONE row (scroll if needed) */
-  #viewSchedule .sched-actions{
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
-    gap: 8px !important;
-    padding-bottom: 2px;
-  }
-  #viewSchedule .sched-actions .btn{
-    flex: 0 0 auto;
-    height: 40px;
-    padding: 0 12px;
-    border-radius: 14px;
-    white-space: nowrap;
-  }
-
-  /* Schedule page: first 3 stats in ONE row; the wide card full width below */
-  #viewSchedule .sched-summary{
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px !important;
-  }
-  #viewSchedule .sched-summary .stat{
-    padding: 10px !important;
-    border-radius: 16px !important;
-  }
-  #viewSchedule .sched-summary .stat .label{ font-size: 12px !important; opacity:.86; }
-  #viewSchedule .sched-summary .stat .value{ font-size: 20px !important; line-height: 1.05 !important; }
-  #viewSchedule .sched-summary .stat .small{ font-size: 11px !important; opacity:.8; }
-  #viewSchedule .sched-summary .stat.wide{ grid-column: 1 / -1; }
-
-  /* If ultra-narrow, allow horizontal scroll for the 3 stats */
-  @media (max-width: 420px){
-    #viewSchedule .sched-summary{
-      display:flex !important;
-      overflow-x:auto !important;
-      -webkit-overflow-scrolling: touch;
-      gap: 8px !important;
-    }
-    #viewSchedule .sched-summary .stat{ min-width: 130px; flex: 0 0 auto; }
-    #viewSchedule .sched-summary .stat.wide{ min-width: 92vw; }
-  }
-}
-@media (min-width: 641px){
-  #mNav3, #learnBackdrop, #learnSheet{ display:none !important; }
-}
-
-/* Handbook & Social TOC: soften the title prominence (宣抚使) */
-
-
-
-/* iOS Safari: file input must not be display:none, or .click() may be blocked */
-.fileHidden{
-  position: fixed !important;
-  left: -10000px !important;
-  top: -10000px !important;
-  width: 1px !important;
-  height: 1px !important;
-  opacity: 0 !important;
-}
-
-
-
-/* Calendar month nav (prev/next integrated in title) */
-.cal-title{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
-.monthNav{ display:flex; align-items:center; gap:10px; }
-.mnBtn{
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: color-mix(in srgb, var(--card) 92%, transparent);
-  color: var(--text);
-  font-weight: 900;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.mnBtn:active{ transform: translateY(1px); }
-
-
-
-/* Learn embedded original views */
-#viewLearn .embeddedView{
-  display:block !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-#viewLearn .embeddedView.hidden{ display:block !important; } /* in case older code adds .hidden */
-#viewLearn .embeddedView.view{ display:block !important; }
-
-
-
-/* Month agenda (Schedule month-mode like app list) */
-#monthAgendaCard{ display:none; margin-top: 12px; }
-.schedule.mode-month .sched-split{ display:none; }
-.schedule.mode-month #monthAgendaCard{ display:block; }
-
-.monthAgenda{ background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow:hidden; }
-.mgroupHead{
-  display:grid;
-  grid-template-columns: 1fr auto;
-  align-items:center;
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--line);
-  background: color-mix(in srgb, var(--card) 86%, var(--bg));
-}
-.mgroupHead .mmonth{
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: .5px;
-}
-.mgroupHead .mmeta{
-  text-align:right;
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.15;
-}
-.mrow{
-  display:grid;
-  grid-template-columns: 96px 1fr auto;
-  align-items:center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--line);
-}
-.mrow:last-child{ border-bottom: none; }
-.mdate{
-  display:flex; flex-direction:column; gap:2px;
-  color: var(--text);
-}
-.mdate .d{
-  font-size: 22px;
-  font-weight: 900;
-  line-height: 1;
-}
-.mdate .t{
-  font-size: 12px;
-  color: var(--muted);
-}
-.mcenter .place{
-  font-size: 18px;
-  font-weight: 900;
-  line-height: 1.1;
-}
-.mcenter .sub{
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 2px;
-}
-.mright{
-  text-align:right;
-  min-width: 80px;
-}
-.mright .name{
-  font-weight: 900;
-  font-size: 16px;
-}
-.mright .small{
-  font-size: 12px;
-  color: var(--muted);
-}
-.mrow:active{ background: color-mix(in srgb, var(--card) 70%, var(--bg)); }
-
 </style>
 </head>
 <body data-music-mode="builtin" data-p1-fullscreen="0" data-now-compact="1" data-queue-grid="1">
+  <div id="buildBadge">v—</div>
 <div class="wrap">
   <header class="header">
     <div class="brand">
       <div class="logo"></div>
       <div>
-        <h1>主持人学习手册 <span class="ver">v2.6.1 Final</span></h1>
+        <h1>主持人学习手册 <span class="ver" id="appVer">v—</span></h1>
 </div>
     </div>
     
@@ -2454,6 +1983,7 @@ input, textarea, select{ font-size: 16px; }
 
     <div class="tabs" role="tablist">
       <button class="tab active" id="tabSchedule" role="tab" aria-selected="true">📅 档期记录</button>
+      <button class="tab" id="tabCustomers" role="tab" aria-selected="false">👥 客户</button>
       <button class="tab" id="tabHandbook" role="tab" aria-selected="false">📘 学习手册</button>
       <button class="tab" id="tabLines" role="tab" aria-selected="false">🎙 主持台词</button>
       <button class="tab" id="tabSocial" role="tab" aria-selected="false">📱 主持人自媒体入门与进阶</button>
@@ -2461,36 +1991,63 @@ input, textarea, select{ font-size: 16px; }
     </div>
   </header>
 
-
-  <section class="view" id="viewLearn">
+  <section class="view" id="viewCustomers">
     <div class="grid onecol">
       <main class="cards">
-        <section class="card" style="padding:14px 14px 10px">
-          <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:10px; flex-wrap:wrap">
+        <section class="card">
+          <div class="custTop">
             <div>
-              <h2 style="margin:0">我要学习</h2>
-              <div class="muted-small" style="margin-top:6px">在这里切换：主持人手册 / 台词 / 自媒体（不弹窗）。</div>
+              <h2 style="margin:0">客户</h2>
+              <div class="sub2">支持：宴会类型/状态/重大事件提醒/跟进记录/筛选排序。</div>
+            </div>
+            <div class="custActions">
+              <button class="btn primary" id="btnAddCustomer">＋ 新增客户</button>
+              <button class="btn" id="btnMajorRemind">⏰ 重大事件提醒</button>
+            
+              <div class="custModeBar" title="切换：客户弹窗编辑 / 跳档期编辑">
+                <span class="muted-small">编辑方式</span>
+                <label class="switchTiny">
+                  <input type="checkbox" id="custEditModeSwitch" aria-label="编辑方式切换">
+                  <span class="sliderTiny"></span>
+                </label>
+                <span class="custModeLabel" id="custEditModeLabel">客户弹窗编辑</span>
+              </div>
+</div>
+          </div>
+
+          <div class="custFilters">
+            <div class="custSearch">
+              <span class="icon">🔎</span>
+              <input type="text" id="custSearch" placeholder="搜索：姓名 / 联系方式 / 事件说明" />
+            </div>
+            <select id="custTypeFilter" class="custSel"></select>
+            <select id="custStatusFilter" class="custSel"></select>
+            <select id="custSort" class="custSel"></select>
+          </div>
+
+          <div class="custStats">
+            <div class="stat custStat">
+              <div class="label">宴会类型客户数</div>
+              <div class="value" id="custTypeTop">—</div>
+              <div class="small">Top5</div>
+            </div>
+            <div class="stat custStat">
+              <div class="label">本月新增客户</div>
+              <div class="value" id="custMonthNew">0</div>
+              <div class="small" id="custMonthLabel">—</div>
+            </div>
+            <div class="stat custStat">
+              <div class="label">本月执行</div>
+              <div class="value" id="custMonthExec">0</div>
+              <div class="small">已执行/已交付</div>
             </div>
           </div>
 
-          <div class="learnSeg" id="learnSeg" role="tablist" aria-label="学习聚合切换" style="margin-top:12px">
-            <button class="segbtn on" type="button" data-sub="handbook" role="tab" aria-selected="true">📘 主持人手册</button>
-            <button class="segbtn" type="button" data-sub="lines" role="tab" aria-selected="false">🎙 台词</button>
-            <button class="segbtn" type="button" data-sub="social" role="tab" aria-selected="false">📱 自媒体</button>
-          </div>
-        </section>
-
-        <section class="card" style="padding:0; overflow:hidden">
-          <div class="learnPanes" id="learnPanes">
-            <div class="learnPane active" id="learnPaneHandbook"></div>
-            <div class="learnPane" id="learnPaneLines"></div>
-            <div class="learnPane" id="learnPaneSocial"></div>
-          </div>
+          <div class="custList" id="customerList"></div>
         </section>
       </main>
     </div>
   </section>
-
 
   <section class="view" id="viewHandbook">
     <div class="grid onecol">
@@ -2613,9 +2170,7 @@ input, textarea, select{ font-size: 16px; }
     }
 
     /* TOC */
-    .toc-title{
-  align-items: center;
-display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
+    .toc-title{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
     .toc-title b{font-size:14px}
     .toc a{
       display:block;
@@ -2879,9 +2434,9 @@ display:flex; align-items:center; justify-content:space-between; gap:10px; margi
 
 <div class="page">
   <div class="layout">
-    <aside aria-label="宣抚使">
+    <aside aria-label="目录">
       <div class="toc-title">
-        <b>宣抚使</b>
+        <b>目录</b>
         <span class="tag">固定左侧</span>
       </div>
       <div class="toc">
@@ -3843,121 +3398,6 @@ display:flex; align-items:center; justify-content:space-between; gap:10px; margi
 })();
 </script>
 
-
-<script>
-/* FIX45_P1_OUTSIDE_BIND */
-document.addEventListener("DOMContentLoaded", function(){
-  // FIX45: prevent old cache / service worker from making the page look "unchanged"
-  try{
-    if("serviceWorker" in navigator){
-      navigator.serviceWorker.getRegistrations().then(function(rs){
-        rs.forEach(function(r){ try{ r.unregister(); }catch(e){} });
-      });
-    }
-    if(window.caches && caches.keys){
-      caches.keys().then(function(keys){
-        keys.forEach(function(k){ try{ caches.delete(k); }catch(e){} });
-      });
-    }
-  }catch(e){}
-
-  try{
-    var btnI = document.getElementById("btnP1ImportOutside");
-    var btnS = document.getElementById("btnP1SyncOutside");
-    var btnH = document.getElementById("btnP1HelpToggle");
-    var box = document.getElementById("p1HelpBox");
-    if(btnH && box){
-      btnH.addEventListener("click", function(){
-        box.style.display = (box.style.display==="none" || !box.style.display) ? "block" : "none";
-      });
-    }
-
-    function setP1ModeBestEffort(){
-      try{
-        if (typeof setMusicPlayerMode === "function") setMusicPlayerMode("p1");
-        document.body.dataset.musicMode = "p1";
-      }catch(e){}
-    }
-
-    async function ensureP1Window(){
-      setP1ModeBestEffort();
-      try{ if(typeof ensureP1ConsoleLoaded==="function") ensureP1ConsoleLoaded(); }catch(e){}
-      var fr = document.getElementById("p1ConsoleFrame");
-      if(!fr) return null;
-      for(var i=0;i<30;i++){
-        var w = fr.contentWindow;
-        if(w && w.__p1Api && w.__p1Api.importFiles) return w;
-        await new Promise(function(r){ setTimeout(r, 120); });
-      }
-      return fr.contentWindow;
-    }
-
-    async function pickFilesAndSend(){
-      try{
-        var ua = navigator.userAgent || "";
-        var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
-        var inp = document.createElement("input");
-        inp.type = "file";
-        inp.multiple = true;
-        inp.accept = isIOS ? "" : "audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus,.caf";
-        inp.style.position="fixed";
-        inp.style.left="-99999px";
-        inp.style.top="-99999px";
-        document.body.appendChild(inp);
-        inp.addEventListener("change", async function(){
-          var files = inp.files;
-          try{
-            var w = await ensureP1Window();
-            if(w && w.__p1Api && typeof w.__p1Api.importFiles==="function"){
-              await w.__p1Api.importFiles(files);
-            }else{
-              if(typeof toast==="function") toast("P1 未就绪：请先进入 P1 播控台");
-            }
-          }catch(e){
-            console.error(e);
-            if(typeof toast==="function") toast("P1 导入失败：请换格式或稍后重试");
-          }finally{
-            try{ inp.value=""; }catch(e){}
-            try{ inp.remove(); }catch(e){}
-          }
-        }, {once:true});
-        inp.click();
-      }catch(e){
-        console.error(e);
-        if(typeof toast==="function") toast("无法打开文件选择器");
-      }
-    }
-
-    if(btnI) btnI.addEventListener("click", function(){ pickFilesAndSend(); });
-
-    if(btnS){
-      btnS.addEventListener("click", async function(){
-        try{
-          var w = await ensureP1Window();
-          if(w && w.__p1Api && typeof w.__p1Api.syncFromMain==="function"){
-            await w.__p1Api.syncFromMain();
-          }else{
-            if(typeof toast==="function") toast("P1 未就绪：请先进入 P1 播控台");
-          }
-        }catch(e){
-          console.error(e);
-          if(typeof toast==="function") toast("同步失败：请稍后重试");
-        }
-      });
-    }
-
-    try{
-      if(typeof toast==="function" && !sessionStorage.getItem("fix45_loaded")){
-        sessionStorage.setItem("fix45_loaded","1");
-        toast("FIX45 已加载");
-      }
-    }catch(e){}
-  }catch(err){
-    console.error(err);
-  }
-});
-</script>
-
 </body>
 </html>
 
@@ -4080,8 +3520,8 @@ document.addEventListener("DOMContentLoaded", function(){
     <div class="sched-actions">
       <button class="btn primary" id="btnAddBooking">＋ 新增档期</button>
       <button class="btn" id="btnToday">今天</button>
-            <button class="btn ghost" id="btnModeCal" title="显示：日历 + 当月列表">日历</button>
-      <button class="btn ghost" id="btnModeMonth" title="显示：月历档期（更大）">月历档期</button>
+      <button class="btn" id="btnPrevMonth">◀ 上月</button>
+      <button class="btn" id="btnNextMonth">下月 ▶</button>
       <button class="btn ghost" id="btnOpenYearSummary" title="切换到年度总结（与档期记录互斥）">年度总结</button>
     </div>
   </div>
@@ -4093,7 +3533,7 @@ document.addEventListener("DOMContentLoaded", function(){
       <div class="small" id="statMonthLabel">—</div>
     </div>
     <div class="stat">
-      <div class="label">有单数天</div>
+      <div class="label">有单天数</div>
       <div class="value" id="statDayCount">0</div>
       <div class="small">= 有单日期数量</div>
     </div>
@@ -4112,11 +3552,7 @@ document.addEventListener("DOMContentLoaded", function(){
   <div class="sched-split">
     <div class="cal-card">
       <div class="cal-title">
-        <div class="monthNav">
-          <button class="mnBtn" id="btnPrevMonth" type="button" aria-label="上月">‹</button>
-          <div class="month" id="calMonthTitle">—</div>
-          <button class="mnBtn" id="btnNextMonth" type="button" aria-label="下月">›</button>
-        </div>
+        <div class="month" id="calMonthTitle">—</div>
         <div class="mini">点击日期：新增档期 / 点击卡片：编辑档期</div>
       </div>
       <div class="cal-head" id="calHead"></div>
@@ -4136,17 +3572,7 @@ document.addEventListener("DOMContentLoaded", function(){
     </div>
   </div>
 </div>
-  
-  <!-- Month agenda (month-mode) -->
-  <div class="monthAgendaCard" id="monthAgendaCard">
-    <div class="list-title">
-      <div class="month">月历档期</div>
-      <div class="mini">按月份汇总（点击某一场：跳转到当天信息）。</div>
-    </div>
-    <div class="monthAgenda" id="monthAgenda"></div>
-  </div>
-
-<div class="ys-page hidden" id="yearSummaryPage">
+  <div class="ys-page hidden" id="yearSummaryPage">
   <div class="ys-topbar">
     <div class="muted-small">年度总结与档期记录互斥显示。这里按年份统计单量/收入/合作酒店。</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
@@ -4256,7 +3682,20 @@ document.addEventListener("DOMContentLoaded", function(){
           <input type="text" id="f_phone" placeholder="手机号/微信"/>
         </div>
 
+        
         <div class="field">
+          <label>宴会类型</label>
+          <select id="f_banquetType">
+            <option>婚宴</option>
+            <option>周岁</option>
+            <option>十周岁</option>
+            <option>订婚</option>
+            <option>寿宴</option>
+            <option>年会</option>
+            <option>商演</option>
+          </select>
+        </div>
+<div class="field">
           <label>新郎名字（可选）</label>
           <input type="text" id="f_groom" placeholder="用于替换台词里的【新郎】"/>
         </div>
@@ -4375,6 +3814,135 @@ document.addEventListener("DOMContentLoaded", function(){
     </div>
   </div>
 </div>
+
+
+<!-- Customers: Modals -->
+<div class="modal" id="customerModal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="1"></div>
+  <div class="modal-panel" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="customerModalTitle">新增客户</div>
+        <div class="modal-sub">可独立新增客户；也会在保存档期时自动同步。</div>
+      </div>
+      <button class="iconbtn" data-close="1" title="关闭">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field">
+          <label>客户姓名</label>
+          <input type="text" id="c_name" placeholder="例如：张三" />
+        </div>
+        <div class="field">
+          <label>联系方式</label>
+          <input type="text" id="c_phone" placeholder="手机号/微信（建议填，方便去重）" />
+        </div>
+        <div class="field">
+          <label>宴会类型</label>
+          <select id="c_type">
+            <option>婚宴</option>
+            <option>周岁</option>
+            <option>十周岁</option>
+            <option>订婚</option>
+            <option>寿宴</option>
+            <option>年会</option>
+            <option>商演</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>状态</label>
+          <select id="c_status">
+            <option>线索</option>
+            <option>已签</option>
+            <option>执行中</option>
+            <option>已交付</option>
+          </select>
+        </div>
+
+        <div class="field" style="grid-column:1/-1">
+          <label>重大事件提醒（可选）</label>
+          <div class="muted-small" style="margin-bottom:8px">例如：下次周岁/十周岁、纪念日、年会节点等（仅作提醒，不影响档期）。</div>
+          <div id="c_majorList" class="majorList"></div>
+          <div style="margin-top:10px">
+            <button class="sbtn" id="btnAddMajorRow">＋ 添加提醒</button>
+          </div>
+        </div>
+
+        <div class="field" style="grid-column:1/-1">
+          <label>备注（可选）</label>
+          <textarea id="c_notes" rows="3" placeholder="客户偏好/流程要点/注意事项等"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <div class="left">
+        <button class="btn danger" id="btnDeleteCustomer" style="display:none">删除</button>
+      </div>
+      <div class="right">
+        <button class="btn" data-close="1">取消</button>
+        <button class="btn primary" id="btnSaveCustomer">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="followupModal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="1"></div>
+  <div class="modal-panel" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">新增跟进</div>
+        <div class="modal-sub">写下这次沟通要点，方便后续追进。</div>
+      </div>
+      <button class="iconbtn" data-close="1" title="关闭">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field">
+          <label>跟进日期</label>
+          <input type="date" id="fu_date" />
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>跟进内容</label>
+          <textarea id="fu_note" rows="4" placeholder="例如：确认流程/定金已收/沟通父母致辞/确定音乐等"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div class="left"></div>
+      <div class="right">
+        <button class="btn" data-close="1">取消</button>
+        <button class="btn primary" id="btnSaveFollowup">保存跟进</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="majorRemindModal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="1"></div>
+  <div class="modal-panel" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">重大事件提醒</div>
+        <div class="modal-sub">未来 45 天内的档期/提醒（可按客户继续编辑）。</div>
+      </div>
+      <button class="iconbtn" data-close="1" title="关闭">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="majorRemindList" class="majorRemindList"></div>
+    </div>
+    <div class="modal-foot">
+      <div class="left"></div>
+      <div class="right">
+        <button class="btn primary" data-close="1">知道了</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /Customers: Modals -->
+
 
   </section>
 
@@ -7188,7 +6756,7 @@ $("#importBtn").addEventListener("click", async ()=>{
                 <button class="btn small primary" id="btnKtvCast" type="button" title="打开独立投放窗口（可拖到第二屏/电视）">投放窗口</button>
                 <button class="btn small" id="btnKtvFull" type="button" title="在本页面全屏覆盖显示歌词">全屏覆盖</button>
                 <button class="btn small danger" id="btnKtvStopCast" type="button" style="display:none">关闭投放</button>
-                <input id="ktvPickLrc" type="file" accept=".lrc,text/plain" class="fileHidden">
+                <input id="ktvPickLrc" type="file" accept=".lrc,text/plain" style="display:none"/>
               </div>
 
               <div class="ktvGrid">
@@ -7456,6 +7024,24 @@ $("#importBtn").addEventListener("click", async ()=>{
                   <button class="btn" id="btnOpenTool2">打开工具</button>
                 </div>
               </div>
+              <div class="box">
+                <h4 style="margin:0 0 10px">工具 ③（在线伴奏制作）</h4>
+                <div class="form-grid">
+                  <div class="field">
+                    <label>名称</label>
+                    <input class="inp" id="extTool3Name" placeholder="例如：VocalRemover 在线人声/伴奏分离" />
+                  </div>
+                  <div class="field" style="grid-column:1/-1">
+                    <label>链接（URL）</label>
+                    <input class="inp" id="extTool3Url" placeholder="https://vocalremover.org/next/" />
+                  </div>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px">
+                  <button class="btn primary" id="btnOpenTool3">打开网站</button>
+                </div>
+                <div class="muted small" style="margin-top:8px">上传歌曲 → 自动分离人声/伴奏 → 导出（在线工具）</div>
+              </div>
+
             </div>
 
             <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px">
@@ -7467,7 +7053,7 @@ $("#importBtn").addEventListener("click", async ()=>{
           </details>
 
 
-          <input id="audioFile" type="file" multiple class="fileHidden">
+          <input id="audioFile" type="file" accept="audio/*" multiple style="display:none"/>
           <audio id="audioEl" preload="metadata"></audio>
         
           </div><!-- /msBuiltinWrap -->
@@ -7485,21 +7071,7 @@ $("#importBtn").addEventListener("click", async ()=>{
             <div class="muted" style="margin:0 0 10px">
               P1 播控台与内置播放器<strong>互斥</strong>：切换会自动停止另一边。此模式下建议使用 <b>↑↓ 调主音量</b>、<b>左右/多媒体键 切上下曲</b>、<b>字母热键 秒播</b>。
             </div>
-            
-            <div class="card" id="p1ActionBar" style="margin:10px 0; padding:10px 12px;">
-              <div class="row" style="justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
-                <div class="row" style="gap:8px; flex-wrap:wrap;">
-                  <button class="btn" id="btnP1ImportOutside" type="button">导入到P1</button>
-                  <button class="btn" id="btnP1SyncOutside" type="button">同步内置曲库到P1</button>
-                </div>
-                <button class="btn ghost" id="btnP1HelpToggle" type="button">P1 使用说明</button>
-              </div>
-              <div id="p1HelpBox" class="muted small" style="margin-top:8px; display:none; line-height:1.45;">
-                iOS 提示：请从“文件 App”选择已下载的音频（带 ☁️ 的请先点云朵下载）。Apple Music 音乐库歌曲无法导入。<br>
-                如果导入后列表没变化，请先在 P1 左侧创建/选择分类，再重试。
-              </div>
-            </div>
-<iframe id="p1ConsoleFrame" title="P1 播控台"></iframe>
+            <iframe id="p1ConsoleFrame" title="P1 播控台"></iframe>
           </div>
 
 
@@ -7579,7 +7151,7 @@ $("#importBtn").addEventListener("click", async ()=>{
                   <div class="uvrRow" style="margin-top:10px">
                     <button class="btn primary" id="btnUvrRun" type="button">开始分离</button>
                     <button class="btn" id="btnUvrCancel" type="button" style="display:none">取消</button>
-                    <input id="uvrPickFile" type="file" accept="audio/*" class="fileHidden">
+                    <input id="uvrPickFile" type="file" accept="audio/*" style="display:none"/>
                     <button class="btn ghost" id="btnUvrPickFile" type="button">选择本地文件</button>
                     <div class="muted-small" id="uvrMsg" style="margin-left:auto"></div>
                   </div>
@@ -7648,16 +7220,8 @@ $("#importBtn").addEventListener("click", async ()=>{
 
 (() => {
   // 沿用旧 key，避免你之前录入的档期/台词丢失
-  
-  // Global error surface (helps detect broken deployments)
-  window.addEventListener("error", function(ev){
-    try{ toast("脚本错误：" + (ev.message||"unknown")); }catch(e){}
-  });
-  window.addEventListener("unhandledrejection", function(ev){
-    try{ toast("脚本错误：" + (ev.reason && ev.reason.message ? ev.reason.message : "promise rejected")); }catch(e){}
-  });
-const LS_KEY = "host_handbook_major_upgrade_v1";
-  const defaultState = { checks: {}, scripts: {}, bookings: {}, theme: "cream", lastExport: null };
+  const LS_KEY = "host_handbook_major_upgrade_v1";
+  const defaultState = { checks: {}, scripts: {}, bookings: {}, customers: {}, theme: "cream", lastExport: null };
   const $ = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
   const h = (s)=> String(s??"")
@@ -7687,6 +7251,8 @@ const LS_KEY = "host_handbook_major_upgrade_v1";
       const st = Object.assign(clone(defaultState), obj);
       if (st.scripts && typeof st.scripts !== "object") st.scripts = {};
       if (st.bookings && typeof st.bookings !== "object") st.bookings = {};
+      if (st.customers && typeof st.customers !== "object") st.customers = {};
+      if (!st.customers) st.customers = {};
       if (st.checks && typeof st.checks !== "object") st.checks = {};
       if (!Array.isArray(st.socialIdeas)) st.socialIdeas = [];
       if (!st.theme) st.theme = "cream";
@@ -8059,80 +7625,7 @@ const LS_KEY = "host_handbook_major_upgrade_v1";
     });
   }
 
-  
-  function renderMonthAgenda(){
-    const box = $("#monthAgenda");
-    const card = $("#monthAgendaCard");
-    if(!box || !card) return;
-
-    const all = bookingList()
-      .filter(b=> b && b.date)
-      .sort((a,b)=> (a.date||"").localeCompare(b.date||"") || (a.time||"").localeCompare(b.time||""));
-
-    if(!all.length){
-      box.innerHTML = `<div class="muted-small" style="padding:12px 14px">暂无档期。你可以点“＋ 新增档期”添加。</div>`;
-      return;
-    }
-
-    // group by month (YYYY-MM)
-    const groups = new Map();
-    all.forEach(b=>{
-      const ym = String(b.date||"").slice(0,7);
-      if(!ym) return;
-      if(!groups.has(ym)) groups.set(ym, []);
-      groups.get(ym).push(b);
-    });
-
-    const months = Array.from(groups.keys()).sort();
-    box.innerHTML = "";
-
-    const moneyOf = (v)=>{
-      const n = parseFloat(String(v||"").replace(/[^\d.]/g,""));
-      return isFinite(n) ? n : 0;
-    };
-
-    months.forEach(ym=>{
-      const list = groups.get(ym) || [];
-      const count = list.length;
-      const income = list.reduce((s,b)=> s + moneyOf(b.serviceFee), 0);
-
-      const head = document.createElement("div");
-      head.className = "mgroupHead";
-      head.innerHTML = `
-        <div class="mmonth">${parseInt(ym.slice(5),10)}月</div>
-        <div class="mmeta">共计 ${count} 单<br>收入：${income ? Math.round(income) : 0} 元</div>
-      `;
-      box.appendChild(head);
-
-      list.forEach(b=>{
-        const row = document.createElement("div");
-        row.className = "mrow";
-        const day = (b.date||"").slice(8,10);
-        const timeTxt = b.time ? b.time : "";
-        const place = (b.weddingHotel || "未填写酒店") + (b.hall ? " / "+b.hall : "");
-        row.innerHTML = `
-          <div class="mdate">
-            <div class="d">${day}日</div>
-            <div class="t">${timeTxt || "—"}</div>
-          </div>
-          <div class="mcenter">
-            <div class="place">${escapeHtml(b.weddingHotel || "未填写酒店")}${b.hall ? " " + escapeHtml(b.hall) : ""}</div>
-            <div class="sub">${escapeHtml(b.groomName||"—")} / ${escapeHtml(b.brideName||"—")}</div>
-          </div>
-          <div class="mright">
-            <div class="name">${escapeHtml(b.clientName||"未命名")}</div>
-            <div class="small">${moneyOf(b.serviceFee)? ("¥"+Math.round(moneyOf(b.serviceFee))) : ""}</div>
-          </div>
-        `;
-        row.addEventListener("click", ()=> {
-          try{ __jumpToDayInfo(b.date, b.id); }catch(e){ openBooking(b.id); }
-        });
-        box.appendChild(row);
-      });
-    });
-  }
-
-function renderCalendar() {
+  function renderCalendar() {
     if (!calHead || !calBody) return;
     calHead.innerHTML = weekNames.map(w=>`<div style="padding:0 6px">${w}</div>`).join("");
 
@@ -8194,11 +7687,7 @@ function renderCalendar() {
                         <div class="s">${ev.weddingHotel||""}</div>`;
         el.addEventListener("click", (e)=> {
           e.stopPropagation();
-          if (window.__schedViewMode && window.__schedViewMode()==="month"){
-            try{ window.__jumpToDayInfo && window.__jumpToDayInfo(iso, ev.id); }catch(_e){}
-          } else {
-            openBooking(ev.id);
-          }
+          openBooking(ev.id);
         });
         evWrap.appendChild(el);
       });
@@ -8206,15 +7695,7 @@ function renderCalendar() {
       cell.addEventListener("click", ()=> {
         const inThisMonth = ymKey(iso) === ym;
         if (inThisMonth && events.length) {
-          // month-mode: jump to day info instantly
-          if (window.__schedViewMode && window.__schedViewMode()==="month"){
-            try{ window.__jumpToDayInfo && window.__jumpToDayInfo(iso, (events[0]&&events[0].id)||null); }catch(_e){}
-            return;
-          }
           dayFilter = iso;
-          if (window.__schedViewMode && window.__schedViewMode()==="month"){
-            try{ window.__setSchedViewMode && window.__setSchedViewMode("calendar"); }catch(_e){}
-          }
           renderList();
           renderMonthStats();
           toast("已筛选该日档期");
@@ -8246,7 +7727,6 @@ function renderCalendar() {
     list.forEach(b=> {
       const el = document.createElement("div");
       el.className = "item";
-      el.dataset.id = b.id || "";
       const linked = (b.linkedSections || []).map(id=> secMeta.find(s=>s.id===id)?.name).filter(Boolean);
       const chips = linked.slice(0,6).map(x=>`<span class="chip">${x}</span>`).join("");
       el.innerHTML = `
@@ -8275,7 +7755,7 @@ function renderCalendar() {
     const d = new Date();
     cursor = new Date(d.getFullYear(), d.getMonth(), 1);
     dayFilter = "all";
-    renderCalendar(); renderList(); renderMonthStats(); renderMonthAgenda();
+    renderCalendar(); renderList(); renderMonthStats();
   });
   $("#btnPrevMonth").addEventListener("click", ()=> {
     cursor = new Date(cursor.getFullYear(), cursor.getMonth()-1, 1);
@@ -8299,6 +7779,7 @@ function renderCalendar() {
     time: $("#f_time"),
     clientName: $("#f_clientName"),
     phone: $("#f_phone"),
+    banquetType: $("#f_banquetType"),
     groom: $("#f_groom"),
     bride: $("#f_bride"),
     hotel: $("#f_hotel"),
@@ -8535,6 +8016,7 @@ modal.addEventListener("click", (e)=> {
       time: "",
       clientName: "",
       phone: "",
+      banquetType: "婚宴",
       groomName: "",
       brideName: "",
       weddingHotel: "",
@@ -8557,6 +8039,7 @@ modal.addEventListener("click", (e)=> {
     f.time.value = draft.time || "";
     f.clientName.value = draft.clientName || "";
     f.phone.value = draft.phone || "";
+    f.banquetType && (f.banquetType.value = (draft.banquetType || "婚宴"));
     f.groom.value = draft.groomName || "";
     f.bride.value = draft.brideName || "";
     f.hotel.value = draft.weddingHotel || "";
@@ -8573,6 +8056,7 @@ modal.addEventListener("click", (e)=> {
     draft.time = f.time.value || "";
     draft.clientName = f.clientName.value || "";
     draft.phone = f.phone.value || "";
+    draft.banquetType = (f.banquetType ? (f.banquetType.value || "婚宴") : (draft.banquetType || "婚宴"));
     draft.groomName = f.groom.value || "";
     draft.brideName = f.bride.value || "";
     draft.weddingHotel = f.hotel.value || "";
@@ -8838,7 +8322,7 @@ modal.addEventListener("click", (e)=> {
     if (state.bookings && state.bookings[editingId]) delete state.bookings[editingId];
     save(state);
     hardCloseModal();
-    renderCalendar(); renderList(); renderMonthStats(); renderMonthAgenda();
+    renderCalendar(); renderList(); renderMonthStats();
     toast("已删除 ✅");
   });
 
@@ -8851,6 +8335,7 @@ modal.addEventListener("click", (e)=> {
     draft.updatedAt = new Date().toISOString();
     state.bookings = state.bookings || {};
     state.bookings[draft.id] = draft;
+    upsertCustomerFromBookingDraft(draft);
     save(state);
     modalDirty = false;
     return true;
@@ -8860,11 +8345,750 @@ modal.addEventListener("click", (e)=> {
     const ok = commitDraft();
     if (!ok) return;
     hardCloseModal();
-    renderCalendar(); renderList(); renderMonthStats(); renderMonthAgenda();
+    renderCalendar(); renderList(); renderMonthStats();
     toast("已保存档期 ✅");
   }
 
   btnSaveBooking.addEventListener("click", commitDraftAndClose);
+  // -------------------------
+  // Customers (client management)
+  // -------------------------
+  const BANQUET_TYPES = ["婚宴","周岁","十周岁","订婚","寿宴","年会","商演"];
+  const CUSTOMER_STATUS = ["线索","已签","执行中","已交付"];
+
+  function ensureCustomers(){
+    if (!state.customers || typeof state.customers !== "object") state.customers = {};
+  }
+  // 客户页按钮行为模式：modal=在客户页弹窗编辑；schedule=跳到档期记录编辑
+  const CUST_EDIT_MODE_KEY = "cust.editMode";
+  function getCustEditMode(){
+    try{
+      const v = localStorage.getItem(CUST_EDIT_MODE_KEY);
+      return (v==="schedule" || v==="modal") ? v : "modal";
+    }catch(e){ return "modal"; }
+  }
+  function setCustEditMode(mode){
+    const m = (mode==="schedule") ? "schedule" : "modal";
+    try{ localStorage.setItem(CUST_EDIT_MODE_KEY, m); }catch(e){}
+    syncCustEditModeUI();
+    try{ renderCustomers(); }catch(e){}
+  }
+  function syncCustEditModeUI(){
+    const mode = getCustEditMode();
+    const sw = $("#custEditModeSwitch");
+    const label = $("#custEditModeLabel");
+    if (sw) sw.checked = (mode==="schedule");
+    if (label) label.textContent = (mode==="schedule") ? "跳档期编辑" : "客户弹窗编辑";
+    // inline switches
+    document.querySelectorAll(".custModeSwitch").forEach(el=>{
+      try{ el.checked = (mode==="schedule"); }catch(e){}
+    });
+    document.querySelectorAll(".custModeText").forEach(el=>{
+      try{ el.textContent = (mode==="schedule") ? "档期" : "客户"; }catch(e){}
+    });
+  }
+  function ensureCustomerViewActive(){
+    const v = $("#viewCustomers");
+    if (v && v.classList.contains("active")) return;
+    try{ setTab("customers"); }catch(e){}
+  }
+
+  function findLatestBookingIdForCustomer(name, phone){
+    const bookings = state.bookings || {};
+    const n = normalizeName(name);
+    const p = normalizePhone(phone);
+    let best = null;
+    for (const [bid, b] of Object.entries(bookings)){
+      if (!b) continue;
+      const bn = normalizeName(b.clientName);
+      const bp = normalizePhone(b.phone);
+      const match = (p && bp && p===bp) || (n && bn && n===bn);
+      if (!match) continue;
+      const key = `${String(b.date||"")}|${String(b.updatedAt||"")}|${String(bid)}`;
+      if (!best || key > best.key) best = {id: bid, key};
+    }
+    return best ? best.id : null;
+  }
+
+  function openScheduleEditFromCustomer(custId, opts={}){
+    ensureCustomers();
+    const c = (state.customers||{})[custId];
+    const name = c ? normalizeName(c.name) : "";
+    const phone = c ? normalizePhone(c.phone) : "";
+    const bId = findLatestBookingIdForCustomer(name, phone);
+
+    // 跳到档期页并打开编辑
+    try{ setTab("schedule"); }catch(e){}
+
+    if (bId){
+      try{ openBooking(bId); }catch(e){ console.error(e); toast("打开档期失败"); }
+    } else {
+      // 新建档期并从客户带入信息
+      try{
+        editingId = null;
+        draft = makeEmptyBooking(todayISO());
+        draft.clientName = name || "";
+        draft.phone = phone || "";
+        draft.banquetType = (c && c.banquetType) ? c.banquetType : "婚宴";
+        if (c && c.notes) draft.notes = c.notes;
+
+        modalTitle.textContent = "新增档期";
+        modalSub.textContent = "已从客户库带入信息，可继续完善档期内容。";
+        btnDeleteBooking.style.display = "none";
+
+        fillFormFromDraft();
+        modalDirty = false;
+        renderSectionChips();
+        renderClientScripts();
+        renderTimeline();
+        openModal();
+      }catch(e){
+        console.error(e);
+        toast("新建档期失败");
+      }
+    }
+
+    if (opts && opts.focus==="notes"){
+      setTimeout(()=>{ try{ $("#f_notes")?.focus(); }catch(e){} }, 60);
+    }
+  }
+
+  function handleCustomerAction(action, custId){
+    const mode = getCustEditMode();
+    if (action==="edit"){
+      if (mode==="schedule") return openScheduleEditFromCustomer(custId);
+      ensureCustomerViewActive();
+      return openCustomerModal(custId);
+    }
+    if (action==="followup"){
+      if (mode==="schedule") return openScheduleEditFromCustomer(custId, {focus:"notes"});
+      ensureCustomerViewActive();
+      return openFollowupModal(custId);
+    }
+  }
+
+
+  function normalizePhone(v){
+    return String(v||"").trim();
+  }
+  function normalizeName(v){
+    return String(v||"").trim() || "未命名客户";
+  }
+  function monthKeyOfISO(iso){
+    return (iso||"").slice(0,7);
+  }
+  function safeISODate(d){
+    const pad = (n)=>String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  // Upsert customer from a booking draft (no save here; caller saves state)
+  function upsertCustomerFromBookingDraft(b){
+    ensureCustomers();
+    const name = normalizeName(b.clientName);
+    const phone = normalizePhone(b.phone);
+    const id = phone ? ("p:" + phone) : ("n:" + name);
+    const now = new Date().toISOString();
+    const cur = state.customers[id] || {
+      id,
+      name,
+      phone: phone || "",
+      banquetType: b.banquetType || "婚宴",
+      status: "线索",
+      notes: "",
+      bookingIds: [],
+      followups: [],
+      majorEvents: [],
+      createdAt: now,
+      updatedAt: now,
+      lastFollowUpAt: ""
+    };
+    cur.name = name;
+    if (phone) cur.phone = phone;
+    cur.banquetType = b.banquetType || cur.banquetType || "婚宴";
+    cur.updatedAt = now;
+    cur.bookingIds = Array.from(new Set([...(cur.bookingIds||[]), b.id].filter(Boolean)));
+    // 如果客户还没有“最近档期”，用最近一次保存的档期日期做一个提示
+    cur.lastEventDate = b.date || cur.lastEventDate || "";
+    state.customers[id] = cur;
+  }
+
+  // derive helper: find next booking date for a customer
+  function deriveCustomerMetrics(c){
+    const bookings = Object.values(state.bookings||{});
+    const today = parseISO(todayISO());
+    let next = null;
+    let last = null;
+
+    const byId = new Set((c.bookingIds||[]));
+    bookings.forEach(b=>{
+      if (!b || !b.date) return;
+      const match = byId.has(b.id) ||
+        (c.phone && normalizePhone(b.phone) && normalizePhone(b.phone)===normalizePhone(c.phone)) ||
+        (!c.phone && normalizeName(b.clientName)===normalizeName(c.name));
+      if (!match) return;
+
+      const d = parseISO(b.date);
+      if (!d) return;
+
+      if (!last || d.getTime() > last.getTime()) last = d;
+
+      if (today && d.getTime() >= today.getTime()){
+        if (!next || d.getTime() < next.getTime()) next = d;
+      }
+    });
+
+    const followups = Array.isArray(c.followups) ? c.followups : [];
+    const lastFU = followups
+      .filter(x=>x && x.date)
+      .map(x=>parseISO(x.date))
+      .filter(Boolean)
+      .sort((a,b)=>b.getTime()-a.getTime())[0] || null;
+
+    return {
+      nextBookingISO: next ? safeISODate(next) : "",
+      lastBookingISO: last ? safeISODate(last) : "",
+      lastFollowUpISO: lastFU ? safeISODate(lastFU) : (c.lastFollowUpAt ? (c.lastFollowUpAt.slice(0,10)) : "")
+    };
+  }
+
+  // UI state
+  let customersBooted = false;
+  let customersActionGuardInstalled = false;
+  function initCustomers(){
+    ensureCustomers();
+    // 首次进入：把已有档期同步到客户库（不覆盖已有状态/备注/跟进）
+    syncCustomersFromBookings();
+
+    const typeSel = $("#custTypeFilter");
+    const statusSel = $("#custStatusFilter");
+    const sortSel = $("#custSort");
+
+    if (!customersBooted){
+      customersBooted = true;
+
+      // init selects
+      if (typeSel){
+        typeSel.innerHTML = ['<option value="all">全部宴会类型</option>']
+          .concat(BANQUET_TYPES.map(t=>`<option value="${h(t)}">${h(t)}</option>`)).join("");
+      }
+      if (statusSel){
+        statusSel.innerHTML = ['<option value="all">全部状态</option>']
+          .concat(CUSTOMER_STATUS.map(s=>`<option value="${h(s)}">${h(s)}</option>`)).join("");
+      }
+      if (sortSel){
+        sortSel.innerHTML = [
+          '<option value="followup_desc">最近跟进：新→旧</option>',
+          '<option value="created_desc">创建时间：新→旧</option>',
+          '<option value="next_asc">最近档期：近→远</option>',
+          '<option value="name_asc">姓名：A→Z</option>',
+        ].join("");
+      }
+
+      $("#custSearch")?.addEventListener("input", ()=>renderCustomers());
+      typeSel?.addEventListener("change", ()=>renderCustomers());
+      statusSel?.addEventListener("change", ()=>renderCustomers());
+      sortSel?.addEventListener("change", ()=>renderCustomers());
+
+      $("#btnAddCustomer")?.addEventListener("click", ()=>openCustomerModal(null));
+      $("#btnMajorRemind")?.addEventListener("click", ()=>openMajorRemind());
+
+      // edit mode toggles
+      $("#custEditModeSwitch")?.addEventListener("change", (e)=>{
+        const on = !!e.target.checked;
+        setCustEditMode(on ? "schedule" : "modal");
+      });
+      // init label states
+      syncCustEditModeUI();
+
+      // capture guard: ensure action buttons behave by current mode, 不被其它点击监听抢走
+      if (!customersActionGuardInstalled){
+        customersActionGuardInstalled = true;
+
+        const shouldHandle = (target)=>{
+          const v = $("#viewCustomers");
+          if (!v || !v.classList.contains("active")) return null;
+          // ignore when toggling switches
+          if (target.closest(".custModeWrap") || target.closest(".custModeBar") || target.closest("#custEditModeSwitch")) return null;
+
+          const btn = target.closest("[data-cust-action]");
+          if (!btn) return null;
+          const action = btn.getAttribute("data-cust-action");
+          if (action!=="edit" && action!=="followup") return null;
+          const id = btn.getAttribute("data-cust-id");
+          if (!id) return null;
+          return {action, id};
+        };
+
+        const guard = (e)=>{
+          const hit = shouldHandle(e.target);
+          if (!hit) return;
+          e.preventDefault();
+          e.stopPropagation();
+          if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+          handleCustomerAction(hit.action, hit.id);
+        };
+
+        document.addEventListener("pointerdown", guard, true);
+        document.addEventListener("click", guard, true);
+
+        // inline switch change (每张客户卡旁的小开关)
+        document.addEventListener("change", (e)=>{
+          const t = e.target;
+          if (!(t && t.classList && t.classList.contains("custModeSwitch"))) return;
+          const on = !!t.checked;
+          setCustEditMode(on ? "schedule" : "modal");
+        }, true);
+      }
+
+      // delegation for list buttons
+      $("#customerList")?.addEventListener("click", (e)=>{
+        const btn = e.target.closest("[data-cust-action]");
+        if (!btn) return;
+        const id = btn.getAttribute("data-cust-id");
+        const action = btn.getAttribute("data-cust-action");
+        if (!id) return;
+
+        if (action==="edit") return handleCustomerAction("edit", id);
+        if (action==="followup") return handleCustomerAction("followup", id);
+        if (action==="toggle"){
+          const card = btn.closest(".custCard");
+          const body = card?.querySelector(".custBody");
+          if (body) body.classList.toggle("hidden");
+          btn.textContent = body && body.classList.contains("hidden") ? "＋" : "－";
+        }
+      });
+
+      // bind modal closers
+      bindSimpleModal($("#customerModal"));
+      bindSimpleModal($("#followupModal"));
+      bindSimpleModal($("#majorRemindModal"));
+
+      // major rows add
+      $("#btnAddMajorRow")?.addEventListener("click", ()=>addMajorRow({date:"", note:""}));
+
+      // save customer
+      $("#btnSaveCustomer")?.addEventListener("click", saveCustomerFromModal);
+      $("#btnDeleteCustomer")?.addEventListener("click", deleteCustomerFromModal);
+
+      // save followup
+      $("#btnSaveFollowup")?.addEventListener("click", saveFollowupFromModal);
+    }
+
+    renderCustomers();
+  }
+
+  function syncCustomersFromBookings(){
+    ensureCustomers();
+    const bookings = Object.values(state.bookings||{});
+    bookings.forEach(b=>{
+      if (!b) return;
+      const name = normalizeName(b.clientName);
+      const phone = normalizePhone(b.phone);
+      const id = phone ? ("p:" + phone) : ("n:" + name);
+
+      if (!state.customers[id]){
+        // create minimal
+        state.customers[id] = {
+          id,
+          name,
+          phone: phone || "",
+          banquetType: b.banquetType || "婚宴",
+          status: "线索",
+          notes: "",
+          bookingIds: [],
+          followups: [],
+          majorEvents: [],
+          createdAt: b.createdAt || new Date().toISOString(),
+          updatedAt: b.updatedAt || new Date().toISOString(),
+          lastFollowUpAt: ""
+        };
+      }
+      const c = state.customers[id];
+      if (!c.banquetType) c.banquetType = b.banquetType || "婚宴";
+      c.bookingIds = Array.from(new Set([...(c.bookingIds||[]), b.id].filter(Boolean)));
+      c.updatedAt = new Date().toISOString();
+    });
+    save(state);
+  }
+
+  function renderCustomers(){
+    ensureCustomers();
+    const q = ($("#custSearch")?.value || "").trim().toLowerCase();
+    const type = $("#custTypeFilter")?.value || "all";
+    const status = $("#custStatusFilter")?.value || "all";
+    const sort = $("#custSort")?.value || "followup_desc";
+
+    
+    const __custMode = getCustEditMode();
+    const __custModeIsSchedule = (__custMode==="schedule");
+const list = Object.values(state.customers||{}).map(c=>{
+      const m = deriveCustomerMetrics(c);
+      return Object.assign({}, c, m);
+    });
+
+    const filtered = list.filter(c=>{
+      if (type!=="all" && (c.banquetType||"")!==type) return false;
+      if (status!=="all" && (c.status||"")!==status) return false;
+      if (!q) return true;
+      const blob = [
+        c.name, c.phone, c.notes,
+        ...(Array.isArray(c.followups)? c.followups.map(x=>x.note):[]),
+        ...(Array.isArray(c.majorEvents)? c.majorEvents.map(x=>x.note):[])
+      ].join(" ").toLowerCase();
+      return blob.includes(q);
+    });
+
+    filtered.sort((a,b)=>{
+      if (sort==="created_desc") return String(b.createdAt||"").localeCompare(String(a.createdAt||""));
+      if (sort==="name_asc") return String(a.name||"").localeCompare(String(b.name||""));
+      if (sort==="next_asc") return String(a.nextBookingISO||"9999-99-99").localeCompare(String(b.nextBookingISO||"9999-99-99"));
+      // followup_desc default
+      return String(b.lastFollowUpISO||b.updatedAt||"").localeCompare(String(a.lastFollowUpISO||a.updatedAt||""));
+    });
+
+    // Stats
+    const nowYM = monthKeyOfISO(todayISO());
+    const monthNew = list.filter(c=> monthKeyOfISO(c.createdAt||"")===nowYM).length;
+
+    const monthExec = list.filter(c=>{
+      const m = deriveCustomerMetrics(c);
+      // any booking in this month and status is 执行中/已交付
+      if (!["执行中","已交付"].includes(c.status||"")) return false;
+      const bids = new Set(c.bookingIds||[]);
+      return Object.values(state.bookings||{}).some(b=> b && bids.has(b.id) && monthKeyOfISO(b.date||"")===nowYM);
+    }).length;
+
+    const typeCount = {};
+    list.forEach(c=>{
+      const t = c.banquetType || "婚宴";
+      typeCount[t] = (typeCount[t]||0) + 1;
+    });
+    const top5 = Object.entries(typeCount).sort((a,b)=>b[1]-a[1]).slice(0,5)
+      .map(([t,n])=>`${t} ${n}`).join(" · ") || "—";
+
+    $("#custTypeTop") && ($("#custTypeTop").textContent = top5);
+    $("#custMonthNew") && ($("#custMonthNew").textContent = String(monthNew));
+    $("#custMonthExec") && ($("#custMonthExec").textContent = String(monthExec));
+    $("#custMonthLabel") && ($("#custMonthLabel").textContent = nowYM);
+
+    const wrap = $("#customerList");
+    if (!wrap) return;
+
+    if (!filtered.length){
+      wrap.innerHTML = `<div class="muted-small" style="padding:10px 2px">暂无客户。你可以点右上角“＋ 新增客户”，或先在档期里保存客户后自动同步。</div>`;
+      return;
+    }
+
+    wrap.innerHTML = filtered.map(c=>{
+      const typeP = c.banquetType || "婚宴";
+      const st = c.status || "线索";
+      const next = c.nextBookingISO ? `最近档期：${h(c.nextBookingISO)}` : `最近档期：—`;
+      const fu = c.lastFollowUpISO ? `最近跟进：${h(c.lastFollowUpISO)}` : `最近跟进：—`;
+      const phone = c.phone ? `📱 ${h(c.phone)}` : "📱 —";
+      const major = (Array.isArray(c.majorEvents) && c.majorEvents.length)
+        ? `提醒：${h((c.majorEvents[0].date||"").slice(5))} ${h(c.majorEvents[0].note||"")}`
+        : "提醒：—";
+
+      const followups = (Array.isArray(c.followups)? c.followups.slice(-3).reverse():[]).map(x=>`<div class="muted-small">• ${h(x.date||"")}：${h(x.note||"")}</div>`).join("");
+      const majors = (Array.isArray(c.majorEvents)? c.majorEvents.slice(0,3):[]).map(x=>`<div class="muted-small">• ${h(x.date||"")}：${h(x.note||"")}</div>`).join("");
+
+      return `
+        <div class="custCard" data-cust="${h(c.id)}">
+          <div class="custCardHead">
+            <div>
+              <div class="custName">${h(c.name||"未命名客户")}</div>
+              <div class="custMeta">${h(typeP)} · ${h(st)}</div>
+              <div class="custPills">
+                <span class="custPill">${phone}</span>
+                <span class="custPill">📅 ${h(next)}</span>
+                <span class="custPill">📝 ${h(fu)}</span>
+              </div>
+            </div>
+            <div class="custBtns">
+              <button class="custTiny" data-cust-action="followup" data-cust-id="${h(c.id)}" title="新增跟进">＋ 跟进</button>
+              <button class="custTiny" data-cust-action="edit" data-cust-id="${h(c.id)}" title="编辑客户">✏️ 编辑</button>
+
+              <div class="custModeWrap" title="切换：客户弹窗 / 跳档期">
+                <label class="switchTiny">
+                  <input type="checkbox" class="custModeSwitch" ${__custModeIsSchedule?"checked":""} aria-label="编辑方式切换">
+                  <span class="sliderTiny"></span>
+                </label>
+                <span class="custModeText custModeText">${__custModeIsSchedule?"档期":"客户"}</span>
+              </div>
+              <button class="custTiny custToggle" data-cust-action="toggle" data-cust-id="${h(c.id)}" title="展开/收起">＋</button>
+            </div>
+          </div>
+
+          <div class="custBody hidden">
+            <div class="muted-small" style="margin-bottom:10px">${major}</div>
+            ${c.notes ? `<div class="callout" style="margin:0 0 10px 0"><b>备注：</b>${h(c.notes)}</div>` : ""}
+            ${(followups||majors) ? `
+              <div class="grid two" style="gap:12px">
+                <div class="card" style="box-shadow:none">
+                  <div style="font-weight:800;margin-bottom:6px">最近跟进</div>
+                  ${followups || `<div class="muted-small">暂无跟进记录</div>`}
+                </div>
+                <div class="card" style="box-shadow:none">
+                  <div style="font-weight:800;margin-bottom:6px">提醒列表</div>
+                  ${majors || `<div class="muted-small">暂无提醒</div>`}
+                </div>
+              </div>
+            ` : ""}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // --- Simple modal helpers (reuse existing .modal.show styles) ---
+  function bindSimpleModal(el){
+    if (!el || el.__bound) return;
+    el.__bound = true;
+    el.addEventListener("click", (e)=>{
+      const t = e.target;
+      if (t && t.getAttribute && t.getAttribute("data-close")==="1"){
+        hideSimpleModal(el);
+      }
+    });
+  }
+  function showSimpleModal(el){
+    if (!el) return;
+    el.classList.add("show");
+    el.setAttribute("aria-hidden","false");
+  }
+  function hideSimpleModal(el){
+    if (!el) return;
+    el.classList.remove("show");
+    el.setAttribute("aria-hidden","true");
+  }
+
+  // --- Customer modal logic ---
+  let editingCustomerId = null;
+
+  function clearMajorList(){
+    const box = $("#c_majorList");
+    if (!box) return;
+    box.innerHTML = "";
+  }
+  function addMajorRow(row){
+    const box = $("#c_majorList");
+    if (!box) return;
+    const div = document.createElement("div");
+    div.className = "majorRow";
+    div.style.display = "contents";
+    div.innerHTML = `
+      <input type="date" class="c_major_date" value="${h(row.date||"")}"/>
+      <input type="text" class="c_major_note" placeholder="提醒说明（例如：周岁宴预定/年会确认/纪念日）" value="${h(row.note||"")}"/>
+      <button class="sbtn" type="button" title="删除">删除</button>
+    `;
+    const del = div.querySelector("button");
+    del.addEventListener("click", ()=> div.remove());
+    box.appendChild(div);
+  }
+  function readMajorRows(){
+    const box = $("#c_majorList");
+    if (!box) return [];
+    const dates = Array.from(box.querySelectorAll(".c_major_date")).map(x=>x.value||"");
+    const notes = Array.from(box.querySelectorAll(".c_major_note")).map(x=>x.value||"");
+    const out = [];
+    for(let i=0;i<Math.max(dates.length,notes.length);i++){
+      const d = dates[i]||"";
+      const n = (notes[i]||"").trim();
+      if (!d && !n) continue;
+      out.push({date:d, note:n});
+    }
+    out.sort((a,b)=> String(a.date||"").localeCompare(String(b.date||"")));
+    return out;
+  }
+
+  function openCustomerModal(id){
+    ensureCustomers();
+    const modal = $("#customerModal");
+    if (!modal) return;
+
+    editingCustomerId = id;
+    const title = $("#customerModalTitle");
+    const delBtn = $("#btnDeleteCustomer");
+
+    // reset
+    $("#c_name").value = "";
+    $("#c_phone").value = "";
+    $("#c_type").value = "婚宴";
+    $("#c_status").value = "线索";
+    $("#c_notes").value = "";
+    clearMajorList();
+
+    if (id && state.customers[id]){
+      const c = state.customers[id];
+      title && (title.textContent = "编辑客户");
+      delBtn && (delBtn.style.display = "");
+      $("#c_name").value = c.name || "";
+      $("#c_phone").value = c.phone || "";
+      $("#c_type").value = c.banquetType || "婚宴";
+      $("#c_status").value = c.status || "线索";
+      $("#c_notes").value = c.notes || "";
+      (Array.isArray(c.majorEvents)? c.majorEvents: []).forEach(r=>addMajorRow(r));
+    } else {
+      title && (title.textContent = "新增客户");
+      delBtn && (delBtn.style.display = "none");
+      addMajorRow({date:"", note:""});
+    }
+
+    showSimpleModal(modal);
+  }
+
+  function saveCustomerFromModal(){
+    ensureCustomers();
+    const name = normalizeName($("#c_name").value);
+    const phone = normalizePhone($("#c_phone").value);
+    const type = $("#c_type").value || "婚宴";
+    const status = $("#c_status").value || "线索";
+    const notes = $("#c_notes").value || "";
+    const majors = readMajorRows();
+    const now = new Date().toISOString();
+
+    let id = editingCustomerId;
+    if (!id){
+      id = phone ? ("p:" + phone) : ("n:" + name);
+    } else {
+      // if phone changed and target id differs, merge
+      const newId = phone ? ("p:" + phone) : ("n:" + name);
+      if (newId !== id){
+        const old = state.customers[id];
+        const merged = Object.assign({}, old, {id:newId});
+        delete state.customers[id];
+        id = newId;
+        state.customers[id] = merged;
+      }
+    }
+
+    const cur = state.customers[id] || {id, createdAt: now, bookingIds:[], followups:[], majorEvents:[]};
+    cur.name = name;
+    cur.phone = phone;
+    cur.banquetType = type;
+    cur.status = status;
+    cur.notes = notes;
+    cur.majorEvents = majors;
+    cur.updatedAt = now;
+    if (!cur.createdAt) cur.createdAt = now;
+    if (!Array.isArray(cur.followups)) cur.followups = [];
+    if (!Array.isArray(cur.bookingIds)) cur.bookingIds = [];
+
+    state.customers[id] = cur;
+    save(state);
+    hideSimpleModal($("#customerModal"));
+    renderCustomers();
+    toast("已保存客户 ✅");
+  }
+
+  function deleteCustomerFromModal(){
+    if (!editingCustomerId) return;
+    if (!state.customers || !state.customers[editingCustomerId]) return;
+    if (!confirm("确定删除该客户吗？（不会删除档期记录）")) return;
+    delete state.customers[editingCustomerId];
+    save(state);
+    hideSimpleModal($("#customerModal"));
+    renderCustomers();
+    toast("已删除客户 ✅");
+  }
+
+  // --- Followup modal ---
+  let followupCustomerId = null;
+  function openFollowupModal(id){
+    followupCustomerId = id;
+    $("#fu_date").value = todayISO();
+    $("#fu_note").value = "";
+    showSimpleModal($("#followupModal"));
+  }
+  function saveFollowupFromModal(){
+    ensureCustomers();
+    const id = followupCustomerId;
+    if (!id || !state.customers[id]) return;
+    const d = $("#fu_date").value || todayISO();
+    const note = ($("#fu_note").value || "").trim();
+    if (!note){
+      toast("请填写跟进内容");
+      return;
+    }
+    const c = state.customers[id];
+    if (!Array.isArray(c.followups)) c.followups = [];
+    c.followups.push({date:d, note, at:new Date().toISOString()});
+    c.lastFollowUpAt = new Date().toISOString();
+    c.updatedAt = new Date().toISOString();
+    state.customers[id] = c;
+    save(state);
+    hideSimpleModal($("#followupModal"));
+    renderCustomers();
+    toast("已添加跟进 ✅");
+  }
+
+  // --- Major remind ---
+  function openMajorRemind(){
+    ensureCustomers();
+    const modal = $("#majorRemindModal");
+    const box = $("#majorRemindList");
+    if (!modal || !box) return;
+
+    const horizonDays = 45;
+    const now = parseISO(todayISO());
+    const end = new Date(now.getTime()); end.setDate(end.getDate()+horizonDays);
+
+    const items = [];
+
+    // bookings
+    Object.values(state.bookings||{}).forEach(b=>{
+      if (!b || !b.date) return;
+      const d = parseISO(b.date);
+      if (!d) return;
+      if (d.getTime() < now.getTime() || d.getTime() > end.getTime()) return;
+      const phone = normalizePhone(b.phone);
+      const name = normalizeName(b.clientName);
+      const cid = phone ? ("p:"+phone) : ("n:"+name);
+      items.push({
+        date: b.date,
+        title: `${name} · 档期`,
+        note: (b.banquetType ? `${b.banquetType}` : "婚宴") + (b.weddingHotel ? ` · ${b.weddingHotel}` : ""),
+        cid
+      });
+    });
+
+    // major events
+    Object.values(state.customers||{}).forEach(c=>{
+      (Array.isArray(c.majorEvents)? c.majorEvents: []).forEach(ev=>{
+        if (!ev || !ev.date) return;
+        const d = parseISO(ev.date);
+        if (!d) return;
+        if (d.getTime() < now.getTime() || d.getTime() > end.getTime()) return;
+        items.push({
+          date: ev.date,
+          title: `${normalizeName(c.name)} · 提醒`,
+          note: ev.note || "",
+          cid: c.id
+        });
+      });
+    });
+
+    items.sort((a,b)=> String(a.date||"").localeCompare(String(b.date||"")));
+
+    box.innerHTML = items.length ? items.map(it=>`
+      <div class="majorItem">
+        <div>
+          <div><b>${h(it.date)}</b> · ${h(it.title)}</div>
+          <div class="muted-small" style="margin-top:6px">${h(it.note||"")}</div>
+        </div>
+        <div>
+          <button class="sbtn" type="button" onclick="window.__openCustomer && window.__openCustomer('${h(it.cid)}')">编辑</button>
+        </div>
+      </div>
+    `).join("") : `<div class="muted-small">未来 ${horizonDays} 天内暂无档期/提醒。</div>`;
+
+    // expose opener for inline onclick
+    window.__openCustomer = (cid)=>{ hideSimpleModal(modal); openCustomerModal(cid); };
+
+    showSimpleModal(modal);
+  }
+
 
   // (patched)
   // -------------------------
@@ -9448,107 +9672,6 @@ if (ysNotes){
   }
 
 
-
-  // Schedule view mode: calendar(list) vs month(calendar-only)
-  let __schedMode = "calendar";
-  const __SCHED_MODE_KEY = "sched_view_mode_v1";
-  function __setSchedViewMode(mode, saveIt=true){
-    const wrap = $("#scheduleWrap");
-    const btnCal = $("#btnModeCal");
-    const btnMonth = $("#btnModeMonth");
-    __schedMode = (mode==="month") ? "month" : "calendar";
-    if(saveIt){ try{ localStorage.setItem(__SCHED_MODE_KEY, __schedMode); }catch(e){} }
-    if(wrap){
-      wrap.classList.toggle("mode-month", __schedMode==="month");
-    }
-    if(btnCal) btnCal.classList.toggle("active", __schedMode==="calendar");
-    if(btnMonth) btnMonth.classList.toggle("active", __schedMode==="month");
-  }
-  function __schedViewMode(){ return __schedMode; }
-  window.__setSchedViewMode = __setSchedViewMode;
-  window.__schedViewMode = __schedViewMode;
-
-  function __jumpToDayInfo(iso, bookingId){
-    // Month-mode jump: switch back to calendar(list), jump cursor to target month, filter to day, and scroll to item
-    __setSchedViewMode("calendar");
-    try{
-      if(iso){
-        const parts = String(iso).split("-");
-        const Y = parseInt(parts[0], 10);
-        const M = parseInt(parts[1], 10);
-        if(Y && M) cursor = new Date(Y, M-1, 1);
-      }
-      dayFilter = iso || "all";
-      renderCalendar(); renderList(); renderMonthStats();
-
-      const doScroll = ()=>{
-        try{
-          if(bookingId){
-            const el = document.querySelector(`#listWrap .item[data-id="${bookingId}"]`);
-            if(el){
-              el.scrollIntoView({behavior:"smooth", block:"start"});
-              el.classList.add("pulseOnce");
-              setTimeout(()=>el.classList.remove("pulseOnce"), 800);
-              return;
-            }
-          }
-          var lw = document.querySelector("#listWrap");
-          if(lw && lw.scrollTo) lw.scrollTo({top:0, behavior:"smooth"});
-        }catch(e){}
-      };
-
-      requestAnimationFrame(()=> requestAnimationFrame(doScroll));
-      toast("已跳转到当天档期");
-    }catch(e){
-      console.error(e);
-    }
-  }
-  window.__jumpToDayInfo = __jumpToDayInfo;
-
-  // -------------------------
-  // Schedule month-mode delegation (robust)
-  // -------------------------
-  (function(){
-    function onReady(fn){ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", fn); else fn(); }
-
-    function isMonthMode(){
-      try{ return (typeof window.__schedViewMode==="function") && window.__schedViewMode()==="month"; }catch(e){ return false; }
-    }
-
-    onReady(function(){
-      const btnCal = $("#btnModeCal");
-      const btnMonth = $("#btnModeMonth");
-      if(btnCal && !btnCal.dataset.bound){
-        btnCal.dataset.bound = "1";
-        btnCal.addEventListener("click", function(){
-          try{ window.__setSchedViewMode && window.__setSchedViewMode("calendar"); }catch(e){}
-          try{ dayFilter="all"; renderCalendar(); renderList(); renderMonthStats(); }catch(e){}
-          toast("已切回：日历 + 当月列表");
-        });
-      }
-      if(btnMonth && !btnMonth.dataset.bound){
-        btnMonth.dataset.bound = "1";
-        btnMonth.addEventListener("click", function(){
-          try{ window.__setSchedViewMode && window.__setSchedViewMode("month"); }catch(e){}
-          try{ dayFilter="all"; renderCalendar(); renderMonthStats(); }catch(e){}
-          toast("已进入：月历档期");
-        });
-      }
-
-      // iOS sometimes prefers pointerup/touchend; add a safe handler
-      const calBodyEl = $("#calBody");
-      if(calBodyEl && !calBodyEl.dataset.tapbound){
-        calBodyEl.dataset.tapbound = "1";
-        calBodyEl.addEventListener("pointerup", function(e){
-          // no-op: actual cell handlers are attached per-cell in renderCalendar
-        });
-      }
-    });
-  })();
-
-
-
-
 function initSchedule() {
     if (!calHead) return;
     if (!_schedUxBound){
@@ -9558,12 +9681,6 @@ function initSchedule() {
     }
     // default: show schedule
     setScheduleMode("schedule");
-    // view mode (calendar vs month)
-    try{ __setSchedViewMode(localStorage.getItem(__SCHED_MODE_KEY)||"calendar", false); }catch(e){ __setSchedViewMode("calendar", false); }
-    var _btnModeCal = $("#btnModeCal");
-    if(_btnModeCal) _btnModeCal.addEventListener("click", function(){ __setSchedViewMode("calendar"); dayFilter="all"; renderCalendar(); renderList(); renderMonthStats(); toast("已切回：日历 + 当月列表"); });
-    var _btnModeMonth = $("#btnModeMonth");
-    if(_btnModeMonth) _btnModeMonth.addEventListener("click", function(){ __setSchedViewMode("month"); dayFilter="all"; renderCalendar(); renderMonthStats(); renderMonthAgenda(); toast("已进入：月历档期"); });
     calHead.innerHTML = weekNames.map(w=>`<div style="padding:0 6px">${w}</div>`).join("");
     renderCalendar(); renderList(); renderMonthStats(); renderYearSummary();
   }
@@ -11334,7 +11451,8 @@ function initSchedule() {
 
   const EXT_TOOLS_DEFAULT = {
     t1: { name: "酷狗 KGM/KGMA 转换工具", url: "file:///Users/mac/Desktop/%E5%A9%9A%E7%A4%BC/%E9%9F%B3%E4%B9%90%E6%A0%BC%E5%BC%8F%E8%BD%AC%E6%8D%A2/%E3%80%90%E8%8B%B9%E6%9E%9CMAC%E3%80%91%E9%85%B7%E7%8B%97KGM,KGMA%E8%BD%AC%E6%8D%A2%E5%B7%A5%E5%85%B7%EF%BC%88%E5%85%88%E8%A7%A3%E5%8E%8B%E4%BD%BF%E7%94%A8%EF%BC%89/1.%E8%A7%A3%E5%AF%86%E5%B7%A5%E5%85%B7.v1.10.8/%E8%A7%A3%E5%AF%86%E5%B7%A5%E5%85%B7index.html" },
-    t2: { name: "网易云 NCM 转换工具", url: "file:///Users/mac/Desktop/%E5%A9%9A%E7%A4%BC/%E9%9F%B3%E4%B9%90%E6%A0%BC%E5%BC%8F%E8%BD%AC%E6%8D%A2/%E7%BD%91%E6%98%93%E4%BA%91NCM%E8%BD%AC%E6%8D%A2mac%E8%8B%B9%E6%9E%9C%E7%94%B5%E8%84%91%E4%BD%BF%E7%94%A8/%E7%BD%91%E6%98%93%E4%BA%91NCM%E8%BD%AC%E6%8D%A2/%E7%82%B9%E6%88%91%E5%BC%80%E5%A7%8B%E7%94%A8%E8%B0%B7%E6%AD%8C%E6%88%96%E8%80%85360%20%E7%81%AB%E7%8B%90%E6%B5%8F%E8%A7%88%E5%99%A8%E6%89%93%E5%BC%80.html" }
+    t2: { name: "网易云 NCM 转换工具", url: "file:///Users/mac/Desktop/%E5%A9%9A%E7%A4%BC/%E9%9F%B3%E4%B9%90%E6%A0%BC%E5%BC%8F%E8%BD%AC%E6%8D%A2/%E7%BD%91%E6%98%93%E4%BA%91NCM%E8%BD%AC%E6%8D%A2mac%E8%8B%B9%E6%9E%9C%E7%94%B5%E8%84%91%E4%BD%BF%E7%94%A8/%E7%BD%91%E6%98%93%E4%BA%91NCM%E8%BD%AC%E6%8D%A2/%E7%82%B9%E6%88%91%E5%BC%80%E5%A7%8B%E7%94%A8%E8%B0%B7%E6%AD%8C%E6%88%96%E8%80%85360%20%E7%81%AB%E7%8B%90%E6%B5%8F%E8%A7%88%E5%99%A8%E6%89%93%E5%BC%80.html" },
+    t3: { name: "VocalRemover 在线伴奏制作", url: "https://vocalremover.org/next/" }
   };
 
   function normTag(t){
@@ -11377,35 +11495,44 @@ function initSchedule() {
     url = (url||"").trim();
     if (!url) { toast("请先填写链接"); return; }
     try{
-      window.open(url, "_blank", "noopener");
+      // Electron 桌面端：优先在应用内新窗口打开；网页端：新标签页打开
+      if (window.electronAPI && typeof window.electronAPI.openTool === "function"){
+        window.electronAPI.openTool(url);
+      }else{
+        window.open(url, "_blank", "noopener");
+      }
       if (url.startsWith("file://")) {
         toast("已尝试打开 file://（如被浏览器拦截，请在浏览器地址栏直接打开）");
       }
     }catch(e){ toast("打开失败：浏览器拦截或链接无效"); }
   }
-
   function bindExternalToolsUI(){
     const n1 = $("#extTool1Name"), u1 = $("#extTool1Url");
     const n2 = $("#extTool2Name"), u2 = $("#extTool2Url");
-    if (!n1 || !u1 || !n2 || !u2) return;
+    const n3 = $("#extTool3Name"), u3 = $("#extTool3Url");
+    if (!n1 || !u1 || !n2 || !u2 || !n3 || !u3) return;
 
     const apply = (o)=>{
-      const data = o && (o.t1 || o.t2) ? o : EXT_TOOLS_DEFAULT;
+      const data = o && (o.t1 || o.t2 || o.t3) ? o : EXT_TOOLS_DEFAULT;
       n1.value = (data.t1 && data.t1.name) ? data.t1.name : EXT_TOOLS_DEFAULT.t1.name;
       u1.value = (data.t1 && data.t1.url)  ? data.t1.url  : EXT_TOOLS_DEFAULT.t1.url;
       n2.value = (data.t2 && data.t2.name) ? data.t2.name : EXT_TOOLS_DEFAULT.t2.name;
       u2.value = (data.t2 && data.t2.url)  ? data.t2.url  : EXT_TOOLS_DEFAULT.t2.url;
+      n3.value = (data.t3 && data.t3.name) ? data.t3.name : EXT_TOOLS_DEFAULT.t3.name;
+      u3.value = (data.t3 && data.t3.url)  ? data.t3.url  : EXT_TOOLS_DEFAULT.t3.url;
     };
 
     apply(loadExtTools());
 
     $("#btnOpenTool1")?.addEventListener("click", ()=> openUrl(u1.value));
     $("#btnOpenTool2")?.addEventListener("click", ()=> openUrl(u2.value));
+    $("#btnOpenTool3")?.addEventListener("click", ()=> openUrl((u3.value||"").trim() || EXT_TOOLS_DEFAULT.t3.url));
 
     $("#btnSaveExtTools")?.addEventListener("click", ()=>{
       const obj = {
         t1: { name: (n1.value||"").trim() || EXT_TOOLS_DEFAULT.t1.name, url: (u1.value||"").trim() },
-        t2: { name: (n2.value||"").trim() || EXT_TOOLS_DEFAULT.t2.name, url: (u2.value||"").trim() }
+        t2: { name: (n2.value||"").trim() || EXT_TOOLS_DEFAULT.t2.name, url: (u2.value||"").trim() },
+        t3: { name: (n3.value||"").trim() || EXT_TOOLS_DEFAULT.t3.name, url: (u3.value||"").trim() || EXT_TOOLS_DEFAULT.t3.url }
       };
       saveExtTools(obj);
       toast("已保存入口 ✅");
@@ -11420,6 +11547,7 @@ function initSchedule() {
     $("#btnClearExtTools")?.addEventListener("click", ()=>{
       n1.value=""; u1.value="";
       n2.value=""; u2.value="";
+      n3.value=""; u3.value="";
       saveExtTools({});
       toast("已清空入口");
     });
@@ -12838,28 +12966,11 @@ async function playTrack(index, forcePlay=true){
   async function getDurationFromBlob(blob){
     return new Promise((resolve)=>{
       const au = document.createElement("audio");
-      au.preload = "metadata";
-      au.muted = true;
-
       const url = URL.createObjectURL(blob);
       au.src = url;
-
-      // iOS Safari sometimes needs the element in DOM for metadata
-      au.style.position = "fixed";
-      au.style.left = "-10000px";
-      au.style.top = "-10000px";
-      document.body.appendChild(au);
-
-      const done = (d)=>{
-        try{ URL.revokeObjectURL(url); }catch(e){}
-        try{ au.remove(); }catch(e){}
-        resolve(isFinite(d) ? d : 0);
-      };
-
+      const done = (d)=>{ try{URL.revokeObjectURL(url);}catch(e){} resolve(isFinite(d)? d : 0); };
       au.addEventListener("loadedmetadata", ()=> done(au.duration||0), { once:true });
       au.addEventListener("error", ()=> done(0), { once:true });
-
-      try{ au.load(); }catch(e){}
     });
   }
 
@@ -12867,74 +12978,23 @@ async function playTrack(index, forcePlay=true){
     const arr = Array.from(files||[]);
     if (!arr.length) return;
 
-    const isAudioLike = (f)=>{
-      const name = (f && f.name) ? String(f.name).toLowerCase() : "";
-      const type = (f && f.type) ? String(f.type).toLowerCase() : "";
-      if(type.startsWith("audio/")) return true;
-      return (/\.(mp3|m4a|aac|wav|flac|ogg|oga|opus|caf)$/i).test(name);
-    };
-
-    let skipNonAudio = 0;
-    let volatileCount = 0;
-
     for (const f of arr){
-      if(!isAudioLike(f)){ skipNonAudio++; continue; }
-      const blob = (f instanceof Blob) ? f : null;
+      const blob = f instanceof Blob ? f : null;
       if (!blob) continue;
-
       const id = idNow("trk");
       const name = (f.name||"未命名").replace(/\.[^.]+$/,"");
-      let duration = 0;
-
-      try{ duration = await getDurationFromBlob(blob); }catch(e){ duration = 0; }
-
-      // optimistic: store blob
-      let item = { id, name, blob, duration, createdAt: Date.now(), mime: (f.type||blob.type||"") };
-
+      const duration = await getDurationFromBlob(blob);
+      const item = { id, name, blob, duration, createdAt: Date.now() };
       MUSIC.tracks.push(item);
-
-      // Persist to IndexedDB with fallback (iOS sometimes fails to store Blob)
-      try{
-        await dbPut("tracks", item);
-      }catch(e1){
-        try{
-          const buf = await (f.arrayBuffer ? f.arrayBuffer() : new Promise((res,rej)=>{
-            const fr = new FileReader();
-            fr.onload = ()=> res(fr.result);
-            fr.onerror = ()=> rej(fr.error);
-            fr.readAsArrayBuffer(f);
-          }));
-          item = { id, name, data: buf, duration, createdAt: Date.now(), mime: (f.type||blob.type||"audio/mpeg") };
-          MUSIC.tracks[MUSIC.tracks.length-1] = item;
-          await dbPut("tracks", item);
-        }catch(e2){
-          // as a last resort, keep in memory only
-          volatileCount++;
-          item._volatile = true;
-          item.blob = blob;
-          MUSIC.tracks[MUSIC.tracks.length-1] = item;
-          console.error("Track persist failed:", e1, e2);
-        }
-      }
-
+      await dbPut("tracks", item);
       if (alsoAddToQueue){
         MUSIC.queue.push({ id: idNow("q"), trackId: id, title:"", start:0, end:null, loopOne:false, endMode:"next", behavior:"next" });
       }
     }
-
     renderLibrary();
     renderQueue();
     if (alsoAddToQueue) persistActivePlaylistFromQueue();
-
-    if(skipNonAudio){
-      toast(`已导入音频 ✅（已跳过 ${skipNonAudio} 个非音频文件）`);
-      return;
-    }
-    if(volatileCount){
-      toast(`已导入（其中 ${volatileCount} 首为临时导入，iOS 存储限制导致关闭页面可能丢失）`);
-    } else {
-      toast("已添加到音乐库 ✅");
-    }
+    toast("已添加到音乐库 ✅");
   }
 
   function renderPlaylists(){
@@ -13505,53 +13565,8 @@ pl.updatedAt = Date.now();
   }
 
   function bindLibraryUI(){
-    // iOS file picker: accept filter can grey-out audio in Files; relax to allow selection
-    try{
-      var inp = $("#audioFile");
-      if(inp){
-        var ua = navigator.userAgent || "";
-        var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
-        if(isIOS){ inp.accept = ""; } // allow any file; we'll validate by mime/ext later
-      }
-    }catch(e){}
-
-    var _btnUp = $("#btnUpload");
-    if(_btnUp) _btnUp.addEventListener("click", function(){
-      // iOS Safari: the Files picker may grey-out audio when an <input> has accept filtering,
-      // and sometimes it still caches the filter even if we edit `accept` right before click.
-      // Solution: create a fresh input each time on iOS (no accept), then validate after selection.
-      try{
-        var ua = navigator.userAgent || "";
-        var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
-        if(isIOS){
-          const dyn = document.createElement("input");
-          dyn.type = "file";
-          dyn.multiple = true;
-          dyn.accept = ""; // allow anything; we filter in addFilesToLibrary
-          dyn.style.position = "fixed";
-          dyn.style.left = "-10000px";
-          dyn.style.top = "-10000px";
-          document.body.appendChild(dyn);
-          dyn.addEventListener("change", async (e)=>{
-            try{
-              await addFilesToLibrary(dyn.files, false);
-            }finally{
-              try{ dyn.remove(); }catch(_e){}
-            }
-          }, { once:true });
-          dyn.click();
-          return;
-        }
-      }catch(e){}
-
-      var inp = $("#audioFile");
-      if(!inp) return;
-      try{ inp.accept = "audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus,.caf"; }catch(e){}
-      try{ inp.value = ""; }catch(e){}
-      inp.click();
-    });
-    var _af = $("#audioFile");
-    if(_af) _af.addEventListener("change", async (e)=>{
+    $("#btnUpload")?.addEventListener("click", ()=> $("#audioFile")?.click());
+    $("#audioFile")?.addEventListener("change", async (e)=>{
       const files = e.target.files;
       await addFilesToLibrary(files, false);
       e.target.value = "";
@@ -13683,15 +13698,6 @@ function bindQueueUI(){
     try{
       MUSIC.db = await openMusicDB();
       MUSIC.tracks = await dbGetAll("tracks");
-      // rebuild blob for tracks saved as ArrayBuffer fallback (iOS)
-      MUSIC.tracks = (MUSIC.tracks||[]).map(t=>{
-        try{
-          if(!t.blob && t.data){
-            t.blob = new Blob([t.data], { type: t.mime || "audio/mpeg" });
-          }
-        }catch(e){}
-        return t;
-      });
       MUSIC.playlists = await dbGetAll("playlists");
       if (!MUSIC.playlists.length){
         const pl = { id:idNow("pl"), name:"默认列表", items:[], createdAt:Date.now(), updatedAt:Date.now() };
@@ -13735,45 +13741,6 @@ bindDropZones();
       toast("音乐系统初始化失败（可能是浏览器阻止离线存储）");
     }
   }
-
-  // -------------------------
-  // P1 sync: expose main library to iframe (srcdoc same-origin)
-  // -------------------------
-  async function __p1EnsureMusicReady(){
-    try{ await initMusic(); }catch(e){}
-  }
-  window.__p1ListMainTracks = async function(){
-    await __p1EnsureMusicReady();
-    return (MUSIC.tracks||[]).map(t=>({
-      id: t.id,
-      name: t.name || (t.fileName||"").replace(/\.[^/.]+$/,"") || "未命名",
-      fileName: t.fileName || (t.name||"") || "",
-      mime: t.mime || "",
-      duration: Number(t.duration||0) || 0
-    }));
-  };
-  window.__p1GetMainTrackData = async function(trackId){
-    await __p1EnsureMusicReady();
-    const t = (MUSIC.tracks||[]).find(x=>x.id===trackId);
-    if(!t) throw new Error("track not found");
-    let buf = null;
-    if(t.data && (t.data instanceof ArrayBuffer || ArrayBuffer.isView(t.data))){
-      buf = t.data instanceof ArrayBuffer ? t.data : t.data.buffer;
-    }else if(t.blob && t.blob.arrayBuffer){
-      buf = await t.blob.arrayBuffer();
-    }else{
-      throw new Error("no data");
-    }
-    return {
-      id: t.id,
-      name: t.name || (t.fileName||"").replace(/\.[^/.]+$/,"") || "未命名",
-      fileName: t.fileName || "",
-      mime: t.mime || "",
-      arrayBuffer: buf
-    };
-  };
-
-
 
   
 
@@ -16097,147 +16064,90 @@ function ktvGetP1Bridge(){
   
   function setTab(which){
     const tSchedule = $("#tabSchedule");
+    const tCustomers = $("#tabCustomers");
     const tHandbook = $("#tabHandbook");
     const tLines = $("#tabLines");
     const tSocial = $("#tabSocial");
     const tMusic = $("#tabMusic");
 
     const vSchedule = $("#viewSchedule");
-    const vLearn = $("#viewLearn");
+    const vCustomers = $("#viewCustomers");
+    const vHandbook = $("#viewHandbook");
+    const vLines = $("#viewLines");
+    const vSocial = $("#viewSocial");
     const vMusic = $("#viewMusic");
 
-    const allTabs = [tSchedule, tHandbook, tLines, tSocial, tMusic].filter(Boolean);
-    const allViews = [vSchedule, vLearn, vMusic].filter(Boolean);
+    const tabs = [
+      ["schedule", tSchedule, vSchedule],
+      ["customers", tCustomers, vCustomers],
+      ["handbook", tHandbook, vHandbook],
+      ["lines", tLines, vLines],
+      ["social", tSocial, vSocial],
+      ["music", tMusic, vMusic],
+    ];
 
-    const map = {
-      schedule: { tab: tSchedule, view: vSchedule },
-      music:    { tab: tMusic,    view: vMusic },
-      learn:    { tab: tHandbook, view: vLearn, sub: null },
-      handbook: { tab: tHandbook, view: vLearn, sub: "handbook" },
-      lines:    { tab: tLines,    view: vLearn, sub: "lines" },
-      social:   { tab: tSocial,   view: vLearn, sub: "social" },
-    };
+    tabs.forEach(([key, tab, view])=>{
+      tab && tab.classList.remove("active");
+      tab && tab.setAttribute("aria-selected","false");
+      view && view.classList.remove("active");
+    });
 
-    const cfg = map[which] || map.schedule;
+    const hit = tabs.find(x=>x[0]===which) || tabs[0];
+    const [key, tab, view] = hit;
+    tab && tab.classList.add("active");
+    tab && tab.setAttribute("aria-selected","true");
+    view && view.classList.add("active");
+    document.body.classList.toggle("musicWideHeader", key==="music");
 
-    allTabs.forEach(t=> t.classList.remove("active"));
-    allViews.forEach(v=> v.classList.remove("active"));
-
-    if(cfg.tab) cfg.tab.classList.add("active");
-    if(cfg.view) cfg.view.classList.add("active");
-
-    // Dispatch
-    if(cfg === map.schedule){
+    if (key==="schedule"){
       initSchedule();
-      renderCalendar(); renderList(); renderMonthStats(); renderMonthAgenda();
-    } else if(cfg === map.music){
+      renderCalendar(); renderList(); renderMonthStats();
+    } else if (key==="customers"){
+      initCustomers();
+    } else if (key==="social"){
+      try{ initHostSocial(); }catch(e){ console.error(e); toast("自媒体工作台初始化失败"); }
+    } else if (key==="music"){
       initMusic();
+    } else if (key==="lines"){
+      initLines();
     } else {
-      // learn aggregation
-      try{ initLearn(); }catch(e){ console.error(e); }
-      try{
-        if(typeof window.__setLearnSub === "function") window.__setLearnSub(cfg.sub);
-      }catch(e){}
+      try{ initHostHandbook(); }catch(e){ console.error(e); toast("学习手册初始化失败"); }
+      applyChecks(); updateProgress();
     }
   }
-  window.setTab = setTab;
-
 
   $("#tabSchedule")?.addEventListener("click", ()=>setTab("schedule"));
+  $("#tabCustomers")?.addEventListener("click", ()=>setTab("customers"));
   $("#tabHandbook")?.addEventListener("click", ()=>setTab("handbook"));
   $("#tabLines")?.addEventListener("click", ()=>setTab("lines"));
   $("#tabSocial")?.addEventListener("click", ()=>setTab("social"));
   $("#tabMusic")?.addEventListener("click", ()=>setTab("music"));
 
-  // -------------------------
-  // Learn Aggregation (Handbook/Lines/Social) - mounted sections (no popup)
-  // -------------------------
-  let __learnMounted = false;
-  let __learnSub = "handbook";
-  const __LEARN_KEY = "learn_sub_v2";
+  // --- FIX_BOOT_SCHEDULE_FIRSTLOAD ---
+  // 修复：首屏已是“档期记录”时，日历/月历需要初始化渲染；避免必须先点其它导航才出现。
+  (function(){
+    const boot = ()=>{
+      try{
+        const vs = document.getElementById("viewSchedule");
+        const ts = document.getElementById("tabSchedule");
+        const scheduleIsFirst = (!!vs && vs.classList.contains("active")) || (!!ts && ts.classList.contains("active"));
+        if (!scheduleIsFirst) return;
 
-  function __isEl(x){ return !!(x && x.nodeType===1); }
-
-  function mountLearnSections(){
-    if(__learnMounted) return;
-    const paneH = $("#learnPaneHandbook");
-    const paneL = $("#learnPaneLines");
-    const paneS = $("#learnPaneSocial");
-    if(!paneH || !paneL || !paneS) return;
-
-    const vH = $("#viewHandbook");
-    const vL = $("#viewLines");
-    const vS = $("#viewSocial");
-
-    // Move whole sections so existing init functions keep working with original IDs.
-    // Remove "view" behavior by forcing display inside learn panes.
-    if(__isEl(vH) && vH.parentElement){
-      paneH.appendChild(vH);
-      vH.classList.add("embeddedView");
-      vH.classList.remove("active");
-    }
-    if(__isEl(vL) && vL.parentElement){
-      paneL.appendChild(vL);
-      vL.classList.add("embeddedView");
-      vL.classList.remove("active");
-    }
-    if(__isEl(vS) && vS.parentElement){
-      paneS.appendChild(vS);
-      vS.classList.add("embeddedView");
-      vS.classList.remove("active");
-    }
-
-    __learnMounted = true;
-  }
-
-  function setLearnSub(sub){
-    mountLearnSections();
-
-    const seg = $("#learnSeg");
-    const paneH = $("#learnPaneHandbook");
-    const paneL = $("#learnPaneLines");
-    const paneS = $("#learnPaneSocial");
-    if(!seg || !paneH || !paneL || !paneS) return;
-
-    if(!sub){
-      try{ sub = localStorage.getItem(__LEARN_KEY) || __learnSub; }catch(e){}
-    }
-    sub = (sub==="lines" || sub==="social") ? sub : "handbook";
-    __learnSub = sub;
-    try{ localStorage.setItem(__LEARN_KEY, sub); }catch(e){}
-
-    seg.querySelectorAll(".segbtn").forEach(b=>{
-      const on = b.dataset.sub === sub;
-      b.classList.toggle("on", on);
-      b.setAttribute("aria-selected", on ? "true" : "false");
-    });
-
-    paneH.classList.toggle("active", sub==="handbook");
-    paneL.classList.toggle("active", sub==="lines");
-    paneS.classList.toggle("active", sub==="social");
-
-    // Lazy init modules after mounted
-    if(sub==="handbook"){ try{ initHostHandbook(); }catch(e){ console.error(e); } }
-    if(sub==="social"){ try{ initHostSocial(); }catch(e){ console.error(e); } }
-    if(sub==="lines"){ try{ initLines(); }catch(e){ console.error(e); } }
-  }
-
-  function initLearn(){
-    mountLearnSections();
-    const seg = $("#learnSeg");
-    if(seg && !seg.dataset.bound){
-      seg.dataset.bound = "1";
-      seg.addEventListener("click", (e)=>{
-        const b = e.target.closest(".segbtn");
-        if(!b) return;
-        setLearnSub(b.dataset.sub);
-      });
-    }
-    setLearnSub(null);
-  }
-
-  window.__setLearnSub = setLearnSub;
-
+        // 强制走一遍 setTab，会触发 initSchedule + render
+        if (typeof setTab === "function") setTab("schedule");
+        else if (typeof initSchedule === "function"){
+          initSchedule();
+          try{ renderCalendar(); }catch(e){}
+          try{ renderList(); }catch(e){}
+          try{ renderMonthStats(); }catch(e){}
+        }
+      }catch(e){
+        console.error("boot schedule failed", e);
+      }
+    };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, {once:true});
+    else setTimeout(boot, 0);
+  })();
 
 // -------------------------
   // Lines module (主持台词库) v2.0
@@ -18668,45 +18578,15 @@ ${v.cta}`,
   bindChecks();
   updateProgress();
   bindNavActive();
-  // Learn tabs route into Learn Aggregation view
-  try{
-    if(!window.__learnTabBindings_v1){
-      window.__learnTabBindings_v1 = true;
-      $("#tabHandbook") && $("#tabHandbook").addEventListener("click", function(e){ e.preventDefault(); setTab("handbook"); });
-      $("#tabLines") && $("#tabLines").addEventListener("click", function(e){ e.preventDefault(); setTab("lines"); });
-      $("#tabSocial") && $("#tabSocial").addEventListener("click", function(e){ e.preventDefault(); setTab("social"); });
-    }
-  }catch(e){}
-
   bindSearch();
   initScripts();
-
-  // Ensure Schedule is activated BEFORE first render (fix iOS initial blank calendar)
+  initSchedule();
   setTab("schedule");
-
-  try{ if(!sessionStorage.getItem("fix37_toast")){ sessionStorage.setItem("fix37_toast","1"); toast("FIX37.2 已加载"); } }catch(e){}
-
-
-  try{ if(!sessionStorage.getItem("fix34_toast")){ sessionStorage.setItem("fix34_toast","1"); toast("FIX35 已加载"); } }catch(e){}
+})();
 
 
-  function __forceScheduleRender(){
-    try{
-      const view = $("#viewSchedule");
-      if(!view || !view.classList.contains("active")) return;
-      const body = $("#calBody");
-      if(body && body.children && body.children.length > 0) return;
-      initSchedule();
-      renderCalendar(); renderList(); renderMonthStats();
-    }catch(e){ console.error(e); }
-  }
 
-  requestAnimationFrame(()=>{ __forceScheduleRender(); });
-  setTimeout(__forceScheduleRender, 160);
-  window.addEventListener("pageshow", ()=> setTimeout(__forceScheduleRender, 60));
-  window.addEventListener("orientationchange", ()=> setTimeout(__forceScheduleRender, 120));
-
-})();// ---- Lines Tips Toggle (inline) ----
+  // ---- Lines Tips Toggle (inline) ----
   (function(){
     const btn = document.getElementById('btnToggleLinesTips');
     const body = document.getElementById('linesTipsBody');
@@ -19551,6 +19431,28 @@ ${v.cta}`,
     .item .meta{flex:1; overflow:hidden}
     .item .meta .name{font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
     .item .meta .count{font-size:12px;color:var(--muted)}
+    .item .meta .nameRow{display:flex; align-items:center; gap:8px; min-width:0;}
+    .item .meta .nameRow .name{flex:1; min-width:0;}
+    .miniIcon{
+      flex:0 0 auto;
+      width:28px; height:28px;
+      border-radius:12px;
+      border:1px solid var(--line2);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      line-height:1;
+      font-size:14px;
+      user-select:none;
+    }
+    .miniIcon:hover{
+      border-color: rgba(110,231,255,.28);
+      background: rgba(110,231,255,.06);
+      color: var(--text);
+    }
     .dropHint{
       outline:2px dashed rgba(110,231,255,.35);
       outline-offset:2px;
@@ -19868,35 +19770,6 @@ ${v.cta}`,
     .btn.tiny{padding:6px 8px; border-radius:10px; font-size:12px; line-height:1}
     .btn.qMode.on{border-color: rgba(110,231,255,.60); background: rgba(110,231,255,.14)}
     .modeBtns{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-left:10px}
-
-
-    /* ===== Mobile: playlist/queue as swipeable single panel ===== */
-    .pqSeg{display:none; gap:8px; align-items:center; justify-content:flex-start; margin: 8px 0 10px;}
-    .pqSeg .pqbtn{border-radius:999px;}
-    .pqSeg .pqbtn.on{border-color: rgba(110,231,255,.60); background: rgba(110,231,255,.14); color:#f2f4ff;}
-    @media (max-width: 980px){
-      .pqSeg{
-        display:flex;
-        position: sticky;
-        top: 0;
-        z-index: 6;
-        padding: 8px;
-        border: 1px solid rgba(255,255,255,.10);
-        border-radius: 16px;
-        background: rgba(16,18,34,.82);
-        backdrop-filter: blur(10px);
-      }
-      #bottomGrid{ grid-template-columns: 1fr !important; gap: 0 !important; }
-      #splitPQ{ display:none !important; }
-      #bottomGrid .card{ display:none; }
-      #bottomGrid.show-pl #playlistCard{ display:block; }
-      #bottomGrid.show-q #queueCard{ display:block; }
-      #playlistCard .cardBody, #queueCard .cardBody{
-        max-height: min(50dvh, 520px);
-        overflow:auto;
-      }
-      #playlistCard .small, #queueCard .small{ display:none; }
-    }
 </style>
 </head>
 <body>
@@ -19924,14 +19797,13 @@ ${v.cta}`,
     <div class="spacer"></div>
 
     <button class="btn" id="btnImport" title="导入音频（I）">导入音频</button>
-    <button class="btn" id="btnSyncMain" title="从内置播放器同步曲库">同步内置曲库</button>
     <button class="btn" id="btnExport" title="导出工程（E）">导出工程</button>
     <button class="btn" id="btnImportProject" title="导入工程">导入工程</button>
 <button class="btn danger" id="btnResetStates" title="重置已播状态（R）">状态重置</button>
     <button class="btn" id="btnHelp" title="快捷键/使用说明（?）">帮助</button>
 
-    <input id="fileInput" type="file" multiple class="fileHidden" style="position:fixed;left:-99999px;top:-99999px;opacity:0;width:1px;height:1px;">
-    <input id="projectInput" type="file" accept="application/json" class="fileHidden" style="position:fixed;left:-99999px;top:-99999px;opacity:0;width:1px;height:1px;">
+    <input id="fileInput" type="file" accept="audio/*" multiple style="display:none" />
+    <input id="projectInput" type="file" accept="application/json" style="display:none" />
   </div>
 
   <div class="app" id="app">
@@ -20044,11 +19916,7 @@ ${v.cta}`,
         <div class="splitV" id="splitV" title="拖动调整上下高度"></div>
 
         <div class="rightBottom" id="rightBottom">
-          <div class="pqSeg" id="pqSeg" role="tablist" aria-label="播放列表与队列切换">
-            <button class="btn small pqbtn on" type="button" data-k="pl" role="tab">播放列表</button>
-            <button class="btn small pqbtn" type="button" data-k="q" role="tab">当前队列</button>
-          </div>
-          <div class="bottomGrid show-pl" id="bottomGrid">
+          <div class="bottomGrid" id="bottomGrid">
             <div class="card" id="playlistCard">
               <div class="cardHead">
                 <h4>播放列表</h4>
@@ -20367,6 +20235,48 @@ ${v.cta}`,
   <script>
 
     // ===== Utilities =====
+    // ===== Version (auto) =====
+    async function initVersionBadge(){
+      const badge = document.getElementById("buildBadge");
+      const verSpan = document.getElementById("appVer");
+
+      let v = "";
+      // 1) Electron 桌面端：从 app.getVersion() 获取（随 package.json 版本自动变化）
+      try{
+        if (window.electronAPI && typeof window.electronAPI.getAppVersion === "function"){
+          v = String(await window.electronAPI.getAppVersion() || "").trim();
+        }
+      }catch(e){}
+
+      // 2) 网页端：允许你手动覆盖（可选）
+      if(!v){
+        try{ v = String(localStorage.getItem("APP_VERSION_OVERRIDE") || "").trim(); }catch(e){}
+      }
+
+      // 3) 网页端默认：用文件更新时间生成“构建版本号”（你更新文件就会变）
+      if(!v){
+        try{
+          const lm = document.lastModified;
+          const d = lm ? new Date(lm) : null;
+          if (d && !isNaN(d.getTime())){
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth()+1).padStart(2,"0");
+            const dd = String(d.getDate()).padStart(2,"0");
+            const hh = String(d.getHours()).padStart(2,"0");
+            const mi = String(d.getMinutes()).padStart(2,"0");
+            v = `${yyyy}.${mm}.${dd}.${hh}${mi}`;
+          }else{
+            v = "web";
+          }
+        }catch(e){ v = "web"; }
+      }
+
+      const label = v.startsWith("v") ? v : ("v" + v);
+      if (badge) badge.textContent = label;
+      if (verSpan) verSpan.textContent = label;
+      document.title = "新手主持人手册 " + label;
+    }
+
     const $ = (sel, el=document) => el.querySelector(sel);
     const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -20515,16 +20425,7 @@ ${v.cta}`,
 
     async function decodeFile(file){
       const {ctx} = ensureAudio();
-      // iOS: ensure AudioContext is fully resumed before decode
-      if (ctx && ctx.state === "suspended"){
-        try{ await ctx.resume(); }catch(e){}
-      }
-      const buf = await (file.arrayBuffer ? file.arrayBuffer() : new Promise((res,rej)=>{
-        const fr = new FileReader();
-        fr.onload = ()=> res(fr.result);
-        fr.onerror = ()=> rej(fr.error);
-        fr.readAsArrayBuffer(file);
-      }));
+      const buf = await file.arrayBuffer();
       const audioBuf = await ctx.decodeAudioData(buf.slice(0));
       return {arrayBuffer: buf, audioBuf};
     }
@@ -20906,27 +20807,82 @@ ${v.cta}`,
         div.innerHTML = `
           <div class="dragHandle" title="拖拽排序">≡</div>
           <div class="meta">
-            <div class="name" data-role="catName" title="双击重命名">${escapeHtml(cat.name)}</div>
+            <div class="nameRow">
+              <div class="name" data-role="catName" title="双击/长按重命名">${escapeHtml(cat.name)}</div>
+              <button class="miniIcon" type="button" data-action="rename" title="重命名">✎</button>
+            </div>
             <div class="count">${cues.length} 条</div>
           </div>
           <span class="tag mono">${String(cat.order).padStart(2,'0')}</span>
         `;
 
+        // select category (avoid accidental select when renaming)
         div.addEventListener("click", (e)=>{
+          if (div.dataset.suppressClick === "1"){
+            div.dataset.suppressClick = "0";
+            return;
+          }
           const isEditing = div.querySelector("input.ghostInput");
           if (isEditing) return;
+          if (e.target.closest('[data-action="rename"]')) return;
           if (e.target.closest('.dragHandle')) return;
           selectCat(cat.id);
         });
-        div.querySelector('[data-role="catName"]').addEventListener("dblclick", (e)=>{
-          e.stopPropagation();
-          inlineEdit(e.target, cat.name, (val)=>{
-            cat.name = val || cat.name;
+
+        const nameEl = div.querySelector('[data-role="catName"]');
+        const doRename = ()=>{
+          if (!nameEl) return;
+          inlineEdit(nameEl, cat.name, (val)=>{
+            const v = (val||"").trim();
+            if (!v || v === cat.name) return;
+            const exists = [...state.cats].some(c=>c.id!==cat.id && ((c.name||"").trim()===v));
+            if (exists){
+              if (typeof toast==="function") toast("已有同名分类");
+              return;
+            }
+            cat.name = v;
             persist();
             renderCats();
             renderGrid();
           });
-        });
+        };
+
+        // Desktop: double click / right click name
+        if (nameEl){
+          nameEl.addEventListener("dblclick", (e)=>{
+            e.stopPropagation();
+            doRename();
+          });
+          nameEl.addEventListener("contextmenu", (e)=>{
+            e.preventDefault();
+            e.stopPropagation();
+            doRename();
+          });
+
+          // Mobile: long press name to rename
+          let lpTimer = null;
+          nameEl.addEventListener("touchstart", ()=>{
+            if (lpTimer) clearTimeout(lpTimer);
+            lpTimer = setTimeout(()=>{
+              div.dataset.suppressClick = "1";
+              doRename();
+            }, 520);
+          }, {passive:true});
+          const clearLP = ()=>{ if (lpTimer) clearTimeout(lpTimer); lpTimer=null; };
+          nameEl.addEventListener("touchend", clearLP, {passive:true});
+          nameEl.addEventListener("touchcancel", clearLP, {passive:true});
+          nameEl.addEventListener("touchmove", clearLP, {passive:true});
+        }
+
+        // Rename button (works well on mobile)
+        const rbtn = div.querySelector('[data-action="rename"]');
+        if (rbtn){
+          rbtn.addEventListener("click", (e)=>{
+            e.stopPropagation();
+            div.dataset.suppressClick = "1";
+            doRename();
+          });
+        }
 
         bindDnDCategory(div);
         list.appendChild(div);
@@ -21813,63 +21769,6 @@ ${v.cta}`,
       renderGrid();
       toast("导入完成");
     }
-
-    async function importArrayBufferAsCue(meta){
-      const cat = state.cats.find(c=>c.id===state.curCatId);
-      if (!cat){ toast("请先创建/选择分类"); return; }
-      ensureAudioUserGesture();
-      const {ctx} = ensureAudio();
-      if (ctx && ctx.state === "suspended"){ try{ await ctx.resume(); }catch(e){} }
-      const audioBuf = await ctx.decodeAudioData(meta.arrayBuffer.slice(0));
-      const peaks = computePeaks(audioBuf, 140);
-      const cue = makeCue({
-        name: meta.name || (meta.fileName||"").replace(/\.[^/.]+$/,"") || "未命名",
-        fileName: meta.fileName || "",
-        audioBuf,
-        arrayBuffer: meta.arrayBuffer,
-        peaks,
-        duration: audioBuf.duration
-      });
-      cat.cues.push(cue);
-      state.cueIndex[cue.id] = {catId: cat.id};
-      if(!state.curCueId) state.curCueId = cue.id;
-      persist();
-      render();
-    }
-
-    async function syncFromMainLibrary(){
-      try{
-        const p = window.parent;
-        if(!p || typeof p.__p1ListMainTracks!=="function" || typeof p.__p1GetMainTrackData!=="function"){
-          toast("未检测到内置曲库（请在主页面的音乐系统里先导入）");
-          return;
-        }
-        const list = await p.__p1ListMainTracks();
-        if(!list || !list.length){
-          toast("内置曲库为空：请先在内置播放器导入音频");
-          return;
-        }
-        // simple: import all into current category
-        toast(`同步中：${list.length} 首...`);
-        let ok=0, fail=0;
-        for(const item of list){
-          try{
-            const meta = await p.__p1GetMainTrackData(item.id);
-            await importArrayBufferAsCue(meta);
-            ok++;
-          }catch(e){
-            console.error(e);
-            fail++;
-          }
-        }
-        toast(`同步完成：成功 ${ok}，失败 ${fail}`);
-      }catch(err){
-        console.error(err);
-        toast("同步失败：请稍后重试");
-      }
-    }
-
-
 
     function exportProject(){
       const data = serializeProject();
@@ -22909,40 +22808,10 @@ ${v.cta}`,
         persist();
       };
 
-            function pickAudioFiles(){
-        const ua = navigator.userAgent || "";
-        const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
-        const inp = document.createElement("input");
-        try{
-          if(isIOS && !window.__iosPickHintOnce){
-            window.__iosPickHintOnce = true;
-            toast("提示：若文件旁有☁️，请先在“文件App”点云朵下载后再导入");
-          }
-        }catch(e){}
-        inp.type = "file";
-        inp.multiple = true;
-        // iOS Safari: accept filter can grey-out files; leave empty to allow selection
-        if(!isIOS) inp.accept = "audio/*";
-        inp.style.position = "fixed";
-        inp.style.left = "-99999px";
-        inp.style.top = "-99999px";
-        document.body.appendChild(inp);
-        inp.addEventListener("change", ()=>{
-          const files = inp.files;
-          // cleanup first (iOS sometimes needs this)
-          try{ inp.value = ""; }catch(e){}
-          try{ inp.remove(); }catch(e){}
-          importFiles(files);
-        }, {once:true});
-        inp.click();
-      }
-
-      $("#btnImport").onclick = pickAudioFiles;
-      
-      var bSync = $("#btnSyncMain");
-      if(bSync) bSync.onclick = syncFromMainLibrary;
-$("#btnBrowse").onclick = pickAudioFiles;
-$("#btnExport").onclick = exportProject;
+      $("#btnImport").onclick = ()=> $("#fileInput").click();
+      $("#btnBrowse").onclick = ()=> $("#fileInput").click();
+      $("#fileInput").addEventListener("change", (e)=> importFiles(e.target.files));
+      $("#btnExport").onclick = exportProject;
       $("#btnImportProject").onclick = ()=> $("#projectInput").click();
       $("#projectInput").addEventListener("change", async (e)=>{
         const f = e.target.files?.[0];
@@ -23291,7 +23160,7 @@ $("#btnExport").onclick = exportProject;
         }
         if (e.key.toLowerCase() === "i"){
           e.preventDefault();
-          pickAudioFiles();
+          $("#fileInput").click();
           return;
         }
         if (e.key.toLowerCase() === "e"){
@@ -23572,85 +23441,21 @@ function handleSeekClick(e, kind){
     }
 
     
-    
-
-    // ===== Mobile PQ (playlist/queue) switch + swipe =====
-    function initPqMobile(){
-      const seg = $("#pqSeg");
-      const grid = $("#bottomGrid");
-      const rightBottom = $("#rightBottom");
-      if(!seg || !grid) return;
-
-      const btns = Array.from(seg.querySelectorAll(".pqbtn"));
-      const KEY = "p1_pq_view";
-
-      function setView(k, saveIt=true){
-        const view = (k === "q") ? "q" : "pl";
-        grid.classList.toggle("show-pl", view === "pl");
-        grid.classList.toggle("show-q", view === "q");
-        btns.forEach(b => b.classList.toggle("on", b.dataset.k === view));
-        if(saveIt){
-          try{ localStorage.setItem(KEY, view); }catch(e){}
-        }
-        return view;
-      }
-
-      // initial
-      let cur = "pl";
-      try{ cur = localStorage.getItem(KEY) || "pl"; }catch(e){}
-      cur = (cur === "q") ? "q" : "pl";
-      setView(cur, false);
-
-      seg.addEventListener("click", (e)=>{
-        const b = e.target.closest(".pqbtn");
-        if(!b) return;
-        setView(b.dataset.k);
-      });
-
-      // swipe on the lower area (avoid interfering with vertical scroll)
-      let sx=0, sy=0, st=0;
-      const touchEl = rightBottom || grid;
-      touchEl.addEventListener("touchstart", (e)=>{
-        const t = e.touches && e.touches[0];
-        if(!t) return;
-        sx = t.clientX; sy = t.clientY; st = Date.now();
-      }, {passive:true});
-
-      touchEl.addEventListener("touchend", (e)=>{
-        // only enable on narrow screens
-        if(window.innerWidth > 980) return;
-
-        const t = e.changedTouches && e.changedTouches[0];
-        if(!t) return;
-        const dx = t.clientX - sx;
-        const dy = t.clientY - sy;
-        const dt = Date.now() - st;
-
-        if(dt > 650) return;
-        if(Math.abs(dx) < 55) return;
-        if(Math.abs(dx) < Math.abs(dy) * 1.15) return;
-
-        const curView = grid.classList.contains("show-q") ? "q" : "pl";
-        const next = (dx < 0) ? (curView === "pl" ? "q" : "pl") : (curView === "q" ? "pl" : "q");
-        setView(next);
-      }, {passive:true});
-    }
-
-// ===== Init =====
+    // ===== Init =====
     async function bootstrap(){
+      await initVersionBadge();
       await load();
       ensureDefaultPlaylists();
       updateTopbar();
       renderAll();
       bindUI();
-      initPqMobile();
       applyLayoutUI();
       updateDiskUI();
       startRaf();
       updateSavePill();
       // safety autosave: flush dirty state periodically
       setInterval(()=>{ if (state._dirty && !state._saving) saveProjectNow(); }, 8000);
-      toast("v2.8 已载入");
+      toast(((document.getElementById("buildBadge")||{}).textContent||"") + " 已载入");
     }
 
     // start
@@ -23790,306 +23595,10 @@ function handleSeekClick(e, kind){
     };
 
 
-
-    // expose api for parent page (FIX44)
-    window.__p1Api = window.__p1Api || {};
-    window.__p1Api.importFiles = async function(files){
-      return await importFiles(files);
-    };
-    window.__p1Api.syncFromMain = async function(){
-      return await syncFromMainLibrary();
-    };
-
 </script>
 </body>
 </html>
 
   </template>
-
-
-<script id="__mobileUIPatch_v2633_m1">
-(() => {
-  const LS = { toc: "__ui_toc_open__", music: "__ui_music_view__" };
-  const qs = (s, r=document) => r.querySelector(s);
-  const ce = (t, cls, txt) => {
-    const el = document.createElement(t);
-    if (cls) el.className = cls;
-    if (txt !== undefined) el.textContent = txt;
-    return el;
-  };
-
-  function setupTocDrawer(){
-    const aside = qs(".aside");
-    const tools = qs(".tools");
-    if(!aside || !tools) return;
-
-    if(qs("#btnToc")) return;
-
-    const btn = ce("button", "btn", "📚 目录");
-    btn.id = "btnToc";
-    btn.type = "button";
-    btn.style.whiteSpace = "nowrap";
-    tools.prepend(btn);
-
-    let backdrop = qs("#tocBackdrop");
-    if(!backdrop){
-      backdrop = ce("div");
-      backdrop.id = "tocBackdrop";
-      document.body.appendChild(backdrop);
-    }
-
-    const close = () => {
-      document.body.classList.remove("tocOpen");
-      backdrop.classList.remove("show");
-      try{ localStorage.setItem(LS.toc, "0"); }catch(e){}
-    };
-    const open = () => {
-      document.body.classList.add("tocOpen");
-      backdrop.classList.add("show");
-      try{ localStorage.setItem(LS.toc, "1"); }catch(e){}
-    };
-
-    btn.addEventListener("click", () => {
-      const isOpen = document.body.classList.toggle("tocOpen");
-      backdrop.classList.toggle("show", isOpen);
-      try{ localStorage.setItem(LS.toc, isOpen ? "1" : "0"); }catch(e){}
-    });
-
-    backdrop.addEventListener("click", close);
-    document.addEventListener("keydown", (e) => { if(e.key === "Escape") close(); });
-
-    aside.addEventListener("click", (e) => {
-      const a = e.target.closest("a");
-      if(!a) return;
-      if(window.matchMedia("(max-width: 900px)").matches) close();
-    });
-
-    // restore on mobile only
-    try{
-      const want = localStorage.getItem(LS.toc) === "1";
-      if(want && window.matchMedia("(max-width: 900px)").matches) open();
-    }catch(e){}
-  }
-
-  function setupMusicMobileTabs(){
-    const kgGrid = document.getElementById("kgGrid");
-    if(!kgGrid) return;
-
-    const lib = document.getElementById("kgColLib");
-    const pl  = document.getElementById("kgColPl");
-    const q   = document.getElementById("kgColQueue");
-    if(!lib || !pl || !q) return;
-
-    if(document.getElementById("kgMobileSeg")) return;
-
-    const bar = ce("div", "kgMobileSeg");
-    bar.id = "kgMobileSeg";
-    bar.innerHTML = `
-      <div class="seg" role="tablist" aria-label="音乐系统切换">
-        <button class="segbtn" data-k="lib" type="button" role="tab">素材库</button>
-        <button class="segbtn" data-k="pl" type="button" role="tab">播放列表</button>
-        <button class="segbtn" data-k="queue" type="button" role="tab">当前队列</button>
-      </div>
-      <span class="mini" id="kgMobileHint">手机/平板：用这里切换面板（支持左右滑动）</span>
-    `;
-
-    kgGrid.parentElement?.insertBefore(bar, kgGrid);
-
-    const mqPortrait  = window.matchMedia("(max-width: 1100px) and (orientation: portrait)");
-    const mqLandscape = window.matchMedia("(max-width: 1100px) and (orientation: landscape)");
-    const hint = bar.querySelector("#kgMobileHint");
-
-    const KEYS_PORTRAIT = ["lib","pl","queue"];
-    const KEYS_LANDSCAPE = ["pl","queue"]; // right panel only (library always visible)
-
-    const getSaved = () => { try{ return (localStorage.getItem(LS.music) || "queue"); }catch(e){ return "queue"; } };
-    const setSaved = (k) => { try{ localStorage.setItem(LS.music, k); }catch(e){} };
-
-    const btnLib = bar.querySelector('[data-k="lib"]');
-    const btnPl  = bar.querySelector('[data-k="pl"]');
-    const btnQ   = bar.querySelector('[data-k="queue"]');
-
-    function normalizeKey(k){
-      k = (k || "queue");
-      const isP = mqPortrait.matches;
-      const isL = mqLandscape.matches;
-      if(isL){
-        return (k === "pl") ? "pl" : "queue";
-      }
-      if(isP){
-        return KEYS_PORTRAIT.includes(k) ? k : "queue";
-      }
-      return k;
-    }
-
-    function setBarMode(){
-      const isP = mqPortrait.matches;
-      const isL = mqLandscape.matches;
-      // In landscape, library is always visible, so hide the "素材库" button to save space.
-      if(btnLib) btnLib.style.display = isL ? "none" : "";
-      if(hint){
-        hint.textContent = isL
-          ? "横屏：左库 + 右侧（列表/队列）切换（支持左右滑动）"
-          : "竖屏：单面板切换（支持左右滑动）";
-      }
-    }
-
-    function apply(k){
-      const isP = mqPortrait.matches;
-      const isL = mqLandscape.matches;
-
-      // Desktop / wide screens: show all columns normally.
-      if(!isP && !isL){
-        kgGrid.classList.remove("mobilePortrait","mobileLandscape");
-        [lib,pl,q].forEach(el => el.classList.remove("show"));
-        bar.querySelectorAll(".segbtn").forEach(b => b.classList.remove("on"));
-        return;
-      }
-
-      k = normalizeKey(k);
-
-      if(isP){
-        kgGrid.classList.add("mobilePortrait");
-        kgGrid.classList.remove("mobileLandscape");
-        [lib,pl,q].forEach(el => el.classList.remove("show"));
-        (k==="lib" ? lib : k==="pl" ? pl : q).classList.add("show");
-      }else{
-        kgGrid.classList.add("mobileLandscape");
-        kgGrid.classList.remove("mobilePortrait");
-        // library is always visible in landscape, only switch right panel
-        [pl,q].forEach(el => el.classList.remove("show"));
-        (k==="pl" ? pl : q).classList.add("show");
-      }
-
-      // active button
-      bar.querySelectorAll(".segbtn").forEach(b => {
-        const kk = b.dataset.k;
-        if(isL && kk === "lib"){ b.classList.remove("on"); return; }
-        b.classList.toggle("on", kk === k);
-      });
-
-      setSaved(k);
-      return k;
-    }
-
-    function refresh(){
-      setBarMode();
-      apply(getSaved());
-    }
-
-    // Button click
-    bar.addEventListener("click", (e) => {
-      const b = e.target.closest(".segbtn");
-      if(!b) return;
-      apply(b.dataset.k);
-    });
-
-    // Swipe gesture (left/right)
-    let sx=0, sy=0, st=0;
-    kgGrid.addEventListener("touchstart", (e)=>{
-      const t = e.touches && e.touches[0];
-      if(!t) return;
-      sx = t.clientX; sy = t.clientY; st = Date.now();
-    }, {passive:true});
-
-    kgGrid.addEventListener("touchend", (e)=>{
-      const t = e.changedTouches && e.changedTouches[0];
-      if(!t) return;
-      const dx = t.clientX - sx;
-      const dy = t.clientY - sy;
-      const dt = Date.now() - st;
-
-      // Horizontal swipe only: not too slow, not too vertical
-      if(dt > 650) return;
-      if(Math.abs(dx) < 55) return;
-      if(Math.abs(dx) < Math.abs(dy) * 1.15) return;
-
-      const isP = mqPortrait.matches;
-      const isL = mqLandscape.matches;
-      if(!isP && !isL) return;
-
-      const cur = normalizeKey(getSaved());
-      const keys = isL ? KEYS_LANDSCAPE : KEYS_PORTRAIT;
-      let i = keys.indexOf(cur);
-      if(i < 0) i = keys.length-1;
-      // swipe left => next, swipe right => prev
-      i = (dx < 0) ? (i+1)%keys.length : (i-1+keys.length)%keys.length;
-      apply(keys[i]);
-    }, {passive:true});
-
-    refresh();
-
-    // breakpoint / orientation change
-    const onChange = () => refresh();
-    [mqPortrait, mqLandscape].forEach(mq=>{
-      if(mq.addEventListener) mq.addEventListener("change", onChange);
-      else mq.addListener(onChange);
-    });
-  }
-
-  function init(){
-    setupTocDrawer();
-    setupMusicMobileTabs();
-  }
-
-  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
-  else init();
-})();
-</script>
-
-
-<script>
-(function(){
-  function ensureMobileNav3(){
-    var tabs = document.querySelector('.tabs');
-    if(!tabs) return;
-    if(document.getElementById('mNav3')) return;
-
-    var nav = document.createElement('div');
-    nav.id = 'mNav3';
-    nav.innerHTML = `
-      <button class="mnav-btn" type="button" data-nav="schedule">📅 档期管理</button>
-      <button class="mnav-btn" type="button" data-nav="learn">📚 我要学习</button>
-      <button class="mnav-btn" type="button" data-nav="music">🎵 音乐系统</button>
-    `;
-    tabs.appendChild(nav);
-
-    function go(which){
-      try{
-        if(typeof window.setTab === 'function') window.setTab(which);
-      }catch(e){}
-      syncActive();
-    }
-
-    nav.addEventListener('click', function(e){
-      var btn = e.target.closest('.mnav-btn');
-      if(!btn) return;
-      var which = btn.getAttribute('data-nav');
-      if(which === 'schedule') go('schedule');
-      else if(which === 'music') go('music');
-      else if(which === 'learn') go('learn');
-    });
-
-    function syncActive(){
-      var active = (document.querySelector('.tabs .tab.active')||{}).id || '';
-      nav.querySelectorAll('.mnav-btn').forEach(function(b){ b.classList.remove('active'); });
-      if(active === 'tabSchedule') nav.querySelector('[data-nav="schedule"]').classList.add('active');
-      else if(active === 'tabMusic') nav.querySelector('[data-nav="music"]').classList.add('active');
-      else nav.querySelector('[data-nav="learn"]').classList.add('active');
-    }
-
-    document.querySelectorAll('.tabs > .tab').forEach(function(tb){
-      tb.addEventListener('click', function(){ setTimeout(syncActive, 0); }, true);
-    });
-
-    syncActive();
-  }
-
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ensureMobileNav3);
-  else ensureMobileNav3();
-  window.addEventListener('resize', function(){ ensureMobileNav3(); });
-})();
-</script>
-
 </body>
 </html>
