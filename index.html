@@ -291,6 +291,7 @@ h1{margin:0;font-size:18px; letter-spacing:.2px}
 
 .view{display:none}
 .view.active{display:block}
+
 .footer{margin:14px 0 0; text-align:center; color:var(--muted); font-size:12px; line-height:1.8}
 
 /* Schedule module */
@@ -374,7 +375,7 @@ h1{margin:0;font-size:18px; letter-spacing:.2px}
 .chip{font-size:11px; padding:3px 8px; border-radius:999px; border:1px solid var(--chipbd); background:var(--chipbg); color:var(--muted)}
 
 /* Modal */
-.modal{position:fixed; inset:0; display:none; z-index:9999}
+.modal{position:fixed; inset:0; display:none; z-index:12000}
 .modal.show{display:block}
 .modal-backdrop{position:absolute; inset:0; background:rgba(20,20,40,.35)}
 .modal-panel{
@@ -1082,7 +1083,7 @@ body[data-p1-fullscreen="1"] #msP1Wrap{
   margin: 0;
   padding: 12px;
   background: var(--bg);
-  z-index: 99999;
+  z-index: 15000;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1899,7 +1900,7 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
 --------------------------*/
 .custTop{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
 .custActions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.custFilters{display:grid;grid-template-columns: 1fr 180px 160px 200px;gap:10px;align-items:center;margin:12px 0 16px}
+.custFilters{display:grid;grid-template-columns: 1fr 180px 160px 200px 170px;gap:10px;align-items:center;margin:12px 0 16px}
 .custSearch{display:flex;align-items:center;gap:10px;background:var(--btnbg2);border:1px solid var(--line);border-radius:999px;padding:10px 12px}
 .custSearch .icon{opacity:.7}
 .custSearch input{border:0;background:transparent;outline:none;width:100%;font-size:14px}
@@ -1914,25 +1915,13 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
 .custPills{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .custPill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--chipbg);border:1px solid var(--chipbd);font-size:12px}
 .custBtns{display:flex;gap:8px;align-items:center}
-/* 客户页：编辑方式小开关（客户弹窗 / 跳档期） */
-.custModeBar{display:flex;align-items:center;gap:10px;margin-left:12px}
-.custModeLabel{font-size:12px;color:var(--muted);white-space:nowrap}
-.custModeWrap{display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--line);border-radius:999px;background:var(--card);user-select:none}
-.custModeText{font-size:12px;color:var(--muted);min-width:2.2em;text-align:center}
-.switchTiny{position:relative;display:inline-block;width:34px;height:18px}
-.switchTiny input{opacity:0;width:0;height:0}
-.sliderTiny{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--btnbg);border:1px solid var(--line);transition:.18s;border-radius:999px}
-.sliderTiny:before{position:absolute;content:"";height:14px;width:14px;left:2px;top:1px;background:var(--card2);border:1px solid var(--line);transition:.18s;border-radius:50%}
-.switchTiny input:checked + .sliderTiny{filter:brightness(1.06)}
-.switchTiny input:checked + .sliderTiny:before{transform:translateX(16px)}
-/* 顶部工具栏在窄屏换行更好看 */
-@media (max-width: 720px){
-  .custActions{flex-wrap:wrap;gap:10px}
-  .custModeBar{width:100%;margin-left:0}
-}
-
 .custTiny{padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--btnbg);cursor:pointer}
 .custTiny:hover{filter:brightness(1.02)}
+
+.custModePill{padding:10px 12px;border-radius:999px;border:1px solid var(--line);background:var(--btnbg);cursor:pointer;font-size:12px;white-space:nowrap}
+.custModePill:hover{background:var(--btnbg2)}
+.custModeBtn{white-space:nowrap}
+
 .custToggle{position:absolute;right:14px;top:14px}
 .custBody{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
 .custBody.hidden{display:none}
@@ -1948,6 +1937,325 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
   .custList{grid-template-columns:1fr; }
 }
 </style>
+
+<style id="mobileBottomNavStyle">
+/* -------------------------
+   Mobile bottom navigation
+--------------------------*/
+.bottomNav{display:none}
+.mobileLearnBar{display:none}
+@media (max-width: 980px), (hover: none) and (pointer: coarse){
+  /* hide top tabs, use bottom nav */
+  .header .tabs{display:none !important;}
+  /* keep header compact */
+  .header{padding:12px !important; gap:10px !important;}
+  .tools{gap:8px !important;}
+  /* safe area for bottom nav */
+  body{padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));}
+  .bottomNav{
+    display:flex;
+    position:fixed; left:0; right:0; bottom:0;
+    height:72px;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)) 10px;
+    background: var(--card);
+    border-top:1px solid var(--line);
+    z-index: 11000;
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    box-shadow: 0 -10px 30px rgba(0,0,0,.08);
+    touch-action: manipulation;
+  }
+  .bottomNav .bnav{
+    flex:1;
+    border:0;
+    background: transparent;
+    color: var(--text);
+    padding: 8px 4px;
+    border-radius: 14px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    font-family: var(--sans);
+    cursor:pointer;
+    user-select:none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bottomNav .bnav .ico{font-size:18px; line-height:1;}
+  .bottomNav .bnav .txt{font-size:12px; line-height:1; opacity:.9;}
+  .bottomNav .bnav.active{
+    background: var(--card2);
+    border:1px solid var(--line);
+  }
+  .bottomNav .bnav.active .txt{opacity:1; font-weight:800;}
+  /* learning segmented control (only mobile) */
+  .mobileLearnBar{
+    display:flex;
+    gap:8px;
+    margin: 10px 0 0 0;
+    padding: 10px;
+    border:1px solid var(--line);
+    border-radius: 16px;
+    background: var(--card);
+    position: sticky;
+    top: 10px;
+    z-index: 40;
+  }
+  .mobileLearnBar[hidden]{display:none !important;}
+  .mobileLearnBar .segBtn{
+    flex:1;
+    border:1px solid var(--line);
+    background: var(--card2);
+    color: var(--text);
+    border-radius: 14px;
+    padding:10px 8px;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .mobileLearnBar .segBtn.active{
+    background: var(--accent, #4f46e5);
+    color: white;
+    border-color: transparent;
+    font-weight:900;
+  }
+}
+/* Ensure fixed elements never block clicks unexpectedly */
+.bottomNav, .bottomNav *{pointer-events:auto;}
+/* -------------------------
+   Mobile Learn chooser sheet
+--------------------------*/
+.learnSheetOverlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  padding: 0 14px calc(14px + env(safe-area-inset-bottom, 0px));
+  background: rgba(10, 10, 15, .36);
+  z-index: 20000;
+}
+.learnSheetOverlay.open{display:flex;}
+.learnSheet{
+  width:100%;
+  max-width:560px;
+  background: var(--card);
+  border:1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: 0 -18px 50px rgba(0,0,0,.28);
+  padding: 14px;
+  transform: translateY(14px);
+  animation: learnSheetIn .16s ease-out forwards;
+}
+@keyframes learnSheetIn{to{transform:translateY(0);}}
+.learnSheet .sheetHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding: 4px 4px 10px;
+}
+.learnSheet .sheetTitle{font-size:14px; font-weight:900; color: var(--text);}
+.learnSheet .sheetClose{
+  border:1px solid var(--line);
+  background: var(--card2);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 8px 10px;
+  cursor:pointer;
+}
+.learnSheet .sheetGrid{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:10px;
+}
+.learnSheet .sheetBtn{
+  width:100%;
+  border:1px solid var(--line);
+  background: var(--card2);
+  color: var(--text);
+  border-radius: 16px;
+  padding: 12px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  cursor:pointer;
+  font-family: var(--sans);
+}
+.learnSheet .sheetBtn .bigIco{font-size:18px; line-height:1;}
+.learnSheet .sheetBtn .sub{
+  font-size:12px;
+  opacity:.75;
+  margin-top:2px;
+}
+.learnSheet .sheetBtn:hover{filter: brightness(1.02);}
+html.sheet-open, body.sheet-open{overflow:hidden;}
+
+</style>
+
+<style id="mobileUIEnhance">
+/* -------------------------
+   Mobile UI enhance v38
+   Goal: more comfortable mobile layout + ensure tap targets and modals work with bottom nav
+--------------------------*/
+@media (max-width: 980px){
+  :root{ --tap: 44px; }
+  .wrap{padding:12px !important;}
+  .header{border-radius:22px !important;}
+  .card{border-radius:22px !important;}
+  .btn, .iconbtn, .tbtn, .custModePill, .segBtn, .bottomNav .bnav{
+    min-height: var(--tap);
+  }
+  .btn{padding:10px 12px !important;}
+  input, select, textarea{
+    font-size:16px; /* prevent iOS zoom */
+  }
+  .list-toolbar input,
+  .custSearch input{
+    min-height: var(--tap);
+    padding: 12px 12px !important;
+  }
+  .custSel{min-height: var(--tap);}
+  /* Make long tool rows scroll horizontally instead of wrapping into 3 lines */
+  .sched-actions{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .sched-actions::-webkit-scrollbar{display:none}
+  .sched-actions .btn{white-space:nowrap}
+  /* Summary cards: horizontally scroll, easier on phone */
+  .sched-summary{
+    display:grid !important;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(220px, 1fr);
+    overflow-x:auto;
+    gap:10px !important;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sched-summary::-webkit-scrollbar{display:none}
+  .sched-summary .stat.wide{grid-column:auto !important;}
+  /* Day pills row: scrollable */
+  .days{
+    flex-wrap:nowrap !important;
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .days::-webkit-scrollbar{display:none}
+  /* Calendar cells: shorter, prevent overlap */
+  .cal-head{gap:6px !important;}
+  .cal-body{gap:6px !important;}
+  .day{
+    min-height: 66px !important;
+    padding: 8px 8px 18px 8px !important;
+    border-radius: 16px !important;
+  }
+  .day .dnum{font-size:11px !important; font-weight:900 !important; padding-right: 22px;}
+  .day .badge{
+    top: auto !important; bottom: 8px !important; right: 8px !important;
+    font-size:10px !important; padding: 2px 6px !important;
+  }
+  .events{
+    margin-top:6px !important;
+    gap:4px !important;
+    max-height: 34px;
+    overflow:hidden;
+  }
+  .ev{padding:5px 6px !important; border-radius: 12px !important;}
+  .ev .t{font-size:11px !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .ev .s{font-size:10px !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .evMore{margin-top:4px; font-size:10px; color:var(--muted); padding:2px 4px;}
+  /* Month list card */
+  .item{padding:12px !important; border-radius: 18px !important;}
+  /* Customer page */
+  .custTop{flex-direction:column !important; align-items:flex-start !important; gap:10px !important;}
+  .custActions{width:100% !important; display:grid !important; grid-template-columns:1fr 1fr; gap:10px !important;}
+  .custActions .btn{width:100%;}
+  .custFilters{
+    grid-template-columns: 1fr !important;
+    gap:10px !important;
+    position: sticky;
+    top: 10px;
+    z-index: 60;
+    background: color-mix(in srgb, var(--card) 88%, transparent);
+    border-radius: 18px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+  }
+  .custModePill{width:100% !important;}
+  .custStats{
+    grid-template-columns: 1fr 1fr !important;
+    gap:10px !important;
+  }
+  .custList{grid-template-columns:1fr !important;}
+  /* Learning: iframe + cards use more vertical space */
+  #hostHandbookFrame{
+    height: calc(100vh - 220px) !important;
+    min-height: 520px;
+  }
+  /* Music player: reduce paddings, show more list content */
+  .p1Player{
+    padding:10px !important;
+    border-radius: 18px !important;
+  }
+  .p1Btns{gap:6px !important;}
+  /* Buttons slightly smaller, leave more room for lists */
+  #musicSystem .p1Btns .iconbtn{width:42px;height:42px;border-radius:16px;font-size:19px;line-height:1;}
+  #musicSystem .p1Btns .iconbtn.primary{width:48px;height:48px;border-radius:18px;font-size:21px;}
+  /* Music grid takes more vertical space on mobile */
+  #musicSystem #kgGrid{height: calc(100vh - 210px) !important; min-height: 420px;}
+  .kgGrid{gap:10px !important;}
+  .kgCol{padding:10px !important; border-radius: 18px !important;}
+  .kgList{gap:6px !important;}
+  .kgItem{padding:8px !important; border-radius:14px !important;}
+  .kgGrip{width:24px !important; min-width:24px !important; height:30px !important; border-radius:11px !important;}
+  .kgName{font-size:13px !important;}
+  .kgSub{font-size:11px !important;}
+  /* Queue grid: make cards smaller on mobile */
+  body[data-queue-grid="1"] #queueList{
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap:8px !important;
+  }
+  body[data-queue-grid="1"] #queueList .kgItem{
+    aspect-ratio: auto !important;
+    min-height: 132px;
+  }
+  /* Modal as bottom sheet for easier thumb reach */
+  .modal-panel{
+    margin:0 !important;
+    width: 100% !important;
+    max-width:none !important;
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    top: auto;
+    border-radius: 22px 22px 0 0 !important;
+    max-height: calc(100vh - 72px - env(safe-area-inset-bottom, 0px));
+  }
+  .modal-body{
+    max-height: calc(100vh - 210px);
+    overflow:auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+/* Extra compact on very small phones */
+@media (max-width: 480px){
+  .wrap{padding:10px !important;}
+  .header{padding:12px !important;}
+  .custActions{grid-template-columns:1fr !important;}
+  .custStats{grid-template-columns:1fr !important;}
+  .sched-summary{grid-auto-columns: minmax(200px, 1fr) !important;}
+  .day{min-height: 68px !important;}
+  body[data-queue-grid="1"] #queueList{grid-template-columns:1fr !important;}
+}
+</style>
+
 </head>
 <body data-music-mode="builtin" data-p1-fullscreen="0" data-now-compact="1" data-queue-grid="1">
   <div id="buildBadge">v—</div>
@@ -1991,6 +2299,182 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
     </div>
   </header>
 
+  <!-- Mobile learning bar (shows only on small screens in learning mode) -->
+  <div class="mobileLearnBar" id="mobileLearnBar" hidden>
+    <button type="button" class="segBtn" data-learn="handbook">📘 学习手册</button>
+    <button type="button" class="segBtn" data-learn="lines">🎙 主持台词</button>
+    <button type="button" class="segBtn" data-learn="social">📱 自媒体</button>
+  </div>
+
+  <!-- Mobile bottom navigation (shows on phones / small screens) -->
+  <nav class="bottomNav" id="bottomNav" aria-label="底部导航">
+    <button type="button" class="bnav" data-go="schedule" aria-label="档期记录">
+      <span class="ico">📅</span><span class="txt">档期</span>
+    </button>
+    <button type="button" class="bnav" data-go="customers" aria-label="客户">
+      <span class="ico">👥</span><span class="txt">客户</span>
+    </button>
+    <button type="button" class="bnav" data-go="learn" aria-label="学习">
+      <span class="ico">📘</span><span class="txt">学习</span>
+    </button>
+    <button type="button" class="bnav" data-go="music" aria-label="播放器">
+      <span class="ico">🎵</span><span class="txt">播放器</span>
+    </button>
+
+  </nav>
+
+  <!-- Mobile learn chooser sheet -->
+  <div class="learnSheetOverlay" id="learnSheet" aria-hidden="true">
+    <div class="learnSheet" role="dialog" aria-label="选择学习模块">
+      <div class="sheetHead">
+        <div class="sheetTitle">进入学习</div>
+        <button type="button" class="sheetClose" data-sheet-close aria-label="关闭">关闭</button>
+      </div>
+      <div class="sheetGrid">
+        <button type="button" class="sheetBtn" data-learn-go="handbook">
+          <span class="bigIco">📘</span>
+          <span>
+            <div style="font-weight:900; line-height:1.1;">学习手册</div>
+            <div class="sub">系统课程 / 训练路径</div>
+          </span>
+        </button>
+        <button type="button" class="sheetBtn" data-learn-go="lines">
+          <span class="bigIco">🎙</span>
+          <span>
+            <div style="font-weight:900; line-height:1.1;">主持台词</div>
+            <div class="sub">开场 / 走流程 / 气氛控场</div>
+          </span>
+        </button>
+        <button type="button" class="sheetBtn" data-learn-go="social">
+          <span class="bigIco">📱</span>
+          <span>
+            <div style="font-weight:900; line-height:1.1;">自媒体</div>
+            <div class="sub">标题 / 文案 / 脚本 / 评论引导</div>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+  // --- MOBILE_BOTTOM_NAV_HOTFIX (tap/click reliability) ---
+  (function(){
+    const ready = (fn)=> (document.readyState === "loading")
+      ? document.addEventListener("DOMContentLoaded", fn, {once:true})
+      : fn();
+
+    const getLearnKey = ()=>{
+      try{ return localStorage.getItem("mobileLearnTab") || "handbook"; }
+      catch(e){ return "handbook"; }
+    };
+
+    const goTab = (key)=>{
+      // Prefer the global setTab() (desktop + mobile share the same router)
+      const fn = (typeof window.setTab === "function") ? window.setTab
+               : (typeof setTab === "function") ? setTab
+               : null;
+      if (fn) return fn(key);
+
+      // Fallback: trigger the hidden top tab button if exists
+      const map = {
+        schedule: "tabSchedule",
+        customers: "tabCustomers",
+        handbook: "tabHandbook",
+        lines: "tabLines",
+        social: "tabSocial",
+        music: "tabMusic"
+      };
+      const id = map[key];
+      const el = id ? document.getElementById(id) : null;
+      if (el && typeof el.click === "function") el.click();
+
+    // Learn chooser sheet helpers (mobile)
+    const __learnSheet = ()=>document.getElementById("learnSheet");
+    const openLearnSheet = ()=>{
+      const ov = __learnSheet();
+      if (!ov) return;
+      ov.classList.add("open");
+      ov.setAttribute("aria-hidden","false");
+      document.documentElement.classList.add("sheet-open");
+      document.body.classList.add("sheet-open");
+    };
+    const closeLearnSheet = ()=>{
+      const ov = __learnSheet();
+      if (!ov) return;
+      ov.classList.remove("open");
+      ov.setAttribute("aria-hidden","true");
+      document.documentElement.classList.remove("sheet-open");
+      document.body.classList.remove("sheet-open");
+    };
+    // expose for other scripts
+    window.openLearnSheet = openLearnSheet;
+    window.closeLearnSheet = closeLearnSheet;
+
+    // One-time binding for sheet buttons
+    ready(()=>{
+      const ov = __learnSheet();
+      if (!ov || ov.__bound) return;
+      ov.__bound = true;
+
+      ov.addEventListener("click", (e)=>{
+        if (e.target === ov) closeLearnSheet();
+        const c = e.target && e.target.closest ? e.target.closest("[data-sheet-close]") : null;
+        if (c) closeLearnSheet();
+      });
+
+      ov.querySelectorAll("[data-learn-go]").forEach(btn=>{
+        btn.addEventListener("click", (e)=>{
+          e.preventDefault(); e.stopPropagation();
+          const k = btn.dataset.learnGo;
+          if (!k) return;
+          try{ localStorage.setItem("mobileLearnTab", k); }catch(err){}
+          if (typeof window.setTab === "function") window.setTab(k);
+          else goTab(k);
+          closeLearnSheet();
+        }, {passive:false});
+      });
+
+      document.addEventListener("keydown", (e)=>{
+        if (e.key === "Escape") closeLearnSheet();
+      });
+    });
+
+    };
+
+    const handle = (e)=>{
+      const btn = e?.target?.closest?.("#bottomNav .bnav");
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const go = btn.dataset.go;
+      if (!go) return;
+
+      if (go === "learn") { (window.openLearnSheet ? window.openLearnSheet() : goTab(getLearnKey())); return; }
+      else goTab(go);
+    };
+
+    ready(()=>{
+      const nav = document.getElementById("bottomNav");
+      if (!nav) return;
+
+      // Use multiple event types to survive different mobile browsers / embedded webviews
+      nav.addEventListener("pointerup", handle, {passive:false});
+      nav.addEventListener("click", handle, {passive:false});
+      nav.addEventListener("touchend", handle, {passive:false});
+
+      // Also capture at document-level (in case some module stops bubbling)
+      document.addEventListener("click", handle, true);
+      document.addEventListener("touchend", handle, {capture:true, passive:false});
+    });
+  })();
+  </script>
+
+</div>
+
+
+
   <section class="view" id="viewCustomers">
     <div class="grid onecol">
       <main class="cards">
@@ -2003,16 +2487,7 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
             <div class="custActions">
               <button class="btn primary" id="btnAddCustomer">＋ 新增客户</button>
               <button class="btn" id="btnMajorRemind">⏰ 重大事件提醒</button>
-            
-              <div class="custModeBar" title="切换：客户弹窗编辑 / 跳档期编辑">
-                <span class="muted-small">编辑方式</span>
-                <label class="switchTiny">
-                  <input type="checkbox" id="custEditModeSwitch" aria-label="编辑方式切换">
-                  <span class="sliderTiny"></span>
-                </label>
-                <span class="custModeLabel" id="custEditModeLabel">客户弹窗编辑</span>
-              </div>
-</div>
+            </div>
           </div>
 
           <div class="custFilters">
@@ -2023,6 +2498,7 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
             <select id="custTypeFilter" class="custSel"></select>
             <select id="custStatusFilter" class="custSel"></select>
             <select id="custSort" class="custSel"></select>
+            <button class="custModePill" id="custEditModeToggle" type="button" title="切换：客户弹窗编辑 / 跳档期编辑（只影响：✏️编辑）">🪟 客户弹窗编辑</button>
           </div>
 
           <div class="custStats">
@@ -2423,6 +2899,142 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
   });
 })();
 </script>
+
+<style id="mobileUIEnhance">
+/* -------------------------
+   Mobile UI enhance v38
+   Goal: more comfortable mobile layout + ensure tap targets and modals work with bottom nav
+--------------------------*/
+@media (max-width: 980px){
+  :root{ --tap: 44px; }
+  .wrap{padding:12px !important;}
+  .header{border-radius:22px !important;}
+  .card{border-radius:22px !important;}
+  .btn, .iconbtn, .tbtn, .custModePill, .segBtn, .bottomNav .bnav{
+    min-height: var(--tap);
+  }
+  .btn{padding:10px 12px !important;}
+  input, select, textarea{
+    font-size:16px; /* prevent iOS zoom */
+  }
+  .list-toolbar input,
+  .custSearch input{
+    min-height: var(--tap);
+    padding: 12px 12px !important;
+  }
+  .custSel{min-height: var(--tap);}
+  /* Make long tool rows scroll horizontally instead of wrapping into 3 lines */
+  .sched-actions{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .sched-actions::-webkit-scrollbar{display:none}
+  .sched-actions .btn{white-space:nowrap}
+  /* Summary cards: horizontally scroll, easier on phone */
+  .sched-summary{
+    display:grid !important;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(220px, 1fr);
+    overflow-x:auto;
+    gap:10px !important;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sched-summary::-webkit-scrollbar{display:none}
+  .sched-summary .stat.wide{grid-column:auto !important;}
+  /* Day pills row: scrollable */
+  .days{
+    flex-wrap:nowrap !important;
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .days::-webkit-scrollbar{display:none}
+  /* Calendar cells: shorter, prevent overlap */
+  .cal-head{gap:6px !important;}
+  .cal-body{gap:6px !important;}
+  .day{
+    min-height: 74px !important;
+    padding: 8px !important;
+    border-radius: 16px !important;
+  }
+  .day .badge{
+    top: 8px !important; right: 8px !important;
+    font-size:10px !important; padding: 2px 6px !important;
+  }
+  .events{margin-top:6px !important; gap:4px !important;}
+  .ev{padding:5px 6px !important; border-radius: 12px !important;}
+  .ev .t{font-size:11px !important;}
+  .ev .s{font-size:10px !important;}
+  /* Month list card */
+  .item{padding:12px !important; border-radius: 18px !important;}
+  /* Customer page */
+  .custTop{flex-direction:column !important; align-items:flex-start !important; gap:10px !important;}
+  .custActions{width:100% !important; display:grid !important; grid-template-columns:1fr 1fr; gap:10px !important;}
+  .custActions .btn{width:100%;}
+  .custFilters{
+    grid-template-columns: 1fr !important;
+    gap:10px !important;
+  }
+  .custModePill{width:100% !important;}
+  .custStats{
+    grid-template-columns: 1fr 1fr !important;
+    gap:10px !important;
+  }
+  .custList{grid-template-columns:1fr !important;}
+  /* Learning: iframe + cards use more vertical space */
+  #hostHandbookFrame{
+    height: calc(100vh - 220px) !important;
+    min-height: 520px;
+  }
+  /* Music player: reduce paddings, show more list content */
+  .p1Player{
+    padding:10px !important;
+    border-radius: 18px !important;
+  }
+  .p1Btns{gap:6px !important;}
+  .kgGrid{gap:10px !important;}
+  .kgCol{padding:10px !important; border-radius: 18px !important;}
+  .kgList{gap:8px !important;}
+  /* Queue grid: make cards smaller on mobile */
+  body[data-queue-grid="1"] #queueList{
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap:8px !important;
+  }
+  body[data-queue-grid="1"] #queueList .kgItem{
+    aspect-ratio: auto !important;
+    min-height: 132px;
+  }
+  /* Modal as bottom sheet for easier thumb reach */
+  .modal-panel{
+    margin:0 !important;
+    width: 100% !important;
+    max-width:none !important;
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    top: auto;
+    border-radius: 22px 22px 0 0 !important;
+    max-height: calc(100vh - 72px - env(safe-area-inset-bottom, 0px));
+  }
+  .modal-body{
+    max-height: calc(100vh - 210px);
+    overflow:auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+/* Extra compact on very small phones */
+@media (max-width: 480px){
+  .wrap{padding:10px !important;}
+  .header{padding:12px !important;}
+  .custActions{grid-template-columns:1fr !important;}
+  .custStats{grid-template-columns:1fr !important;}
+  .sched-summary{grid-auto-columns: minmax(200px, 1fr) !important;}
+  .day{min-height: 68px !important;}
+  body[data-queue-grid="1"] #queueList{grid-template-columns:1fr !important;}
+}
+</style>
 
 </head>
 <body>
@@ -3397,7 +4009,6 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
   }, true);
 })();
 </script>
-
 </body>
 </html>
 
@@ -4457,6 +5068,142 @@ body.hostNavOpen #hostEmbedCatalogBtn{
   #hostEmbedCatalogBtn{ top: 10px; right: 10px; padding: 8px 10px; }
 }
 </style>
+<style id="mobileUIEnhance">
+/* -------------------------
+   Mobile UI enhance v38
+   Goal: more comfortable mobile layout + ensure tap targets and modals work with bottom nav
+--------------------------*/
+@media (max-width: 980px){
+  :root{ --tap: 44px; }
+  .wrap{padding:12px !important;}
+  .header{border-radius:22px !important;}
+  .card{border-radius:22px !important;}
+  .btn, .iconbtn, .tbtn, .custModePill, .segBtn, .bottomNav .bnav{
+    min-height: var(--tap);
+  }
+  .btn{padding:10px 12px !important;}
+  input, select, textarea{
+    font-size:16px; /* prevent iOS zoom */
+  }
+  .list-toolbar input,
+  .custSearch input{
+    min-height: var(--tap);
+    padding: 12px 12px !important;
+  }
+  .custSel{min-height: var(--tap);}
+  /* Make long tool rows scroll horizontally instead of wrapping into 3 lines */
+  .sched-actions{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .sched-actions::-webkit-scrollbar{display:none}
+  .sched-actions .btn{white-space:nowrap}
+  /* Summary cards: horizontally scroll, easier on phone */
+  .sched-summary{
+    display:grid !important;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(220px, 1fr);
+    overflow-x:auto;
+    gap:10px !important;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sched-summary::-webkit-scrollbar{display:none}
+  .sched-summary .stat.wide{grid-column:auto !important;}
+  /* Day pills row: scrollable */
+  .days{
+    flex-wrap:nowrap !important;
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .days::-webkit-scrollbar{display:none}
+  /* Calendar cells: shorter, prevent overlap */
+  .cal-head{gap:6px !important;}
+  .cal-body{gap:6px !important;}
+  .day{
+    min-height: 74px !important;
+    padding: 8px !important;
+    border-radius: 16px !important;
+  }
+  .day .badge{
+    top: 8px !important; right: 8px !important;
+    font-size:10px !important; padding: 2px 6px !important;
+  }
+  .events{margin-top:6px !important; gap:4px !important;}
+  .ev{padding:5px 6px !important; border-radius: 12px !important;}
+  .ev .t{font-size:11px !important;}
+  .ev .s{font-size:10px !important;}
+  /* Month list card */
+  .item{padding:12px !important; border-radius: 18px !important;}
+  /* Customer page */
+  .custTop{flex-direction:column !important; align-items:flex-start !important; gap:10px !important;}
+  .custActions{width:100% !important; display:grid !important; grid-template-columns:1fr 1fr; gap:10px !important;}
+  .custActions .btn{width:100%;}
+  .custFilters{
+    grid-template-columns: 1fr !important;
+    gap:10px !important;
+  }
+  .custModePill{width:100% !important;}
+  .custStats{
+    grid-template-columns: 1fr 1fr !important;
+    gap:10px !important;
+  }
+  .custList{grid-template-columns:1fr !important;}
+  /* Learning: iframe + cards use more vertical space */
+  #hostHandbookFrame{
+    height: calc(100vh - 220px) !important;
+    min-height: 520px;
+  }
+  /* Music player: reduce paddings, show more list content */
+  .p1Player{
+    padding:10px !important;
+    border-radius: 18px !important;
+  }
+  .p1Btns{gap:6px !important;}
+  .kgGrid{gap:10px !important;}
+  .kgCol{padding:10px !important; border-radius: 18px !important;}
+  .kgList{gap:8px !important;}
+  /* Queue grid: make cards smaller on mobile */
+  body[data-queue-grid="1"] #queueList{
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap:8px !important;
+  }
+  body[data-queue-grid="1"] #queueList .kgItem{
+    aspect-ratio: auto !important;
+    min-height: 132px;
+  }
+  /* Modal as bottom sheet for easier thumb reach */
+  .modal-panel{
+    margin:0 !important;
+    width: 100% !important;
+    max-width:none !important;
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    top: auto;
+    border-radius: 22px 22px 0 0 !important;
+    max-height: calc(100vh - 72px - env(safe-area-inset-bottom, 0px));
+  }
+  .modal-body{
+    max-height: calc(100vh - 210px);
+    overflow:auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+/* Extra compact on very small phones */
+@media (max-width: 480px){
+  .wrap{padding:10px !important;}
+  .header{padding:12px !important;}
+  .custActions{grid-template-columns:1fr !important;}
+  .custStats{grid-template-columns:1fr !important;}
+  .sched-summary{grid-auto-columns: minmax(200px, 1fr) !important;}
+  .day{min-height: 68px !important;}
+  body[data-queue-grid="1"] #queueList{grid-template-columns:1fr !important;}
+}
+</style>
+
 </head>
 
 <body data-theme="dark" class="hostEmbed">
@@ -7643,6 +8390,8 @@ $("#importBtn").addEventListener("click", async ()=>{
     const monthBookings = bookingsInMonth(ym);
     const bmap = bookingsByDate(monthBookings);
     const today = todayISO();
+    const isMobile = !!(window.matchMedia && window.matchMedia("(max-width: 980px), (hover: none) and (pointer: coarse)").matches);
+    const maxDayEvents = isMobile ? 1 : 3;
 
     calBody.innerHTML = "";
     const totalCells = 42;
@@ -7676,11 +8425,11 @@ $("#importBtn").addEventListener("click", async ()=>{
       cell.innerHTML = `
         <div class="dnum">${dayNum}</div>
         <div class="events"></div>
-        ${events.length ? `<div class="badge">${events.length}场</div>` : ""}
+        ${events.length ? `<div class="badge">${isMobile ? events.length : (events.length+"场")}</div>` : ""}
       `;
 
       const evWrap = cell.querySelector(".events");
-      events.slice(0,3).forEach(ev=> {
+      events.slice(0,maxDayEvents).forEach(ev=> {
         const el = document.createElement("div");
         el.className = "ev";
         el.innerHTML = `<div class="t">${(ev.time? ev.time+" " : "") + (ev.clientName||"未命名客户")}</div>
@@ -7691,6 +8440,13 @@ $("#importBtn").addEventListener("click", async ()=>{
         });
         evWrap.appendChild(el);
       });
+
+      if (isMobile && events.length > maxDayEvents) {
+        const more = document.createElement("div");
+        more.className = "evMore";
+        more.textContent = "＋" + (events.length - maxDayEvents);
+        evWrap.appendChild(more);
+      }
 
       cell.addEventListener("click", ()=> {
         const inThisMonth = ymKey(iso) === ym;
@@ -8294,6 +9050,8 @@ modal.addEventListener("click", (e)=> {
   });
 
   function openBooking(id, opts={}) {
+    // Guard: prevent accidental opening when not in Schedule view.
+    try{ const vs = $("#viewSchedule"); if (vs && !vs.classList.contains("active")) return; }catch(e){}
     const presetDate = opts.presetDate || null;
     if (id && state.bookings && state.bookings[id]) {
       editingId = id;
@@ -8359,114 +9117,6 @@ modal.addEventListener("click", (e)=> {
   function ensureCustomers(){
     if (!state.customers || typeof state.customers !== "object") state.customers = {};
   }
-  // 客户页按钮行为模式：modal=在客户页弹窗编辑；schedule=跳到档期记录编辑
-  const CUST_EDIT_MODE_KEY = "cust.editMode";
-  function getCustEditMode(){
-    try{
-      const v = localStorage.getItem(CUST_EDIT_MODE_KEY);
-      return (v==="schedule" || v==="modal") ? v : "modal";
-    }catch(e){ return "modal"; }
-  }
-  function setCustEditMode(mode){
-    const m = (mode==="schedule") ? "schedule" : "modal";
-    try{ localStorage.setItem(CUST_EDIT_MODE_KEY, m); }catch(e){}
-    syncCustEditModeUI();
-    try{ renderCustomers(); }catch(e){}
-  }
-  function syncCustEditModeUI(){
-    const mode = getCustEditMode();
-    const sw = $("#custEditModeSwitch");
-    const label = $("#custEditModeLabel");
-    if (sw) sw.checked = (mode==="schedule");
-    if (label) label.textContent = (mode==="schedule") ? "跳档期编辑" : "客户弹窗编辑";
-    // inline switches
-    document.querySelectorAll(".custModeSwitch").forEach(el=>{
-      try{ el.checked = (mode==="schedule"); }catch(e){}
-    });
-    document.querySelectorAll(".custModeText").forEach(el=>{
-      try{ el.textContent = (mode==="schedule") ? "档期" : "客户"; }catch(e){}
-    });
-  }
-  function ensureCustomerViewActive(){
-    const v = $("#viewCustomers");
-    if (v && v.classList.contains("active")) return;
-    try{ setTab("customers"); }catch(e){}
-  }
-
-  function findLatestBookingIdForCustomer(name, phone){
-    const bookings = state.bookings || {};
-    const n = normalizeName(name);
-    const p = normalizePhone(phone);
-    let best = null;
-    for (const [bid, b] of Object.entries(bookings)){
-      if (!b) continue;
-      const bn = normalizeName(b.clientName);
-      const bp = normalizePhone(b.phone);
-      const match = (p && bp && p===bp) || (n && bn && n===bn);
-      if (!match) continue;
-      const key = `${String(b.date||"")}|${String(b.updatedAt||"")}|${String(bid)}`;
-      if (!best || key > best.key) best = {id: bid, key};
-    }
-    return best ? best.id : null;
-  }
-
-  function openScheduleEditFromCustomer(custId, opts={}){
-    ensureCustomers();
-    const c = (state.customers||{})[custId];
-    const name = c ? normalizeName(c.name) : "";
-    const phone = c ? normalizePhone(c.phone) : "";
-    const bId = findLatestBookingIdForCustomer(name, phone);
-
-    // 跳到档期页并打开编辑
-    try{ setTab("schedule"); }catch(e){}
-
-    if (bId){
-      try{ openBooking(bId); }catch(e){ console.error(e); toast("打开档期失败"); }
-    } else {
-      // 新建档期并从客户带入信息
-      try{
-        editingId = null;
-        draft = makeEmptyBooking(todayISO());
-        draft.clientName = name || "";
-        draft.phone = phone || "";
-        draft.banquetType = (c && c.banquetType) ? c.banquetType : "婚宴";
-        if (c && c.notes) draft.notes = c.notes;
-
-        modalTitle.textContent = "新增档期";
-        modalSub.textContent = "已从客户库带入信息，可继续完善档期内容。";
-        btnDeleteBooking.style.display = "none";
-
-        fillFormFromDraft();
-        modalDirty = false;
-        renderSectionChips();
-        renderClientScripts();
-        renderTimeline();
-        openModal();
-      }catch(e){
-        console.error(e);
-        toast("新建档期失败");
-      }
-    }
-
-    if (opts && opts.focus==="notes"){
-      setTimeout(()=>{ try{ $("#f_notes")?.focus(); }catch(e){} }, 60);
-    }
-  }
-
-  function handleCustomerAction(action, custId){
-    const mode = getCustEditMode();
-    if (action==="edit"){
-      if (mode==="schedule") return openScheduleEditFromCustomer(custId);
-      ensureCustomerViewActive();
-      return openCustomerModal(custId);
-    }
-    if (action==="followup"){
-      if (mode==="schedule") return openScheduleEditFromCustomer(custId, {focus:"notes"});
-      ensureCustomerViewActive();
-      return openFollowupModal(custId);
-    }
-  }
-
 
   function normalizePhone(v){
     return String(v||"").trim();
@@ -8553,8 +9203,78 @@ modal.addEventListener("click", (e)=> {
   }
 
   // UI state
+
+  // --- Customers: edit mode toggle ---
+  // mode: "modal" (客户弹窗编辑) | "schedule" (跳到档期编辑)
+  const CUST_EDIT_MODE_KEY = "cust_edit_mode_v1";
+  function getCustEditMode(){
+    try{ return localStorage.getItem(CUST_EDIT_MODE_KEY) || "modal"; }catch(e){ return "modal"; }
+  }
+  function setCustEditMode(mode){
+    try{ localStorage.setItem(CUST_EDIT_MODE_KEY, mode); }catch(e){}
+    updateCustEditModeUI();
+  }
+  function toggleCustEditMode(){
+    const cur = getCustEditMode();
+    setCustEditMode(cur==="schedule" ? "modal" : "schedule");
+  }
+  function updateCustEditModeUI(){
+    const mode = getCustEditMode();
+    const btn = $("#custEditModeToggle");
+    if (btn){
+      btn.textContent = (mode==="schedule") ? "📅 跳档期编辑" : "🪟 客户弹窗编辑";
+      btn.setAttribute("data-mode", mode);
+      btn.title = "切换：客户弹窗编辑 / 跳档期编辑（只影响：✏️编辑）";
+    }
+  }
+
+  function findBookingIdForCustomer(cust){
+    if (!cust) return "";
+    const bookings = Object.values(state.bookings||{});
+    const today = parseISO(todayISO());
+    let next = null, nextId = "";
+    let last = null, lastId = "";
+    const ids = new Set(cust.bookingIds||[]);
+    bookings.forEach(b=>{
+      if (!b || !b.date) return;
+      const match = ids.has(b.id) ||
+        (cust.phone && normalizePhone(b.phone) && normalizePhone(b.phone)===normalizePhone(cust.phone)) ||
+        (!cust.phone && normalizeName(b.clientName)===normalizeName(cust.name));
+      if (!match) return;
+      const d = parseISO(b.date);
+      if (!d) return;
+
+      if (!last || d.getTime() > last.getTime()){
+        last = d; lastId = b.id;
+      }
+      if (today && d.getTime() >= today.getTime()){
+        if (!next || d.getTime() < next.getTime()){
+          next = d; nextId = b.id;
+        }
+      }
+    });
+    return nextId || lastId || "";
+  }
+
+  function jumpToScheduleEditFromCustomer(custId){
+    const cust = state.customers?.[custId];
+    const bid = findBookingIdForCustomer(cust);
+    if (!bid){
+      toast("未找到关联档期：已打开客户弹窗");
+      return openCustomerModal(custId);
+    }
+    setTab("schedule");
+    try{
+      if (typeof window.openBooking === "function") window.openBooking(bid);
+      else if (typeof openBooking === "function") openBooking(bid);
+    }catch(e){
+      console.error(e);
+      toast("打开档期编辑失败");
+      openCustomerModal(custId);
+    }
+  }
+
   let customersBooted = false;
-  let customersActionGuardInstalled = false;
   function initCustomers(){
     ensureCustomers();
     // 首次进入：把已有档期同步到客户库（不覆盖已有状态/备注/跟进）
@@ -8590,56 +9310,11 @@ modal.addEventListener("click", (e)=> {
       statusSel?.addEventListener("change", ()=>renderCustomers());
       sortSel?.addEventListener("change", ()=>renderCustomers());
 
+      $("#custEditModeToggle")?.addEventListener("click", ()=>{ toggleCustEditMode(); renderCustomers(); });
+      updateCustEditModeUI();
+
       $("#btnAddCustomer")?.addEventListener("click", ()=>openCustomerModal(null));
       $("#btnMajorRemind")?.addEventListener("click", ()=>openMajorRemind());
-
-      // edit mode toggles
-      $("#custEditModeSwitch")?.addEventListener("change", (e)=>{
-        const on = !!e.target.checked;
-        setCustEditMode(on ? "schedule" : "modal");
-      });
-      // init label states
-      syncCustEditModeUI();
-
-      // capture guard: ensure action buttons behave by current mode, 不被其它点击监听抢走
-      if (!customersActionGuardInstalled){
-        customersActionGuardInstalled = true;
-
-        const shouldHandle = (target)=>{
-          const v = $("#viewCustomers");
-          if (!v || !v.classList.contains("active")) return null;
-          // ignore when toggling switches
-          if (target.closest(".custModeWrap") || target.closest(".custModeBar") || target.closest("#custEditModeSwitch")) return null;
-
-          const btn = target.closest("[data-cust-action]");
-          if (!btn) return null;
-          const action = btn.getAttribute("data-cust-action");
-          if (action!=="edit" && action!=="followup") return null;
-          const id = btn.getAttribute("data-cust-id");
-          if (!id) return null;
-          return {action, id};
-        };
-
-        const guard = (e)=>{
-          const hit = shouldHandle(e.target);
-          if (!hit) return;
-          e.preventDefault();
-          e.stopPropagation();
-          if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-          handleCustomerAction(hit.action, hit.id);
-        };
-
-        document.addEventListener("pointerdown", guard, true);
-        document.addEventListener("click", guard, true);
-
-        // inline switch change (每张客户卡旁的小开关)
-        document.addEventListener("change", (e)=>{
-          const t = e.target;
-          if (!(t && t.classList && t.classList.contains("custModeSwitch"))) return;
-          const on = !!t.checked;
-          setCustEditMode(on ? "schedule" : "modal");
-        }, true);
-      }
 
       // delegation for list buttons
       $("#customerList")?.addEventListener("click", (e)=>{
@@ -8649,9 +9324,14 @@ modal.addEventListener("click", (e)=> {
         const action = btn.getAttribute("data-cust-action");
         if (!id) return;
 
-        if (action==="edit") return handleCustomerAction("edit", id);
-        if (action==="followup") return handleCustomerAction("followup", id);
+        if (action==="mode"){ e.preventDefault(); e.stopPropagation(); toggleCustEditMode(); renderCustomers(); return; }
+        if (action==="edit"){ e.preventDefault(); e.stopPropagation();
+          if (getCustEditMode()==="schedule"){ return jumpToScheduleEditFromCustomer(id); }
+          return openCustomerModal(id);
+        }
+        if (action==="followup"){ e.preventDefault(); e.stopPropagation(); return openFollowupModal(id); }
         if (action==="toggle"){
+          e.preventDefault(); e.stopPropagation();
           const card = btn.closest(".custCard");
           const body = card?.querySelector(".custBody");
           if (body) body.classList.toggle("hidden");
@@ -8719,10 +9399,11 @@ modal.addEventListener("click", (e)=> {
     const status = $("#custStatusFilter")?.value || "all";
     const sort = $("#custSort")?.value || "followup_desc";
 
-    
-    const __custMode = getCustEditMode();
-    const __custModeIsSchedule = (__custMode==="schedule");
-const list = Object.values(state.customers||{}).map(c=>{
+    // keep edit-mode UI in sync
+    updateCustEditModeUI();
+    const __custEditMode = getCustEditMode();
+
+    const list = Object.values(state.customers||{}).map(c=>{
       const m = deriveCustomerMetrics(c);
       return Object.assign({}, c, m);
     });
@@ -8808,14 +9489,7 @@ const list = Object.values(state.customers||{}).map(c=>{
             <div class="custBtns">
               <button class="custTiny" data-cust-action="followup" data-cust-id="${h(c.id)}" title="新增跟进">＋ 跟进</button>
               <button class="custTiny" data-cust-action="edit" data-cust-id="${h(c.id)}" title="编辑客户">✏️ 编辑</button>
-
-              <div class="custModeWrap" title="切换：客户弹窗 / 跳档期">
-                <label class="switchTiny">
-                  <input type="checkbox" class="custModeSwitch" ${__custModeIsSchedule?"checked":""} aria-label="编辑方式切换">
-                  <span class="sliderTiny"></span>
-                </label>
-                <span class="custModeText custModeText">${__custModeIsSchedule?"档期":"客户"}</span>
-              </div>
+              <button class="custTiny custModeBtn" data-cust-action="mode" data-cust-id="${h(c.id)}" title="切换编辑方式：客户弹窗 / 跳档期">${__custEditMode==="schedule" ? "📅 档期" : "🪟 弹窗"}</button>
               <button class="custTiny custToggle" data-cust-action="toggle" data-cust-id="${h(c.id)}" title="展开/收起">＋</button>
             </div>
           </div>
@@ -8861,10 +9535,28 @@ const list = Object.values(state.customers||{}).map(c=>{
     if (!el) return;
     el.classList.remove("show");
     el.setAttribute("aria-hidden","true");
+    // release forced Customers context for customer-related modals
+    try{
+      const id = el.id || "";
+      if (id==="customerModal" || id==="followupModal" || id==="majorRemindModal"){
+        __releaseCustomersContext();
+      }
+    }catch(e){}
   }
 
   // --- Customer modal logic ---
   let editingCustomerId = null;
+
+  function __forceCustomersContext(keepScroll=true){
+    // Keep the UI in Customers context without locking navigation.
+    try{
+      if (!$("#viewCustomers")?.classList.contains("active")) setTab("customers");
+    }catch(e){}
+  }
+  function __releaseCustomersContext(){
+    // no-op (kept for compatibility)
+  }
+
 
   function clearMajorList(){
     const box = $("#c_majorList");
@@ -8903,6 +9595,8 @@ const list = Object.values(state.customers||{}).map(c=>{
   }
 
   function openCustomerModal(id){
+    __forceCustomersContext(true);
+
     ensureCustomers();
     const modal = $("#customerModal");
     if (!modal) return;
@@ -8996,6 +9690,8 @@ const list = Object.values(state.customers||{}).map(c=>{
   // --- Followup modal ---
   let followupCustomerId = null;
   function openFollowupModal(id){
+    __forceCustomersContext(true);
+
     followupCustomerId = id;
     $("#fu_date").value = todayISO();
     $("#fu_note").value = "";
@@ -9025,6 +9721,8 @@ const list = Object.values(state.customers||{}).map(c=>{
 
   // --- Major remind ---
   function openMajorRemind(){
+    __forceCustomersContext(true);
+
     ensureCustomers();
     const modal = $("#majorRemindModal");
     const box = $("#majorRemindList");
@@ -14835,6 +15533,142 @@ function ktvGetP1Bridge(){
     -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
   }
 </style>
+<style id="mobileUIEnhance">
+/* -------------------------
+   Mobile UI enhance v38
+   Goal: more comfortable mobile layout + ensure tap targets and modals work with bottom nav
+--------------------------*/
+@media (max-width: 980px){
+  :root{ --tap: 44px; }
+  .wrap{padding:12px !important;}
+  .header{border-radius:22px !important;}
+  .card{border-radius:22px !important;}
+  .btn, .iconbtn, .tbtn, .custModePill, .segBtn, .bottomNav .bnav{
+    min-height: var(--tap);
+  }
+  .btn{padding:10px 12px !important;}
+  input, select, textarea{
+    font-size:16px; /* prevent iOS zoom */
+  }
+  .list-toolbar input,
+  .custSearch input{
+    min-height: var(--tap);
+    padding: 12px 12px !important;
+  }
+  .custSel{min-height: var(--tap);}
+  /* Make long tool rows scroll horizontally instead of wrapping into 3 lines */
+  .sched-actions{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .sched-actions::-webkit-scrollbar{display:none}
+  .sched-actions .btn{white-space:nowrap}
+  /* Summary cards: horizontally scroll, easier on phone */
+  .sched-summary{
+    display:grid !important;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(220px, 1fr);
+    overflow-x:auto;
+    gap:10px !important;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sched-summary::-webkit-scrollbar{display:none}
+  .sched-summary .stat.wide{grid-column:auto !important;}
+  /* Day pills row: scrollable */
+  .days{
+    flex-wrap:nowrap !important;
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .days::-webkit-scrollbar{display:none}
+  /* Calendar cells: shorter, prevent overlap */
+  .cal-head{gap:6px !important;}
+  .cal-body{gap:6px !important;}
+  .day{
+    min-height: 74px !important;
+    padding: 8px !important;
+    border-radius: 16px !important;
+  }
+  .day .badge{
+    top: 8px !important; right: 8px !important;
+    font-size:10px !important; padding: 2px 6px !important;
+  }
+  .events{margin-top:6px !important; gap:4px !important;}
+  .ev{padding:5px 6px !important; border-radius: 12px !important;}
+  .ev .t{font-size:11px !important;}
+  .ev .s{font-size:10px !important;}
+  /* Month list card */
+  .item{padding:12px !important; border-radius: 18px !important;}
+  /* Customer page */
+  .custTop{flex-direction:column !important; align-items:flex-start !important; gap:10px !important;}
+  .custActions{width:100% !important; display:grid !important; grid-template-columns:1fr 1fr; gap:10px !important;}
+  .custActions .btn{width:100%;}
+  .custFilters{
+    grid-template-columns: 1fr !important;
+    gap:10px !important;
+  }
+  .custModePill{width:100% !important;}
+  .custStats{
+    grid-template-columns: 1fr 1fr !important;
+    gap:10px !important;
+  }
+  .custList{grid-template-columns:1fr !important;}
+  /* Learning: iframe + cards use more vertical space */
+  #hostHandbookFrame{
+    height: calc(100vh - 220px) !important;
+    min-height: 520px;
+  }
+  /* Music player: reduce paddings, show more list content */
+  .p1Player{
+    padding:10px !important;
+    border-radius: 18px !important;
+  }
+  .p1Btns{gap:6px !important;}
+  .kgGrid{gap:10px !important;}
+  .kgCol{padding:10px !important; border-radius: 18px !important;}
+  .kgList{gap:8px !important;}
+  /* Queue grid: make cards smaller on mobile */
+  body[data-queue-grid="1"] #queueList{
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap:8px !important;
+  }
+  body[data-queue-grid="1"] #queueList .kgItem{
+    aspect-ratio: auto !important;
+    min-height: 132px;
+  }
+  /* Modal as bottom sheet for easier thumb reach */
+  .modal-panel{
+    margin:0 !important;
+    width: 100% !important;
+    max-width:none !important;
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    top: auto;
+    border-radius: 22px 22px 0 0 !important;
+    max-height: calc(100vh - 72px - env(safe-area-inset-bottom, 0px));
+  }
+  .modal-body{
+    max-height: calc(100vh - 210px);
+    overflow:auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+/* Extra compact on very small phones */
+@media (max-width: 480px){
+  .wrap{padding:10px !important;}
+  .header{padding:12px !important;}
+  .custActions{grid-template-columns:1fr !important;}
+  .custStats{grid-template-columns:1fr !important;}
+  .sched-summary{grid-auto-columns: minmax(200px, 1fr) !important;}
+  .day{min-height: 68px !important;}
+  body[data-queue-grid="1"] #queueList{grid-template-columns:1fr !important;}
+}
+</style>
+
 </head><body>
   <div class="top">
     <div>
@@ -16028,9 +16862,17 @@ function ktvGetP1Bridge(){
     const frame = document.getElementById("hostHandbookFrame");
     if (!view || !frame) return;
     if (!view.classList.contains("active")) return;
+
     const rect = frame.getBoundingClientRect();
+
     const pad = 14;
-    const h = Math.max(520, window.innerHeight - rect.top - pad);
+    const bottomNav = document.getElementById("bottomNav");
+    const bnH = bottomNav && getComputedStyle(bottomNav).display !== "none" ? bottomNav.getBoundingClientRect().height : 0;
+
+    const learnBar = document.getElementById("mobileLearnBar");
+    const lbH = learnBar && !learnBar.hasAttribute("hidden") && getComputedStyle(learnBar).display !== "none" ? learnBar.getBoundingClientRect().height : 0;
+
+    const h = Math.max(520, window.innerHeight - rect.top - pad - bnH - lbH);
     frame.style.height = h + "px";
   }
 
@@ -16099,6 +16941,12 @@ function ktvGetP1Bridge(){
     view && view.classList.add("active");
     document.body.classList.toggle("musicWideHeader", key==="music");
 
+    // Mobile UX: when switching tabs, jump to top so header + (learning subnav) are visible
+    try{
+      const __isMobile = window.matchMedia && window.matchMedia("(max-width: 980px), (hover: none) and (pointer: coarse)").matches;
+      if (__isMobile) window.scrollTo({top:0, left:0, behavior:"auto"});
+    }catch(e){}
+
     if (key==="schedule"){
       initSchedule();
       renderCalendar(); renderList(); renderMonthStats();
@@ -16121,6 +16969,122 @@ function ktvGetP1Bridge(){
   $("#tabHandbook")?.addEventListener("click", ()=>setTab("handbook"));
   $("#tabLines")?.addEventListener("click", ()=>setTab("lines"));
   $("#tabSocial")?.addEventListener("click", ()=>setTab("social"));
+
+  // --- INIT_MOBILE_BOTTOM_NAV ---
+  (function(){
+    const isSmall = ()=> window.matchMedia && window.matchMedia("(max-width: 980px), (hover: none) and (pointer: coarse)").matches;
+
+    const bottom0 = document.getElementById("bottomNav");
+    const learnBar = document.getElementById("mobileLearnBar");
+    let bottom = bottom0;
+    const ensureBottom = ()=>{
+      if (bottom) return bottom;
+      bottom = document.getElementById("bottomNav");
+      return bottom;
+    };
+
+    const getLearn = ()=> (localStorage.getItem("mobileLearnTab") || "handbook");
+    const setLearn = (k)=> { try{ localStorage.setItem("mobileLearnTab", k); }catch(e){} };
+
+    function setActiveBottom(key){
+      if (!ensureBottom()) return;
+      const learnKeys = ["handbook","lines","social"];
+      const map = learnKeys.includes(key) ? "learn" : key;
+      bottom.querySelectorAll(".bnav").forEach(btn=>{
+        btn.classList.toggle("active", btn.dataset.go === map);
+      });
+    }
+
+    function setActiveLearnBar(key){
+      if (!learnBar) return;
+      const learnKeys = ["handbook","lines","social"];
+      const show = isSmall() && learnKeys.includes(key);
+      learnBar.toggleAttribute("hidden", !show);
+      learnBar.querySelectorAll(".segBtn").forEach(b=>{
+        b.classList.toggle("active", b.dataset.learn === key);
+      });
+    }
+
+    // Wrap original setTab to keep all logic in one place
+    if (typeof window.setTab === "function" && !window.__setTabWrapped){
+      const _setTab = window.setTab;
+      window.setTab = function(which){
+        const ret = _setTab(which);
+        try{
+          if (["handbook","lines","social"].includes(which)) setLearn(which);
+          setActiveBottom(which);
+          setActiveLearnBar(which);
+        }catch(e){}
+        return ret;
+      };
+      window.__setTabWrapped = true;
+    }
+
+    // Bottom nav clicks
+    if (ensureBottom()){
+      bottom.addEventListener("click", (e)=>{
+        const btn = e.target && e.target.closest ? e.target.closest(".bnav") : null;
+        if (!btn) return;
+        e.preventDefault(); e.stopPropagation();
+        const go = btn.dataset.go;
+        if (!go) return;
+        if (go === "learn"){
+          if (window.openLearnSheet) { window.openLearnSheet(); return; }
+          window.setTab && window.setTab(getLearn());
+        } else {
+          window.setTab && window.setTab(go);
+        }
+      }, {passive:false});
+    }
+
+    // Learning segmented bar clicks
+    if (learnBar){
+      learnBar.addEventListener("click", (e)=>{
+        const b = e.target && e.target.closest ? e.target.closest(".segBtn") : null;
+        if (!b) return;
+        e.preventDefault(); e.stopPropagation();
+        const k = b.dataset.learn;
+        if (!k) return;
+        window.setTab && window.setTab(k);
+      }, {passive:false});
+    }
+
+    // On load: sync bottom nav state once
+    window.addEventListener("DOMContentLoaded", ()=>{
+      try{
+        const activeKey = (
+          document.getElementById("tabSchedule")?.classList.contains("active") ? "schedule" :
+          document.getElementById("tabCustomers")?.classList.contains("active") ? "customers" :
+          document.getElementById("tabHandbook")?.classList.contains("active") ? "handbook" :
+          document.getElementById("tabLines")?.classList.contains("active") ? "lines" :
+          document.getElementById("tabSocial")?.classList.contains("active") ? "social" :
+          document.getElementById("tabMusic")?.classList.contains("active") ? "music" : "schedule"
+        );
+        setActiveBottom(activeKey);
+        setActiveLearnBar(activeKey);
+      }catch(e){}
+    }, {once:true});
+
+    window.addEventListener("resize", ()=>{
+      // keep in sync when rotating phone
+      const learnKeys = ["handbook","lines","social"];
+      const key = learnKeys.find(k=>document.getElementById("tab"+k[0].toUpperCase()+k.slice(1))?.classList.contains("active")) || null;
+      // easier: rely on DOMContentLoaded sync + current tab; just recompute from tabs
+      try{
+        const activeKey = (
+          document.getElementById("tabSchedule")?.classList.contains("active") ? "schedule" :
+          document.getElementById("tabCustomers")?.classList.contains("active") ? "customers" :
+          document.getElementById("tabHandbook")?.classList.contains("active") ? "handbook" :
+          document.getElementById("tabLines")?.classList.contains("active") ? "lines" :
+          document.getElementById("tabSocial")?.classList.contains("active") ? "social" :
+          document.getElementById("tabMusic")?.classList.contains("active") ? "music" : "schedule"
+        );
+        setActiveBottom(activeKey);
+        setActiveLearnBar(activeKey);
+      }catch(e){}
+    }, {passive:true});
+  })();
+
   $("#tabMusic")?.addEventListener("click", ()=>setTab("music"));
 
   // --- FIX_BOOT_SCHEDULE_FIRSTLOAD ---
@@ -16581,7 +17545,143 @@ function ktvGetP1Bridge(){
   }
 </style>
       `;
-      w.document.write(`<!doctype html><html><head><meta charset="utf-8"/>${css}</head><body>${head}${table}<div class="foot">打印提示：建议“缩放 100% / 纵向 / 只打印此页”。</div></body></html>`);
+      w.document.write(`<!doctype html><html><head><meta charset="utf-8"/>${css}<style id="mobileUIEnhance">
+/* -------------------------
+   Mobile UI enhance v38
+   Goal: more comfortable mobile layout + ensure tap targets and modals work with bottom nav
+--------------------------*/
+@media (max-width: 980px){
+  :root{ --tap: 44px; }
+  .wrap{padding:12px !important;}
+  .header{border-radius:22px !important;}
+  .card{border-radius:22px !important;}
+  .btn, .iconbtn, .tbtn, .custModePill, .segBtn, .bottomNav .bnav{
+    min-height: var(--tap);
+  }
+  .btn{padding:10px 12px !important;}
+  input, select, textarea{
+    font-size:16px; /* prevent iOS zoom */
+  }
+  .list-toolbar input,
+  .custSearch input{
+    min-height: var(--tap);
+    padding: 12px 12px !important;
+  }
+  .custSel{min-height: var(--tap);}
+  /* Make long tool rows scroll horizontally instead of wrapping into 3 lines */
+  .sched-actions{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .sched-actions::-webkit-scrollbar{display:none}
+  .sched-actions .btn{white-space:nowrap}
+  /* Summary cards: horizontally scroll, easier on phone */
+  .sched-summary{
+    display:grid !important;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(220px, 1fr);
+    overflow-x:auto;
+    gap:10px !important;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sched-summary::-webkit-scrollbar{display:none}
+  .sched-summary .stat.wide{grid-column:auto !important;}
+  /* Day pills row: scrollable */
+  .days{
+    flex-wrap:nowrap !important;
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .days::-webkit-scrollbar{display:none}
+  /* Calendar cells: shorter, prevent overlap */
+  .cal-head{gap:6px !important;}
+  .cal-body{gap:6px !important;}
+  .day{
+    min-height: 74px !important;
+    padding: 8px !important;
+    border-radius: 16px !important;
+  }
+  .day .badge{
+    top: 8px !important; right: 8px !important;
+    font-size:10px !important; padding: 2px 6px !important;
+  }
+  .events{margin-top:6px !important; gap:4px !important;}
+  .ev{padding:5px 6px !important; border-radius: 12px !important;}
+  .ev .t{font-size:11px !important;}
+  .ev .s{font-size:10px !important;}
+  /* Month list card */
+  .item{padding:12px !important; border-radius: 18px !important;}
+  /* Customer page */
+  .custTop{flex-direction:column !important; align-items:flex-start !important; gap:10px !important;}
+  .custActions{width:100% !important; display:grid !important; grid-template-columns:1fr 1fr; gap:10px !important;}
+  .custActions .btn{width:100%;}
+  .custFilters{
+    grid-template-columns: 1fr !important;
+    gap:10px !important;
+  }
+  .custModePill{width:100% !important;}
+  .custStats{
+    grid-template-columns: 1fr 1fr !important;
+    gap:10px !important;
+  }
+  .custList{grid-template-columns:1fr !important;}
+  /* Learning: iframe + cards use more vertical space */
+  #hostHandbookFrame{
+    height: calc(100vh - 220px) !important;
+    min-height: 520px;
+  }
+  /* Music player: reduce paddings, show more list content */
+  .p1Player{
+    padding:10px !important;
+    border-radius: 18px !important;
+  }
+  .p1Btns{gap:6px !important;}
+  .kgGrid{gap:10px !important;}
+  .kgCol{padding:10px !important; border-radius: 18px !important;}
+  .kgList{gap:8px !important;}
+  /* Queue grid: make cards smaller on mobile */
+  body[data-queue-grid="1"] #queueList{
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap:8px !important;
+  }
+  body[data-queue-grid="1"] #queueList .kgItem{
+    aspect-ratio: auto !important;
+    min-height: 132px;
+  }
+  /* Modal as bottom sheet for easier thumb reach */
+  .modal-panel{
+    margin:0 !important;
+    width: 100% !important;
+    max-width:none !important;
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    top: auto;
+    border-radius: 22px 22px 0 0 !important;
+    max-height: calc(100vh - 72px - env(safe-area-inset-bottom, 0px));
+  }
+  .modal-body{
+    max-height: calc(100vh - 210px);
+    overflow:auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+/* Extra compact on very small phones */
+@media (max-width: 480px){
+  .wrap{padding:10px !important;}
+  .header{padding:12px !important;}
+  .custActions{grid-template-columns:1fr !important;}
+  .custStats{grid-template-columns:1fr !important;}
+  .sched-summary{grid-auto-columns: minmax(200px, 1fr) !important;}
+  .day{min-height: 68px !important;}
+  body[data-queue-grid="1"] #queueList{grid-template-columns:1fr !important;}
+}
+</style>
+
+</head><body>${head}${table}<div class="foot">打印提示：建议“缩放 100% / 纵向 / 只打印此页”。</div></body></html>`);
       w.document.close();
       w.focus();
       setTimeout(()=> w.print(), 250);
@@ -19771,6 +20871,142 @@ ${v.cta}`,
     .btn.qMode.on{border-color: rgba(110,231,255,.60); background: rgba(110,231,255,.14)}
     .modeBtns{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-left:10px}
 </style>
+<style id="mobileUIEnhance">
+/* -------------------------
+   Mobile UI enhance v38
+   Goal: more comfortable mobile layout + ensure tap targets and modals work with bottom nav
+--------------------------*/
+@media (max-width: 980px){
+  :root{ --tap: 44px; }
+  .wrap{padding:12px !important;}
+  .header{border-radius:22px !important;}
+  .card{border-radius:22px !important;}
+  .btn, .iconbtn, .tbtn, .custModePill, .segBtn, .bottomNav .bnav{
+    min-height: var(--tap);
+  }
+  .btn{padding:10px 12px !important;}
+  input, select, textarea{
+    font-size:16px; /* prevent iOS zoom */
+  }
+  .list-toolbar input,
+  .custSearch input{
+    min-height: var(--tap);
+    padding: 12px 12px !important;
+  }
+  .custSel{min-height: var(--tap);}
+  /* Make long tool rows scroll horizontally instead of wrapping into 3 lines */
+  .sched-actions{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .sched-actions::-webkit-scrollbar{display:none}
+  .sched-actions .btn{white-space:nowrap}
+  /* Summary cards: horizontally scroll, easier on phone */
+  .sched-summary{
+    display:grid !important;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(220px, 1fr);
+    overflow-x:auto;
+    gap:10px !important;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sched-summary::-webkit-scrollbar{display:none}
+  .sched-summary .stat.wide{grid-column:auto !important;}
+  /* Day pills row: scrollable */
+  .days{
+    flex-wrap:nowrap !important;
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+  .days::-webkit-scrollbar{display:none}
+  /* Calendar cells: shorter, prevent overlap */
+  .cal-head{gap:6px !important;}
+  .cal-body{gap:6px !important;}
+  .day{
+    min-height: 74px !important;
+    padding: 8px !important;
+    border-radius: 16px !important;
+  }
+  .day .badge{
+    top: 8px !important; right: 8px !important;
+    font-size:10px !important; padding: 2px 6px !important;
+  }
+  .events{margin-top:6px !important; gap:4px !important;}
+  .ev{padding:5px 6px !important; border-radius: 12px !important;}
+  .ev .t{font-size:11px !important;}
+  .ev .s{font-size:10px !important;}
+  /* Month list card */
+  .item{padding:12px !important; border-radius: 18px !important;}
+  /* Customer page */
+  .custTop{flex-direction:column !important; align-items:flex-start !important; gap:10px !important;}
+  .custActions{width:100% !important; display:grid !important; grid-template-columns:1fr 1fr; gap:10px !important;}
+  .custActions .btn{width:100%;}
+  .custFilters{
+    grid-template-columns: 1fr !important;
+    gap:10px !important;
+  }
+  .custModePill{width:100% !important;}
+  .custStats{
+    grid-template-columns: 1fr 1fr !important;
+    gap:10px !important;
+  }
+  .custList{grid-template-columns:1fr !important;}
+  /* Learning: iframe + cards use more vertical space */
+  #hostHandbookFrame{
+    height: calc(100vh - 220px) !important;
+    min-height: 520px;
+  }
+  /* Music player: reduce paddings, show more list content */
+  .p1Player{
+    padding:10px !important;
+    border-radius: 18px !important;
+  }
+  .p1Btns{gap:6px !important;}
+  .kgGrid{gap:10px !important;}
+  .kgCol{padding:10px !important; border-radius: 18px !important;}
+  .kgList{gap:8px !important;}
+  /* Queue grid: make cards smaller on mobile */
+  body[data-queue-grid="1"] #queueList{
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap:8px !important;
+  }
+  body[data-queue-grid="1"] #queueList .kgItem{
+    aspect-ratio: auto !important;
+    min-height: 132px;
+  }
+  /* Modal as bottom sheet for easier thumb reach */
+  .modal-panel{
+    margin:0 !important;
+    width: 100% !important;
+    max-width:none !important;
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    top: auto;
+    border-radius: 22px 22px 0 0 !important;
+    max-height: calc(100vh - 72px - env(safe-area-inset-bottom, 0px));
+  }
+  .modal-body{
+    max-height: calc(100vh - 210px);
+    overflow:auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+/* Extra compact on very small phones */
+@media (max-width: 480px){
+  .wrap{padding:10px !important;}
+  .header{padding:12px !important;}
+  .custActions{grid-template-columns:1fr !important;}
+  .custStats{grid-template-columns:1fr !important;}
+  .sched-summary{grid-auto-columns: minmax(200px, 1fr) !important;}
+  .day{min-height: 68px !important;}
+  body[data-queue-grid="1"] #queueList{grid-template-columns:1fr !important;}
+}
+</style>
+
 </head>
 <body>
   <div class="topbar">
@@ -23596,9 +24832,5 @@ function handleSeekClick(e, kind){
 
 
 </script>
-</body>
-</html>
-
-  </template>
 </body>
 </html>
