@@ -78,12 +78,9 @@ body{
   background: var(--bg);
 }
 a{color:inherit; text-decoration:none}
-.wrap{max-width:1220px; margin:0 auto; padding:18px}
+.wrap{max-width:none; margin:0; width:100%; padding:18px}
 
-/* Music page: make top header/nav full-width; other pages keep 1220 centered */
-body.musicWideHeader .wrap{max-width:none; margin:0; width:100%;}
-
-
+/* 全站等宽：所有页面与音乐模块一致使用全宽容器（如需恢复居中宽度，可把 .wrap 的 max-width 改回 1220px） */
 .header{
   border:1px solid var(--line); border-radius:var(--radius-xl); background:var(--card);
   box-shadow:var(--shadow); padding:16px; display:flex; gap:12px; flex-wrap:wrap; justify-content:space-between;
@@ -304,8 +301,13 @@ h1{margin:0;font-size:18px; letter-spacing:.2px}
 
 /* --- Mobile schedule UX tweaks (2026-02) --- */
 .cal-monthbar{display:flex; align-items:center; gap:8px}
-.cal-navbtn{display:none}
-
+.cal-navbtn{display:inline-flex;width:34px;height:34px;border-radius:16px;align-items:center;justify-content:center}
+.cal-monthbar .month{flex:1;text-align:center}
+.cal-monthbar .monthIncome{margin-left:auto;color:var(--accent);font-size:12px;min-width:150px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.cal-monthbar .monthIncome .mirow{display:flex;gap:8px;align-items:baseline}
+.cal-monthbar .monthIncome .mirow span{color:var(--muted);font-weight:700;font-size:12px}
+.cal-monthbar .monthIncome .mirow b{font-weight:950;font-size:13px}
+@media (max-width: 980px){.cal-monthbar .monthIncome{min-width:72px;font-size:12px}}
 .sched-mobile-switch{display:none; margin-top:10px; padding:8px; border:1px solid var(--line);
   border-radius:18px; background:color-mix(in srgb, var(--btnbg) 86%, transparent); gap:8px; align-items:center; justify-content:flex-start}
 .sched-mobile-switch .segbtn{
@@ -317,9 +319,7 @@ h1{margin:0;font-size:18px; letter-spacing:.2px}
 
 @media (max-width:780px){
   /* Move month controls into calendar header */
-  #btnPrevMonth, #btnNextMonth{display:none !important;}
-  .cal-navbtn{display:inline-flex; width:34px; height:34px; border-radius:16px; align-items:center; justify-content:center;}
-  .cal-title{align-items:center}
+.cal-title{align-items:center}
   .cal-title .mini{flex-basis:100%;}
 
   /* Remove mobile pills: 有单天数 / 哪一天有单 */
@@ -357,6 +357,11 @@ h1{margin:0;font-size:18px; letter-spacing:.2px}
   -webkit-background-clip: text; background-clip:text; color:transparent;
 }
 .stat .small{margin-top:6px; font-size:12px; color:var(--muted); line-height:1.5}
+#statIncomeBlock .value{background:none;-webkit-background-clip:initial;background-clip:initial;color:var(--text)}
+#statIncomeBlock .value.value2{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+#statIncomeBlock .vrow{display:flex;gap:10px;align-items:baseline}
+#statIncomeBlock .vtag{font-size:12px;color:var(--muted);font-weight:700;min-width:42px}
+#statIncomeBlock .vnum{font-size:26px;font-weight:950;letter-spacing:.2px;color:var(--text)}
 .days{margin-top:8px; display:flex; gap:8px; flex-wrap:wrap}
 .daypill{
   padding:7px 10px; border-radius:999px; border:1px solid color-mix(in srgb, var(--p2) 18%, transparent);
@@ -1086,6 +1091,64 @@ html[data-theme="neon"]  .kgCol, html[data-theme="neon"]  .kgItem{background: rg
   background: color-mix(in srgb, var(--brand) 14%, transparent);
 }
 
+/* ===== Mobile: Queue / Library / List (mutually exclusive) + Import button ===== */
+.msMobileBar{
+  display:none;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin: 10px 0 10px;
+}
+.msMobileBar .seg{
+  display:inline-flex;
+  align-items:stretch;
+  border:1px solid var(--line);
+  border-radius:999px;
+  overflow:hidden;
+  background: color-mix(in srgb, var(--card2) 70%, transparent);
+}
+.msMobileBar .seg .segbtn{
+  padding:9px 14px;
+  font-size:13px;
+  line-height:1;
+  color: var(--muted);
+  background: transparent;
+  border:0;
+  cursor:pointer;
+}
+.msMobileBar .seg .segbtn.on{
+  color: var(--txt);
+  background: color-mix(in srgb, var(--brand) 14%, transparent);
+}
+.msMobileHint{ display:none; margin: 0 0 10px; font-size:12px; color: var(--muted); }
+.msIosOnly{ display:none; }
+body[data-ios="1"] .msIosOnly{ display:inline; }
+
+@media (max-width: 860px){
+  .msMobileBar{ display:flex; }
+  .msMobileHint{ display:block; }
+
+  /* hide resizers (not friendly on touch) and force single-column grid */
+  #musicSystem #kgGrid{ grid-template-columns: 1fr !important; }
+  #musicSystem #kgGrid .kgResizer{ display:none !important; }
+
+  /* show only selected panel */
+  body[data-music-mobileview="queue"] #musicSystem #kgColQueue{ display:flex !important; }
+  body[data-music-mobileview="queue"] #musicSystem #kgColLib,
+  body[data-music-mobileview="queue"] #musicSystem #kgColPl{ display:none !important; }
+
+  body[data-music-mobileview="lib"] #musicSystem #kgColLib{ display:flex !important; }
+  body[data-music-mobileview="lib"] #musicSystem #kgColQueue,
+  body[data-music-mobileview="lib"] #musicSystem #kgColPl{ display:none !important; }
+
+  body[data-music-mobileview="pl"] #musicSystem #kgColPl{ display:flex !important; }
+  body[data-music-mobileview="pl"] #musicSystem #kgColLib,
+  body[data-music-mobileview="pl"] #musicSystem #kgColQueue{ display:none !important; }
+
+  /* soften borders when only one column */
+  #musicSystem #kgColLib, #musicSystem #kgColPl, #musicSystem #kgColQueue{ border-left:none !important; }
+}
+
 /* External tools button (placed next to P1) + panel styling */
 #musicSystem #btnMusicExtTools{ white-space:nowrap; }
 #musicSystem #extTools{ scroll-margin-top: 90px; }
@@ -1316,11 +1379,31 @@ body[data-music-page="uvr"] #p1SizeBar{ display:none !important; }
   --qBtnFont: 12px;
   --qBtnPadY: 8px;
   --qBtnPadX: 10px;
+  --qMinW: 175px;
+  --qMinH: 150px;
+  --qGap: 8px;
 }
 #queueList .kgItem{padding: var(--qPad);}
 #queueList .kgName{font-size: var(--qName);}
 #queueList .kgSub{font-size: var(--qSub);}
 #queueList .sbtn{font-size: var(--qBtnFont); padding: var(--qBtnPadY) var(--qBtnPadX);}
+
+/* v2.72: 当前队列方片大小可调 + 模式按钮不再被遮挡（桌面/手机通用） */
+body[data-queue-grid="1"] #queueList{
+  grid-template-columns: repeat(auto-fill, minmax(var(--qMinW, 180px), 1fr)) !important;
+  gap: var(--qGap, 8px) !important;
+}
+#queueList .kgItem{
+  aspect-ratio: auto !important;   /* 全局取消强制正方形，避免底部按钮被裁切 */
+  overflow:hidden;                 /* 保留圆角裁切 */
+}
+body[data-queue-grid="1"] #queueList .kgItem{
+  min-height: var(--qMinH, 150px);
+}
+#queueList .kgRight{ margin-top:auto !important; }
+#queueList{ padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
+
+
 
 #queueList .kgItem.playing{
   outline:3px solid color-mix(in srgb, var(--ok) 26%, transparent);
@@ -1957,7 +2040,7 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
 .custMeta{margin-top:6px;color:var(--muted);font-size:13px}
 .custPills{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .custPill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--chipbg);border:1px solid var(--chipbd);font-size:12px}
-.custBtns{display:flex;gap:8px;align-items:center}
+.custBtns{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 .custTiny{padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--btnbg);cursor:pointer}
 .custTiny:hover{filter:brightness(1.02)}
 
@@ -1965,7 +2048,7 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
 .custModePill:hover{background:var(--btnbg2)}
 .custModeBtn{white-space:nowrap}
 
-.custToggle{position:absolute;right:14px;top:14px}
+.custToggle{position:static}
 .custBody{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
 .custBody.hidden{display:none}
 .majorList{display:grid;grid-template-columns: 160px 1fr auto;gap:8px;align-items:center}
@@ -1985,6 +2068,20 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
 @media (max-width: 420px){
   .custStats{grid-template-columns:1fr !important;}
 }
+
+/* --- v2.65 compact & editable --- */
+.editable{cursor:text;border-radius:10px;padding:2px 6px}
+.editable:focus{outline:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06)}
+.newCatRow{display:flex;gap:8px;align-items:center;margin-top:8px}
+.newCatRow .input{flex:1;min-width:0}
+.cal-monthbar .monthIncome{min-width:auto;display:flex;flex-direction:row;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);backdrop-filter:blur(8px)}
+.cal-monthbar .monthIncome .miTag{opacity:.85;font-size:12px}
+.cal-monthbar .monthIncome .miSep{opacity:.45}
+.cal-monthbar .monthIncome b{font-size:12px;font-weight:800}
+#statIncomeBlock .value2 .vrow{gap:6px}
+#statIncomeBlock .value2 .vtag{font-size:11px;padding:2px 8px}
+#statIncomeBlock .value2 .vnum{font-size:14px}
+
 </style>
 <style id="mobileBottomNavStyle">
 /* -------------------------
@@ -2415,13 +2512,13 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
 </style>
 </head>
 <body data-music-mode="builtin" data-now-compact="1" data-p1-fullscreen="0" data-queue-grid="1">
-<div id="buildBadge">v—</div>
+<div id="buildBadge">v2.65</div>
 <div class="wrap">
 <header class="header">
 <div class="brand">
 <div class="logo"></div>
 <div>
-<h1>主持人学习手册 <span class="ver" id="appVer">v—</span></h1>
+<h1><span id="appTitle" class="editable" contenteditable="true" spellcheck="false">主持人学习手册</span> <span class="ver editable" id="appVer" contenteditable="true" spellcheck="false">v2.65</span></h1>
 </div>
 </div>
 <div class="tools">
@@ -2617,7 +2714,7 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
         background: linear-gradient(to bottom, rgba(246,247,251,.92), rgba(246,247,251,.62), rgba(246,247,251,0));
       }
     }
-    .topwrap{max-width:1280px; margin:0 auto;}
+    .topwrap{max-width:none; margin:0; width:100%;}
     h1{margin:0; font-size:24px; letter-spacing:.2px}
     .subtitle{margin:6px 0 0; color:var(--muted); max-width:90ch}
     .badge{
@@ -2635,7 +2732,7 @@ html[data-theme="neon"] .ktvOpt input[type="checkbox"]{
     }
 
     /* Layout: stable left sidebar TOC */
-    .page{max-width:1280px; margin:0 auto; padding:14px 18px 40px;}
+    .page{max-width:none; margin:0; width:100%; padding:14px 18px 40px;}
     .layout{
       display:grid;
       grid-template-columns: var(--sidebar) minmax(0,1fr);
@@ -3061,6 +3158,7 @@ aside[aria-label="目录"]{
   position: fixed !important;
   top: 0 !important;
   right: 0 !important;
+  left: auto !important;
   bottom: 0 !important;
   width: min(320px, 86vw) !important;
   transform: translateX(110%) !important;
@@ -4111,27 +4209,10 @@ body.hostNavOpen #hostEmbedCatalogBtn{ right: 14px !important; }
 <section class="view" id="viewLines">
 <div class="grid onecol">
 <main class="cards">
-<section class="card tipsInline" id="linesTipsInline">
-<div class="tipsHead">
-<div class="tipsTitle">使用建议</div>
-<button class="btn ghost" id="btnToggleLinesTips" type="button">展开</button>
-</div>
-<div class="tipsBody" hidden="" id="linesTipsBody">
-<ul class="list">
-<li><b>先搜关键词</b>：开场 / 父母 / 证婚 / 敬酒 / 合影 / 退场。</li>
-<li><b>再改成你的口吻</b>：把“空话”换成具体动作与画面。</li>
-<li><b>做成你的“模板库”</b>：常用的就收藏（本模块支持本地保存）。</li>
-</ul>
-<div class="divider"></div>
-<div class="muted-small">
-            这个模块后续也能扩展：增加更多分类、把台词一键插入到“客户专属台词”、或关联到音乐点位表。
-          </div>
-</div>
-</section>
 <section class="card">
 <div class="hd">
 <h3><span class="num">🎙</span> 主持台词（大标题分类 / 搜索 / 可新增）</h3>
-<div class="tag">导入台词文件</div>
+
 </div>
 <div class="sub2">
             这里已把你提供的台词文件按「大标题」分组，并支持按 <b>标题 / 关键词 / 正文</b> 搜索。
@@ -4147,6 +4228,11 @@ body.hostNavOpen #hostEmbedCatalogBtn{ right: 14px !important; }
 </div>
 </div>
 <div class="muted-small" style="margin-top:8px">分类（点击筛选）</div>
+<div class="newCatRow" id="linesNewCatRow" style="display:none">
+  <input class="input" id="linesNewCatName" placeholder="输入分类名，回车保存" />
+  <button class="sbtn primary" id="btnLinesNewCatSave">保存</button>
+  <button class="sbtn" id="btnLinesNewCatCancel">取消</button>
+</div>
 <div class="linesCats" id="linesCats"></div>
 </div>
 <div class="linesMid box">
@@ -4206,14 +4292,11 @@ body.hostNavOpen #hostEmbedCatalogBtn{ right: 14px !important; }
 <div class="sched-top">
 <div class="sched-title">
 <h2 style="margin:0">档期记录</h2>
-<div class="sub2">一屏联动：<b>月历 + 当月列表</b>。上方显示<b>本月单量</b>与<b>有单日期</b>（点一下筛选）。</div>
+<div class="sub2">一屏联动：<b>月历 + 当月列表</b>。上方显示<b>本月单量</b>与<b>本月收入</b>。</div>
 </div>
 <div class="sched-actions">
 <button class="btn primary" id="btnAddBooking">＋ 新增档期</button>
-<button class="btn" id="btnToday">今天</button>
-<button class="btn" id="btnPrevMonth">◀ 上月</button>
-<button class="btn" id="btnNextMonth">下月 ▶</button>
-<button class="btn ghost" id="btnOpenYearSummary" title="切换到年度总结（与档期记录互斥）">年度总结</button>
+<button class="btn" id="btnToday">今天</button><button class="btn ghost" id="btnOpenYearSummary" title="切换到年度总结（与档期记录互斥）">年度总结</button>
 </div>
 </div>
 <div class="sched-summary">
@@ -4222,10 +4305,14 @@ body.hostNavOpen #hostEmbedCatalogBtn{ right: 14px !important; }
 <div class="value" id="statMonthCount">0</div>
 <div class="small" id="statMonthLabel">—</div>
 </div>
-<div class="stat" id="statDaysBlock">
-<div class="label">有单天数</div>
-<div class="value" id="statDayCount">0</div>
-<div class="small">= 有单日期数量</div>
+<div class="stat" id="statIncomeBlock">
+<div class="label">本月收入</div>
+<div class="value value2" id="statMonthIncome">
+<div class="vrow"><span class="vtag">已收</span><span class="vnum" id="statIncomePaid">¥0</span></div>
+<div class="vrow"><span class="vtag">待收</span><span class="vnum" id="statIncomeUnpaid">¥0</span></div>
+</div>
+<div class="small" id="statIncomeLabel">已收=定金 · 待收=尾款（或服务费-定金）</div>
+</div>
 </div>
 <div class="stat">
 <div class="label">最近一场</div>
@@ -4249,6 +4336,7 @@ body.hostNavOpen #hostEmbedCatalogBtn{ right: 14px !important; }
 <button aria-label="上月" class="iconbtn cal-navbtn" id="btnPrevMonthInCal" type="button">◀</button>
 <div class="month" id="calMonthTitle">—</div>
 <button aria-label="下月" class="iconbtn cal-navbtn" id="btnNextMonthInCal" type="button">▶</button>
+<div class="monthIncome" id="calMonthIncome"><span class="miTag">已收</span><b id="calIncomePaid">¥0</b><span class="miSep">/</span><span class="miTag">待收</span><b id="calIncomeUnpaid">¥0</b></div>
 </div>
 <div class="mini">点击日期：新增档期 / 点击卡片：编辑档期</div>
 </div>
@@ -4397,6 +4485,10 @@ body.hostNavOpen #hostEmbedCatalogBtn{ right: 14px !important; }
 <input id="f_hall" placeholder="例如：一号厅" type="text"/>
 </div>
 <div class="field">
+<label>婚庆公司（可选）</label>
+<input id="f_weddingCompany" placeholder="例如：XX婚庆" type="text"/>
+</div>
+<div class="field">
 <label>服务费用（元）</label>
 <input id="f_serviceFee" min="0" placeholder="例如：3000" step="1" type="number"/>
 </div>
@@ -4507,6 +4599,14 @@ body.hostNavOpen #hostEmbedCatalogBtn{ right: 14px !important; }
 <div class="field">
 <label>联系方式</label>
 <input id="c_phone" placeholder="手机号/微信（建议填，方便去重）" type="text"/>
+</div>
+<div class="field">
+<label>宴会酒店（可选）</label>
+<input id="c_hotel" placeholder="例如：XX大酒店" type="text"/>
+</div>
+<div class="field">
+<label>婚庆公司（可选）</label>
+<input id="c_weddingCompany" placeholder="例如：XX婚庆" type="text"/>
 </div>
 <div class="field">
 <label>宴会类型</label>
@@ -5042,6 +5142,7 @@ aside#nav, aside.nav{
   position: fixed !important;
   top: 0 !important;
   right: 0 !important;
+  left: auto !important;
   bottom: 0 !important;
   width: min(320px, 86vw) !important;
   transform: translateX(110%) !important;
@@ -6570,9 +6671,41 @@ function loadState(){
 function saveState(state){
   localStorage.setItem(STORE_KEY, JSON.stringify(state));
 }
+
+function bootBrand(st){
+  const titleEl = $("#appTitle");
+  const verEl = $("#appVer");
+  const badgeEl = $("#buildBadge");
+
+  const title = (st.appTitle || "主持人学习手册").trim() || "主持人学习手册";
+  const ver = (st.appVer || "v2.65").trim() || "v2.65";
+
+  if(titleEl) titleEl.innerText = title;
+  if(verEl) verEl.innerText = ver;
+  if(badgeEl) badgeEl.innerText = ver;
+  document.title = title + " " + ver;
+
+  function saveBrand(){
+    const nt = (titleEl?.innerText || "").replace(/\n/g," ").trim() || "主持人学习手册";
+    const nv = (verEl?.innerText || "").replace(/\n/g," ").trim() || "v2.65";
+    const st2 = loadState();
+    st2.appTitle = nt;
+    st2.appVer = nv;
+    saveState(st2);
+    if(badgeEl) badgeEl.innerText = nv;
+    document.title = nt + " " + nv;
+  }
+  [titleEl, verEl].forEach(el=>{
+    if(!el) return;
+    el.addEventListener("blur", saveBrand);
+    el.addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ e.preventDefault(); el.blur(); }});
+  });
+}
+
 function boot(){
   const st = loadState();
   if(st.theme) document.body.setAttribute("data-theme", st.theme);
+  bootBrand(st);
   bootBench(st);
   bootCal(st);
 }
@@ -7606,6 +7739,18 @@ $("#importBtn").addEventListener("click", async ()=>{
 <div class="pill muted">提示：点击队列卡片可播放/暂停；双击打开裁剪</div>
 </div>
 </div>
+
+<div class="msMobileBar" id="msMobileBar" aria-label="手机端互斥切换">
+  <div class="seg" role="tablist" aria-label="面板切换">
+    <button class="segbtn" data-mv="queue" type="button">队列</button>
+    <button class="segbtn" data-mv="lib" type="button">音乐库</button>
+    <button class="segbtn" data-mv="pl" type="button">列表</button>
+  </div>
+  <button class="btn small" id="btnMobileImport" type="button">＋ 导入</button>
+</div>
+<div class="msMobileHint muted" id="msMobileHint">
+  <span class="msIosOnly">iPhone / iPad 不能直接访问 Apple Music 曲库文件（系统限制）。请从「文件」App / 第三方 App 导出的音频文件导入。</span>
+</div>
 <div class="kgBar">
 <div class="pill muted">布局：拖拽竖条调宽</div>
 <div class="kgBarBtns">
@@ -8217,15 +8362,16 @@ $("#importBtn").addEventListener("click", async ()=>{
   const calHead = $("#calHead");
   const calBody = $("#calBody");
   const calMonthTitle = $("#calMonthTitle");
+  const calMonthIncome = $("#calMonthIncome");
   const listWrap = $("#listWrap");
   const listSearch = $("#listSearch");
   const btnClearFilter = $("#btnClearFilter");
 
   const statMonthCount = $("#statMonthCount");
   const statMonthLabel = $("#statMonthLabel");
-  const statDayCount = $("#statDayCount");
+  const statMonthIncome = $("#statMonthIncome");
   const statNext = $("#statNext");
-  const statNextSub = $("#statNextSub");
+const statNextSub = $("#statNextSub");
   const orderDays = $("#orderDays");
 
   let cursor = (()=> {
@@ -8252,14 +8398,58 @@ $("#importBtn").addEventListener("click", async ()=>{
     return map;
   }
 
-  function renderMonthStats() {
+  
+  function _num(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
+  function bookingFee(b){
+    const sf = _num(b.serviceFee);
+    if (sf > 0) return sf;
+    const dep = _num(b.deposit);
+    const bal = _num(b.balance);
+    const s = dep + bal;
+    return s > 0 ? s : 0;
+  }
+  function bookingPaid(b){
+    // 已收：定金
+    const dep = _num(b.deposit);
+    return dep > 0 ? dep : 0;
+  }
+  function bookingUnpaid(b){
+    // 待收：尾款；若未填尾款但填了服务费，则用（服务费-定金）兜底
+    const bal = _num(b.balance);
+    if (bal > 0) return bal;
+    const sf = _num(b.serviceFee);
+    if (sf > 0){
+      const dep = _num(b.deposit);
+      const rest = sf - dep;
+      return rest > 0 ? rest : 0;
+    }
+    return 0;
+  }
+  function fmtMoney(n){
+    const v = Number(n);
+    if (!Number.isFinite(v) || v === 0) return "¥0";
+    const abs = Math.abs(v);
+    const hasDec = Math.round(abs) !== abs;
+    return "¥" + v.toLocaleString("zh-CN", {minimumFractionDigits: hasDec ? 2 : 0, maximumFractionDigits: 2});
+  }
+
+function renderMonthStats() {
     const ym = `${cursor.getFullYear()}-${pad2(cursor.getMonth()+1)}`;
     const list = bookingsInMonth(ym);
     const byDate = bookingsByDate(list);
 
     statMonthCount.textContent = list.length;
     statMonthLabel.textContent = ym;
-    statDayCount.textContent = byDate.size;
+    const monthPaid = list.reduce((sum,b)=> sum + bookingPaid(b), 0);
+    const monthUnpaid = list.reduce((sum,b)=> sum + bookingUnpaid(b), 0);
+    const statPaidEl = document.getElementById("statIncomePaid");
+    const statUnpaidEl = document.getElementById("statIncomeUnpaid");
+    statPaidEl && (statPaidEl.textContent = fmtMoney(monthPaid));
+    statUnpaidEl && (statUnpaidEl.textContent = fmtMoney(monthUnpaid));
+    const calPaidEl = document.getElementById("calIncomePaid");
+    const calUnpaidEl = document.getElementById("calIncomeUnpaid");
+    calPaidEl && (calPaidEl.textContent = fmtMoney(monthPaid));
+    calUnpaidEl && (calUnpaidEl.textContent = fmtMoney(monthUnpaid));
 
     const today = parseISO(todayISO());
     const future = bookingList()
@@ -8365,7 +8555,7 @@ $("#importBtn").addEventListener("click", async ()=>{
         const el = document.createElement("div");
         el.className = "ev";
         el.innerHTML = `<div class="t">${(ev.time? ev.time+" " : "") + (ev.clientName||"未命名客户")}</div>
-                        <div class="s">${ev.weddingHotel||""}</div>`;
+                        <div class="s">${ev.weddingHotel||""}${(()=>{const f=bookingFee(ev); return f>0? (" · "+fmtMoney(f)):"";})()}</div>`;
         el.addEventListener("click", (e)=> {
           e.stopPropagation();
           openBooking(ev.id);
@@ -8423,6 +8613,7 @@ $("#importBtn").addEventListener("click", async ()=>{
           <div class="meta">${b.weddingHotel||"未填写酒店"}${b.hall? " / "+b.hall : ""}</div>
         </div>
         <div class="meta" style="margin-top:6px">联系方式：${b.phone||"未填写"} · 新郎/新娘：${(b.groomName||"—")} / ${(b.brideName||"—")}</div>
+        <div class="meta" style="margin-top:6px">费用：${(()=>{const f=bookingFee(b); return f>0? fmtMoney(f):"—";})()}</div>
         <div class="chips">${chips || '<span class="chip">未关联环节</span>'}</div>
       `;
       el.addEventListener("click", ()=> openBooking(b.id));
@@ -8439,29 +8630,32 @@ $("#importBtn").addEventListener("click", async ()=>{
     toast("已清空筛选");
   });
 
-  $("#btnToday").addEventListener("click", ()=> {
+  const btnToday = $("#btnToday");
+  if (btnToday) btnToday.addEventListener("click", ()=> {
     const d = new Date();
     cursor = new Date(d.getFullYear(), d.getMonth(), 1);
     dayFilter = "all";
     renderCalendar(); renderList(); renderMonthStats();
   });
-  $("#btnPrevMonth").addEventListener("click", ()=> {
+
+  const goPrevMonth = ()=>{
     cursor = new Date(cursor.getFullYear(), cursor.getMonth()-1, 1);
     dayFilter = "all";
     renderCalendar(); renderList(); renderMonthStats();
-  });
-  $("#btnNextMonth").addEventListener("click", ()=> {
+  };
+  const goNextMonth = ()=>{
     cursor = new Date(cursor.getFullYear(), cursor.getMonth()+1, 1);
     dayFilter = "all";
     renderCalendar(); renderList(); renderMonthStats();
-  });
-  
-  // --- Mobile schedule controls: move month switch + mutually exclusive views ---
-  const prevInCal = document.getElementById("btnPrevMonthInCal");
-  const nextInCal = document.getElementById("btnNextMonthInCal");
-  if (prevInCal) prevInCal.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); const b=$("#btnPrevMonth"); if(b) b.click(); });
-  if (nextInCal) nextInCal.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); const b=$("#btnNextMonth"); if(b) b.click(); });
+  };
 
+  // Month controls are in calendar header (desktop+mobile)
+  const prevBtns = [document.getElementById("btnPrevMonth"), document.getElementById("btnPrevMonthInCal")].filter(Boolean);
+  const nextBtns = [document.getElementById("btnNextMonth"), document.getElementById("btnNextMonthInCal")].filter(Boolean);
+  prevBtns.forEach(b=> b.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); goPrevMonth(); }));
+  nextBtns.forEach(b=> b.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); goNextMonth(); }));
+
+  // --- Mobile schedule controls: mutually exclusive views ---
   const schedWrap = $("#scheduleWrap");
   const schedSwitch = document.getElementById("schedMobileSwitch");
   function setSchedView(v){
@@ -8511,6 +8705,7 @@ $("#btnAddBooking").addEventListener("click", ()=> openBooking(null, { presetDat
     bride: $("#f_bride"),
     hotel: $("#f_hotel"),
     hall: $("#f_hall"),
+    weddingCompany: $("#f_weddingCompany"),
     serviceFee: $("#f_serviceFee"),
     deposit: $("#f_deposit"),
     balance: $("#f_balance"),
@@ -8771,6 +8966,7 @@ modal.addEventListener("click", (e)=> {
     f.bride.value = draft.brideName || "";
     f.hotel.value = draft.weddingHotel || "";
     f.hall.value = draft.hall || "";
+    f.weddingCompany && (f.weddingCompany.value = draft.weddingCompany || "");
     f.serviceFee.value = (draft.serviceFee!==undefined && draft.serviceFee!==null && draft.serviceFee!=="") ? String(draft.serviceFee) : "";
     f.deposit.value = (draft.deposit!==undefined && draft.deposit!==null && draft.deposit!=="") ? String(draft.deposit) : "";
     f.balance.value = (draft.balance!==undefined && draft.balance!==null && draft.balance!=="") ? String(draft.balance) : "";
@@ -8788,6 +8984,7 @@ modal.addEventListener("click", (e)=> {
     draft.brideName = f.bride.value || "";
     draft.weddingHotel = f.hotel.value || "";
     draft.hall = f.hall.value || "";
+    draft.weddingCompany = (f.weddingCompany ? (f.weddingCompany.value || "") : (draft.weddingCompany || ""));
     const _num = (v)=> {
       const n = parseFloat(String(v||"").replace(/,/g,"").trim());
       return Number.isFinite(n) ? n : "";
@@ -9117,6 +9314,8 @@ modal.addEventListener("click", (e)=> {
       banquetType: b.banquetType || "婚宴",
       status: "线索",
       notes: "",
+      weddingHotel: b.weddingHotel || "",
+      weddingCompany: b.weddingCompany || "",
       bookingIds: [],
       followups: [],
       majorEvents: [],
@@ -9127,6 +9326,8 @@ modal.addEventListener("click", (e)=> {
     cur.name = name;
     if (phone) cur.phone = phone;
     cur.banquetType = b.banquetType || cur.banquetType || "婚宴";
+    if (b.weddingHotel) cur.weddingHotel = b.weddingHotel;
+    if (b.weddingCompany) cur.weddingCompany = b.weddingCompany;
     cur.updatedAt = now;
     cur.bookingIds = Array.from(new Set([...(cur.bookingIds||[]), b.id].filter(Boolean)));
     // 如果客户还没有“最近档期”，用最近一次保存的档期日期做一个提示
@@ -9347,6 +9548,8 @@ modal.addEventListener("click", (e)=> {
           banquetType: b.banquetType || "婚宴",
           status: "线索",
           notes: "",
+          weddingHotel: b.weddingHotel || "",
+          weddingCompany: b.weddingCompany || "",
           bookingIds: [],
           followups: [],
           majorEvents: [],
@@ -9357,6 +9560,8 @@ modal.addEventListener("click", (e)=> {
       }
       const c = state.customers[id];
       if (!c.banquetType) c.banquetType = b.banquetType || "婚宴";
+      if (b.weddingHotel && !c.weddingHotel) c.weddingHotel = b.weddingHotel;
+      if (b.weddingCompany && !c.weddingCompany) c.weddingCompany = b.weddingCompany;
       c.bookingIds = Array.from(new Set([...(c.bookingIds||[]), b.id].filter(Boolean)));
       c.updatedAt = new Date().toISOString();
     });
@@ -9384,7 +9589,7 @@ modal.addEventListener("click", (e)=> {
       if (status!=="all" && (c.status||"")!==status) return false;
       if (!q) return true;
       const blob = [
-        c.name, c.phone, c.notes,
+        c.name, c.phone, c.notes, c.weddingHotel, c.weddingCompany,
         ...(Array.isArray(c.followups)? c.followups.map(x=>x.note):[]),
         ...(Array.isArray(c.majorEvents)? c.majorEvents.map(x=>x.note):[])
       ].join(" ").toLowerCase();
@@ -9438,6 +9643,10 @@ modal.addEventListener("click", (e)=> {
       const next = c.nextBookingISO ? `最近档期：${h(c.nextBookingISO)}` : `最近档期：—`;
       const fu = c.lastFollowUpISO ? `最近跟进：${h(c.lastFollowUpISO)}` : `最近跟进：—`;
       const phone = c.phone ? `📱 ${h(c.phone)}` : "📱 —";
+      const bid = findBookingIdForCustomer(c);
+      const bb = (bid && state.bookings && state.bookings[bid]) ? state.bookings[bid] : null;
+      const hotelDisp = (bb && bb.weddingHotel) ? bb.weddingHotel : (c.weddingHotel || "—");
+      const companyDisp = (bb && bb.weddingCompany) ? bb.weddingCompany : (c.weddingCompany || "—");
       const major = (Array.isArray(c.majorEvents) && c.majorEvents.length)
         ? `提醒：${h((c.majorEvents[0].date||"").slice(5))} ${h(c.majorEvents[0].note||"")}`
         : "提醒：—";
@@ -9453,9 +9662,9 @@ modal.addEventListener("click", (e)=> {
               <div class="custMeta">${h(typeP)} · ${h(st)}</div>
               <div class="custPills">
                 <span class="custPill">${phone}</span>
-                <span class="custPill">📅 ${h(next)}</span>
-                <span class="custPill">📝 ${h(fu)}</span>
-              </div>
+                <span class="custPill">🏨 ${h(hotelDisp)}</span>
+                <span class="custPill">🤝 ${h(companyDisp)}</span>
+</div>
             </div>
             <div class="custBtns">
               <button class="custTiny" data-cust-action="followup" data-cust-id="${h(c.id)}" title="新增跟进">＋ 跟进</button>
@@ -9582,6 +9791,8 @@ modal.addEventListener("click", (e)=> {
     $("#c_type").value = "婚宴";
     $("#c_status").value = "线索";
     $("#c_notes").value = "";
+    $("#c_hotel").value = "";
+    $("#c_weddingCompany").value = "";
     clearMajorList();
 
     if (id && state.customers[id]){
@@ -9593,6 +9804,8 @@ modal.addEventListener("click", (e)=> {
       $("#c_type").value = c.banquetType || "婚宴";
       $("#c_status").value = c.status || "线索";
       $("#c_notes").value = c.notes || "";
+      $("#c_hotel").value = c.weddingHotel || "";
+      $("#c_weddingCompany").value = c.weddingCompany || "";
       (Array.isArray(c.majorEvents)? c.majorEvents: []).forEach(r=>addMajorRow(r));
     } else {
       title && (title.textContent = "新增客户");
@@ -9610,6 +9823,8 @@ modal.addEventListener("click", (e)=> {
     const type = $("#c_type").value || "婚宴";
     const status = $("#c_status").value || "线索";
     const notes = $("#c_notes").value || "";
+    const weddingHotel = $("#c_hotel").value || "";
+    const weddingCompany = $("#c_weddingCompany").value || "";
     const majors = readMajorRows();
     const now = new Date().toISOString();
 
@@ -9634,6 +9849,8 @@ modal.addEventListener("click", (e)=> {
     cur.banquetType = type;
     cur.status = status;
     cur.notes = notes;
+    cur.weddingHotel = weddingHotel;
+    cur.weddingCompany = weddingCompany;
     cur.majorEvents = majors;
     cur.updatedAt = now;
     if (!cur.createdAt) cur.createdAt = now;
@@ -12946,20 +13163,30 @@ function saveMusicPrefs(){
   function applyQueueSize(step){
     const q = $("#queueList");
     if (!q) return;
-    const sizes = [
-      {pad:8,  name:12, sub:11, btnFont:11, by:7,  bx:9},
-      {pad:9,  name:12.5, sub:11.5, btnFont:11.5, by:7.5, bx:9.5},
-      {pad:10, name:13, sub:12, btnFont:12, by:8,  bx:10},
-      {pad:12, name:14, sub:13, btnFont:12.5, by:8.5, bx:10.5},
-      {pad:14, name:15, sub:13.5, btnFont:13, by:9,  bx:11},
+    const i = Math.round(clampNum(step,0,4));
+
+    // 仅调整“卡片尺寸”（列宽/间距）。内容字号/按钮排版固定，不随卡片大小变化。
+    const tiles = [
+      {minW:140, gap:6},
+      {minW:155, gap:7},
+      {minW:175, gap:8},
+      {minW:195, gap:10},
+      {minW:220, gap:12},
     ];
-    const s = sizes[Math.round(clampNum(step,0,4))] || sizes[2];
-    q.style.setProperty("--qPad", s.pad+"px");
-    q.style.setProperty("--qName", s.name+"px");
-    q.style.setProperty("--qSub", s.sub+"px");
-    q.style.setProperty("--qBtnFont", s.btnFont+"px");
-    q.style.setProperty("--qBtnPadY", s.by+"px");
-    q.style.setProperty("--qBtnPadX", s.bx+"px");
+    const t = tiles[i] || tiles[2];
+
+    // 固定内容排版参数（避免切换大小时文字/按钮布局跳动）
+    q.style.setProperty("--qPad", "10px");
+    q.style.setProperty("--qName", "13px");
+    q.style.setProperty("--qSub", "12px");
+    q.style.setProperty("--qBtnFont", "12px");
+    q.style.setProperty("--qBtnPadY", "8px");
+    q.style.setProperty("--qBtnPadX", "10px");
+
+    // 列宽与间距随大小变化；高度固定，避免出现大块空白区域
+    q.style.setProperty("--qMinW", t.minW+"px");
+    q.style.setProperty("--qGap",  t.gap+"px");
+    q.style.setProperty("--qMinH", "152px");
   }
 
   function updateMusicLayoutButtons(){
@@ -13653,7 +13880,7 @@ async function playTrack(index, forcePlay=true){
       const id = idNow("trk");
       const name = (f.name||"未命名").replace(/\.[^.]+$/,"");
       const duration = await getDurationFromBlob(blob);
-      const item = { id, name, blob, duration, createdAt: Date.now() };
+      const item = { id, name, blob, duration, cat:"未分类", createdAt: Date.now() };
       MUSIC.tracks.push(item);
       await dbPut("tracks", item);
       if (alsoAddToQueue){
@@ -13663,7 +13890,7 @@ async function playTrack(index, forcePlay=true){
     renderLibrary();
     renderQueue();
     if (alsoAddToQueue) persistActivePlaylistFromQueue();
-    toast("已添加到音乐库 ✅");
+    toast(alsoAddToQueue ? "已导入并加入队列 ✅" : "已添加到音乐库 ✅");
   }
 
   function renderPlaylists(){
@@ -14237,7 +14464,9 @@ pl.updatedAt = Date.now();
     $("#btnUpload")?.addEventListener("click", ()=> $("#audioFile")?.click());
     $("#audioFile")?.addEventListener("change", async (e)=>{
       const files = e.target.files;
-      await addFilesToLibrary(files, false);
+      const also = !!(MUSIC && MUSIC._importAlsoQueue);
+      if (MUSIC) MUSIC._importAlsoQueue = false;
+      await addFilesToLibrary(files, also);
       e.target.value = "";
     });
     $("#libSearch")?.addEventListener("input", renderLibrary);
@@ -14266,7 +14495,94 @@ pl.updatedAt = Date.now();
 
   }
 
-  function bindPlaylistUI(){
+    function bindMobileMusicUI(){
+    const bar = $("#msMobileBar");
+    if (!bar) return;
+
+    // iOS detection (incl. iPadOS as MacIntel + touch)
+    const ua = navigator.userAgent || "";
+    const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && (navigator.maxTouchPoints||0) > 1);
+    document.body.dataset.ios = isIOS ? "1" : "0";
+
+    const KEY = "music_mobile_view_v2";
+    const mql = window.matchMedia("(max-width: 860px)");
+
+    const colLib = $("#kgColLib");
+    const colPl  = $("#kgColPl");
+    const colQ   = $("#kgColQueue");
+    const grid   = $("#kgGrid");
+
+    const getResizers = ()=> document.querySelectorAll("#musicSystem #kgGrid .kgResizer");
+
+    function paintButtons(v){
+      bar.querySelectorAll(".segbtn").forEach(b=>{
+        b.classList.toggle("on", (b.getAttribute("data-mv")===v));
+      });
+    }
+
+    function applyPanels(v){
+      // Fail-safe: do not break if DOM changed
+      if (!grid || !colLib || !colPl || !colQ) return;
+
+      if (mql.matches){
+        // Force single column + hide resizers on touch
+        grid.style.gridTemplateColumns = "1fr";
+        getResizers().forEach(r=> r.style.display = "none");
+
+        // Mutually exclusive panels (inline styles as a guarantee)
+        colQ.style.display   = (v==="queue") ? "flex" : "none";
+        colLib.style.display = (v==="lib")   ? "flex" : "none";
+        colPl.style.display  = (v==="pl")    ? "flex" : "none";
+      }else{
+        // Desktop: show all panels, restore layout control to existing code
+        grid.style.gridTemplateColumns = "";
+        getResizers().forEach(r=> r.style.display = "");
+        colQ.style.display = "";
+        colLib.style.display = "";
+        colPl.style.display = "";
+      }
+    }
+
+    function setView(v, opts){
+      opts = opts || {};
+      v = (v==="lib"||v==="pl"||v==="queue") ? v : "queue";
+      document.body.dataset.musicMobileview = v;
+      if (opts.save !== false) localStorage.setItem(KEY, v);
+      paintButtons(v);
+      applyPanels(v);
+
+      // Extra guard: some layout code may run after click/orientation
+      requestAnimationFrame(()=>applyPanels(v));
+      setTimeout(()=>applyPanels(v), 80);
+    }
+
+    function sync(){
+      const v = localStorage.getItem(KEY) || "queue";
+      if (mql.matches){
+        setView(v, {save:false});
+      }else{
+        delete document.body.dataset.musicMobileview;
+        paintButtons(v);
+        applyPanels(v);
+      }
+    }
+
+    bar.querySelectorAll(".segbtn").forEach(btn=>{
+      btn.addEventListener("click", ()=> setView(btn.getAttribute("data-mv")));
+    });
+
+    $("#btnMobileImport")?.addEventListener("click", ()=>{
+      // Mobile import: import to library + queue (single-hand friendly)
+      if (typeof MUSIC === "object") MUSIC._importAlsoQueue = true;
+      $("#audioFile")?.click();
+    });
+
+    try{ mql.addEventListener("change", sync); }catch(e){ try{ mql.addListener(sync); }catch(_){} }
+    window.addEventListener("orientationchange", ()=> setTimeout(sync, 80), {passive:true});
+    sync();
+  }
+
+function bindPlaylistUI(){
     $("#btnNewPl")?.addEventListener("click", async ()=>{
       const n = MUSIC.playlists.length + 1;
       const maxOrder = Math.max(-1, ...(MUSIC.playlists||[]).map(p=> (p.order===undefined||p.order===null)?-1:p.order));
@@ -14381,6 +14697,7 @@ function bindQueueUI(){
       bindPlaylistUI();
       bindQueueUI();
       bindQueueTapPlay();
+      bindMobileMusicUI();
           // Undo button
     const _ub = document.getElementById("btnUndo");
     if (_ub && !_ub.__bound){ _ub.__bound = true; _ub.addEventListener("click", ()=>{ undoMusicLast(); }); }
@@ -16941,8 +17258,7 @@ ${"</scr"+"ipt>"}
     tab && tab.classList.add("active");
     tab && tab.setAttribute("aria-selected","true");
     view && view.classList.add("active");
-    document.body.classList.toggle("musicWideHeader", key==="music");
-
+    // 全站等宽：不再按页面切换容器宽度
     if (key==="schedule"){
       initSchedule();
       renderCalendar(); renderList(); renderMonthStats();
@@ -17181,19 +17497,40 @@ ${"</scr"+"ipt>"}
     $("#btnLinesClearSearch")?.addEventListener("click", ()=>{ elSearch.value=""; renderLinesUI(); });
     elSearch.addEventListener("input", ()=>{ renderLinesUI(); });
 
-    $("#btnLinesNewCat")?.addEventListener("click", ()=> {
-      const name = (prompt("新分类名称（例如：开场 / 父母 / 敬酒 / 退场）") || "").trim();
-      if (!name) return;
+    
+    const elNewCatRow = $("#linesNewCatRow");
+    const elNewCatName = $("#linesNewCatName");
+    function showNewCatRow(){
+      if(!elNewCatRow || !elNewCatName) return;
+      elNewCatRow.style.display = "flex";
+      elNewCatName.value = "";
+      setTimeout(()=>elNewCatName.focus(), 0);
+    }
+    function hideNewCatRow(){
+      if(!elNewCatRow) return;
+      elNewCatRow.style.display = "none";
+    }
+    function saveNewCat(){
+      const name = (elNewCatName?.value || "").trim();
+      if(!name){ hideNewCatRow(); return; }
       const st = loadLinesState();
       st.customCats = st.customCats || [];
       if (!st.customCats.includes(name)) st.customCats.push(name);
       saveLinesState(st);
       linesFilterCat = name;
       toast("已新增分类 ✅");
+      hideNewCatRow();
       renderLinesUI();
-    });
+    }
 
-    $("#btnLinesNew")?.addEventListener("click", ()=> {
+    $("#btnLinesNewCat")?.addEventListener("click", showNewCatRow);
+    $("#btnLinesNewCatSave")?.addEventListener("click", saveNewCat);
+    $("#btnLinesNewCatCancel")?.addEventListener("click", hideNewCatRow);
+    elNewCatName?.addEventListener("keydown", (e)=>{
+      if(e.key==="Enter"){ e.preventDefault(); saveNewCat(); }
+      if(e.key==="Escape"){ e.preventDefault(); hideNewCatRow(); }
+    });
+$("#btnLinesNew")?.addEventListener("click", ()=> {
       const merged = mergeLines();
       const st = merged.st;
       const newId = "c_" + Math.random().toString(36).slice(2,9) + "_" + Date.now().toString(36);
@@ -19742,473 +20079,6 @@ ${v.cta}`,
   initSchedule();
   setTab("schedule");
 })();
-
-
-
-  // ---- Lines Tips Toggle (inline) ----
-  (function(){
-    const btn = document.getElementById('btnToggleLinesTips');
-    const body = document.getElementById('linesTipsBody');
-    if(!btn || !body) return;
-    const key = 'linesTipsOpen_v25';
-    const open = localStorage.getItem(key)==='1';
-    body.hidden = !open;
-    btn.textContent = open ? '收起' : '展开';
-    btn.addEventListener('click', ()=>{
-      const nowOpen = body.hidden;
-      body.hidden = !nowOpen;
-      btn.textContent = nowOpen ? '收起' : '展开';
-      localStorage.setItem(key, nowOpen ? '1' : '0');
-    });
-  
-  // =========================
-  // v2.6.1 PATCH: 分类点击筛选修复 + 音乐库折叠扩展 + 队列单曲独立行为
-  // =========================
-  try{
-    // --- ① 分类点击：使用 dataset + 事件代理，避免 HTML 实体导致匹配失败 ---
-    if (typeof window.__mc_cats_v261_bound === "undefined") window.__mc_cats_v261_bound = false;
-
-    renderCats = function(){
-      const wrap = $("#libCats");
-      if (!wrap) return;
-      ensureTrackCats();
-      const custom = (typeof loadCats === "function") ? (loadCats()||[]) : [];
-      const fromTracks = (typeof allCatsFromTracks === "function") ? (allCatsFromTracks()||[]) : [];
-      const set = new Set();
-      set.add("未分类");
-      custom.forEach(c=>{ c=String(c||"").trim(); if (c) set.add(c); });
-      fromTracks.forEach(c=>{ c=String(c||"").trim(); if (c && c!=="全部") set.add(c); });
-
-      const cats = ["全部", ...Array.from(set)];
-      wrap.innerHTML = "";
-      cats.forEach(cat=>{
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "chipBtn" + (cat===activeCat ? " active":"");
-        btn.dataset.cat = cat;
-
-        const txt = document.createElement("span");
-        txt.className = "chipTxt";
-        txt.textContent = cat;
-        btn.appendChild(txt);
-
-        const isBuilt = (cat==="全部" || cat==="未分类");
-        const isCustom = custom.includes(cat);
-        if (!isBuilt && isCustom){
-          const del = document.createElement("span");
-          del.className = "x";
-          del.title = "删除分类";
-          del.textContent = "×";
-          del.dataset.delCat = "1";
-          btn.appendChild(del);
-        }
-        wrap.appendChild(btn);
-      });
-
-      const addBtn = document.createElement("button");
-      addBtn.type="button";
-      addBtn.className="chipBtn";
-      addBtn.dataset.addCat="1";
-      addBtn.innerHTML = `<span class="x">＋ 分类</span>`;
-      wrap.appendChild(addBtn);
-    };
-
-    async function deleteCatNoPrompt(name){
-      name = String(name||"").trim();
-      if (!name || name==="全部" || name==="未分类") return;
-      // remove from custom list
-      try{
-        const cur = (typeof loadCats==="function") ? (loadCats()||[]) : [];
-        const next = cur.filter(c=>c!==name);
-        if (typeof saveCats==="function") saveCats(next);
-      }catch(_){}
-      // move tracks to 未分类
-      try{
-        ensureTrackCats();
-        const changed = [];
-        (MUSIC.tracks||[]).forEach(t=>{
-          if ((t.cat||"未分类")===name){
-            t.cat="未分类";
-            changed.push(t);
-          }
-        });
-        for (const t of changed){
-          try{ await dbPut("tracks", t); }catch(_){}
-        }
-      }catch(_){}
-      if (typeof activeCat!=="undefined" && activeCat===name) activeCat="全部";
-      try{ toast(`已删除分类：${name}`); }catch(_){}
-      renderCats(); renderLibrary();
-    }
-
-    if (!window.__mc_cats_v261_bound){
-      window.__mc_cats_v261_bound = true;
-      document.addEventListener("click", async (e)=>{
-        const wrap = $("#libCats");
-        if (!wrap) return;
-        const btn = e.target.closest && e.target.closest("#libCats .chipBtn");
-        if (!btn) return;
-
-        // delete
-        if (e.target && e.target.closest && e.target.closest("[data-del-cat]")){
-          e.preventDefault(); e.stopPropagation();
-          await deleteCatNoPrompt(btn.dataset.cat);
-          return;
-        }
-        // add
-        if (btn.dataset.addCat==="1"){
-          e.preventDefault(); e.stopPropagation();
-          const base = "新分类";
-          const cur = (typeof loadCats==="function") ? (loadCats()||[]) : [];
-          let i=1, name=base;
-          const exist = new Set([...(cur||[]), ...(typeof allCatsFromTracks==="function"? (allCatsFromTracks()||[]):[])]);
-          while (exist.has(name)){
-            i+=1; name = base + i;
-          }
-          cur.push(name);
-          if (typeof saveCats==="function") saveCats(cur);
-          activeCat = name;
-          try{ toast("已新增分类 ✅"); }catch(_){}
-          renderCats(); renderLibrary();
-          return;
-        }
-
-        // select
-        activeCat = btn.dataset.cat || "全部";
-        renderCats();
-        renderLibrary();
-      }, true);
-    }
-
-    // Override renderLibrary: 保持 +队列/删/拖拽逻辑，只确保按 activeCat 正确过滤
-    if (typeof renderLibrary === "function"){
-      const _renderLibrary_v261_prev = renderLibrary;
-      renderLibrary = function(){
-        const wrap = $("#libList");
-        if (!wrap) return _renderLibrary_v261_prev();
-
-        ensureTrackCats();
-        const q = String($("#libSearch")?.value || "").trim().toLowerCase();
-        const cat = activeCat || "全部";
-
-        const list = (MUSIC.tracks || []).slice()
-          .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))
-          .filter(t=>{
-            if (q && !String(t.name||"").toLowerCase().includes(q)) return false;
-            if (cat!=="全部" && (t.cat||"未分类")!==cat) return false;
-            return true;
-          });
-
-        if (!list.length){
-          wrap.innerHTML = `<div class="muted">暂无音乐（或该分类下没有音乐）。</div>`;
-          return;
-        }
-
-        const optCats = ["未分类", ...Array.from(new Set([
-          ...(typeof loadCats==="function" ? (loadCats()||[]) : []),
-          ...(typeof allCatsFromTracks==="function" ? (allCatsFromTracks()||[]) : [])
-        ])).filter(c=>c && c!=="全部")];
-
-        wrap.innerHTML = list.map(tr=>{
-          const curCat = tr.cat || "未分类";
-          const options = optCats.map(c=>`<option value="${h(c)}"${c===curCat?" selected":""}>${h(c)}</option>`).join("");
-          return `
-            <div class="kgItem" data-track-id="${tr.id}">
-              <div class="kgGrip" draggable="true" data-drag-track="${tr.id}" title="拖拽：加入队列/播放列表">⋮⋮</div>
-              <div class="kgLeft">
-                <div class="kgName" contenteditable="true" data-tr-name="1">${h(tr.name||"未命名")}</div>
-                <div class="kgSub">${fmtTime(tr.duration||0)} · 分类：
-                  <select class="miniSel" data-cat-sel="1">${options}</select>
-                  · 拖到队列/播放列表 · 或点右侧“+队列”
-                </div>
-              </div>
-              <div class="kgRight">
-                <button class="sbtn" data-addq="1">+队列</button>
-                <button class="sbtn danger" data-del="1">删</button>
-              </div>
-            </div>
-          `;
-        }).join("");
-
-        // drag payload for track
-        wrap.querySelectorAll("[data-drag-track]").forEach(grip=>{
-          grip.addEventListener("dragstart", (e)=>{
-            const id = grip.getAttribute("data-drag-track");
-            e.dataTransfer.effectAllowed = "copy";
-            const payload = JSON.stringify({type:"track", id});
-            try{ e.dataTransfer.setData("application/json", payload);}catch(_){}
-            try{ e.dataTransfer.setData("text/plain", payload);}catch(_){}
-          });
-        });
-
-        // category select change
-        wrap.querySelectorAll("[data-track-id] select[data-cat-sel]").forEach(sel=>{
-          sel.addEventListener("change", async ()=>{
-            const card = sel.closest("[data-track-id]");
-            const id = card?.getAttribute("data-track-id");
-            const tr = (MUSIC.tracks||[]).find(x=>String(x.id)===String(id));
-            if (!tr) return;
-            tr.cat = sel.value || "未分类";
-            try{ await dbPut("tracks", tr); }catch(_){}
-            renderCats();
-            renderLibrary();
-          });
-        });
-      };
-    }
-
-    // render cats once after patch
-    setTimeout(()=>{ try{ renderCats(); }catch(_){} }, 20);
-
-    // --- ② 队列：每首歌独立“单曲循环/播完下一曲/播完暂停” ---
-    function getQOverrides(q){
-      const loopOv = (q && Object.prototype.hasOwnProperty.call(q, "loopOne")) ? q.loopOne : null; // null|true|false
-      const modeOv = (q && Object.prototype.hasOwnProperty.call(q, "endMode")) ? q.endMode : null; // null|'next'|'pause'
-      return { loopOv, modeOv };
-    }
-    function getEffectiveLoop(q){
-      const {loopOv} = getQOverrides(q);
-      if (loopOv===true) return true;
-      if (loopOv===false) return false;
-      return !!MUSIC.loopOne;
-    }
-    function getEffectiveMode(q){
-      const {modeOv} = getQOverrides(q);
-      if (modeOv==="pause") return "pause";
-      if (modeOv==="next") return "next";
-      return MUSIC.mode || "next";
-    }
-    // per-track handleSegmentEnd override disabled (use global mode only)
-
-        // per-track mode buttons removed (queue uses global playback mode only)
-// ensure queue refresh
-    setTimeout(()=>{ try{ renderQueue(); }catch(_){} }, 80);
-
-  }catch(e){
-    console.error("v2.6.1 patch failed", e);
-  }
-
-
-
-
-  // per-track playback mode patch removed (use global mode + playlist settings only)
-
-
-})();</script>
-<div aria-hidden="true" class="prompt" id="savePrompt">
-<div class="promptPanel">
-<div class="promptTitle">有未保存的修改</div>
-<div class="promptSub">要先保存再关闭吗？（建议保存，避免丢失时间轴与台词修改）</div>
-<div class="promptBtns">
-<button class="sbtn danger" id="promptDiscard">不保存关闭</button>
-<button class="sbtn" id="promptCancel">继续编辑</button>
-<button class="sbtn primary" id="promptSave">保存并关闭</button>
-</div>
-</div>
-</div>
-<div aria-hidden="true" class="picker" id="linePicker">
-<div class="pickerPanel">
-<div class="pickerHead">
-<div>
-<div class="pickerTitle">选择台词插入到当前环节</div>
-<div class="pickerSub muted-small">支持搜索标题/关键词/正文；点击一条即可插入（会自动转为“客户专属”并标记未保存）。</div>
-</div>
-<button class="sbtn" id="btnClosePicker">关闭</button>
-</div>
-<div class="pickerBody">
-<div class="pickerLeft">
-<input class="input" id="pickerSearch" placeholder="搜索：开场 / 父母 / 敬酒 / 退场 …">
-<div class="muted-small" style="margin-top:10px">分类</div>
-<div class="pickerCats" id="pickerCats"></div>
-</input></div>
-<div class="pickerRight">
-<div class="pickerList" id="pickerList"></div>
-</div>
-</div>
-<div class="pickerFoot muted-small">提示：插入后你仍可在该环节里继续编辑/删改句子；最后记得点“保存档期”。</div>
-</div>
-</div>
-<script>
-/* v2.6.32: main-page controls for P1 height/fullscreen + small QoL fixes (no other behavior changes) */
-(function(){
-  // Expand library column when collapsed (click on the column background)
-  try{
-    const grid = document.getElementById("kgGrid");
-    const col = document.getElementById("kgColLib");
-    if (grid && col && col.dataset.expandClick !== "1"){
-      col.dataset.expandClick = "1";
-      col.addEventListener("click", (e)=>{
-        if (!grid.classList.contains("kgLibCollapsed")) return;
-        if (e.target && (e.target.closest?.("button") || e.target.closest?.("input") || e.target.closest?.("textarea") || e.target.closest?.(".kgItem"))) return;
-        try{
-          const btn = document.getElementById("btnToggleLib");
-          btn && btn.click();
-        }catch(err){}
-      });
-    }
-  }catch(err){}
-
-  // ===== P1 UI size bar (this lives in parent page, not inside iframe) =====
-  const HEIGHT_KEY = "mc_p1_height";
-  const FULL_KEY   = "mc_p1_fullscreen";
-
-  const root  = document.documentElement;
-  const frame = document.getElementById("p1ConsoleFrame");
-  const wrap  = document.getElementById("msP1Wrap");
-  const range = document.getElementById("p1HeightRange");
-  const label = document.getElementById("p1HeightLabel");
-  const btnFull  = document.getElementById("btnP1Full");
-  const btnReset = document.getElementById("btnP1ResetH");
-
-  const clamp = (n, a, b)=> Math.max(a, Math.min(b, n));
-  const setLabel = (t)=>{ if (label) label.textContent = t; };
-
-  const refreshRangeMax = ()=>{
-    if (!range) return;
-    const maxH = Math.max(520, Math.floor(window.innerHeight * 0.96));
-    range.max = String(maxH);
-  };
-
-  const applyHeight = (px, {save=true, silent=false}={})=>{
-    if (!frame) return;
-    const maxH = range ? Number(range.max || 1600) : 1600;
-    const n = clamp(Number(px), 360, maxH);
-    frame.style.height = Math.round(n) + "px";
-    root.style.setProperty("--p1ConsoleH", Math.round(n) + "px");
-    if (range) range.value = String(Math.round(n));
-    setLabel(Math.round(n) + "px");
-    if (save){
-      try{ localStorage.setItem(HEIGHT_KEY, String(Math.round(n))); }catch(e){}
-    }
-  };
-
-  const resetHeight = ({save=true}={})=>{
-    if (!frame) return;
-    frame.style.height = "";
-    root.style.removeProperty("--p1ConsoleH");
-    // keep slider visually reasonable even when auto
-    const fallback = Math.min(1120, Math.floor(window.innerHeight * 0.92));
-    if (range) range.value = String(fallback);
-    setLabel("auto");
-    if (save){
-      try{ localStorage.removeItem(HEIGHT_KEY); }catch(e){}
-    }
-  };
-
-  const setFullscreen = (on, {save=true}={})=>{
-    document.body.dataset.p1Fullscreen = on ? "1" : "0";
-    if (btnFull) btnFull.textContent = on ? "退出满屏" : "满屏";
-    if (save){
-      try{ localStorage.setItem(FULL_KEY, on ? "1" : "0"); }catch(e){}
-    }
-    // Optional: use browser fullscreen for maximum screen use (falls back to CSS fullscreen if blocked)
-    try{
-      if (on){
-        if (wrap && wrap.requestFullscreen) wrap.requestFullscreen().catch(()=>{});
-      } else {
-        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(()=>{});
-      }
-    }catch(e){}
-    // in fullscreen, label can show 100%
-    if (on) setLabel("100%");
-    else {
-      if (frame && frame.style.height) setLabel(frame.style.height);
-      else setLabel("auto");
-    }
-  };
-
-  // Init
-  refreshRangeMax();
-
-  // Restore saved height (if any)
-  try{
-    const saved = localStorage.getItem(HEIGHT_KEY);
-    if (saved){
-      applyHeight(saved, {save:false, silent:true});
-    } else {
-      resetHeight({save:false});
-    }
-  }catch(e){
-    resetHeight({save:false});
-  }
-
-  // Restore fullscreen state (CSS fullscreen) if any
-  try{
-    const fs = localStorage.getItem(FULL_KEY);
-    if (fs === "1") setFullscreen(true, {save:false});
-    else setFullscreen(false, {save:false});
-  }catch(e){
-    setFullscreen(false, {save:false});
-  }
-
-  // Bind events
-  if (range){
-    range.addEventListener("input", ()=> applyHeight(range.value, {save:false, silent:true}));
-    range.addEventListener("change", ()=> applyHeight(range.value, {save:true, silent:false}));
-  }
-  btnReset && btnReset.addEventListener("click", ()=> resetHeight({save:true}));
-  btnFull && btnFull.addEventListener("click", ()=> setFullscreen(!(document.body.dataset.p1Fullscreen === "1"), {save:true}));
-
-  // ===== P1 Fullscreen mini bar buttons (shown only in CSS fullscreen) =====
-  const btnExitToBuiltinMini = document.getElementById("btnP1ExitToBuiltin");
-  const btnMiniExitFull = document.getElementById("btnP1MiniExitFull");
-
-  // Bind once
-  const bindOnce = (el, key, fn)=>{
-    if (!el) return;
-    const k = "p1Bind_" + key;
-    if (el.dataset && el.dataset[k] === "1") return;
-    try{ if (el.dataset) el.dataset[k] = "1"; }catch(e){}
-    el.addEventListener("click", fn);
-  };
-
-  bindOnce(btnMiniExitFull, "miniExitFull", ()=>{
-    // Exit both CSS fullscreen and browser fullscreen (if any)
-    setFullscreen(false, {save:true});
-  });
-
-  bindOnce(btnExitToBuiltinMini, "miniExitBuiltin", ()=>{
-    // First exit fullscreen, then switch back to built-in player mode
-    setFullscreen(false, {save:true});
-    try{
-      const btn = document.getElementById("btnMusicBuiltin");
-      if (btn) btn.click();
-      else if (typeof window.setMusicPlayerMode === "function") window.setMusicPlayerMode("builtin");
-    }catch(e){}
-  });
-
-  // Sync: if user exits browser fullscreen via ESC, also exit CSS fullscreen state
-  document.addEventListener("fullscreenchange", ()=>{
-    try{
-      if (document.body?.dataset?.p1Fullscreen === "1" && !document.fullscreenElement){
-        setFullscreen(false, {save:true});
-      }
-    }catch(e){}
-  });
-
-  // Flag to prevent duplicate P1 UI bindings elsewhere
-  try{ document.body.dataset.p1UiBound = "1"; }catch(e){}
-
-
-  window.addEventListener("resize", ()=>{
-    refreshRangeMax();
-    // If user had a saved height, keep it applied
-    try{
-      const saved = localStorage.getItem(HEIGHT_KEY);
-      if (saved && document.body.dataset.p1Fullscreen !== "1"){
-        applyHeight(saved, {save:false, silent:true});
-      }
-    }catch(e){}
-  });
-
-  // ESC exits fullscreen (CSS/fullscreen API)
-  window.addEventListener("keydown", (e)=>{
-    if (e.key === "Escape" && document.body.dataset.p1Fullscreen === "1"){
-      setFullscreen(false, {save:true});
-    }
-  });
-
-})();
 </script>
 <!-- ===== Embedded P1 Console (srcdoc for iframe) ===== -->
 <template id="tplP1ConsoleSrcdoc">
@@ -20506,12 +20376,16 @@ ${v.cta}`,
     /* 队列：改为方块卡片（与中间“音频块”一致的 cue 风格） */
     #queueList{
       display:grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap:10px;
+      grid-template-columns: repeat(auto-fill, minmax(var(--qMinW, 220px), 1fr));
+      gap: var(--qGap, 10px);
       align-content:start;
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
     }
     #queueList .queueCue{
-      aspect-ratio: 1 / 1;
+      aspect-ratio: auto;
+      /* height should follow content; keep layout fixed when card width changes */
+      min-height: unset;
+      height: auto;
       display:flex;
       flex-direction:column;
     }
@@ -20536,7 +20410,109 @@ ${v.cta}`,
       background: rgba(255,93,108,.08);
       box-shadow: inset 0 0 0 2px rgba(255,93,108,.18);
     }
-    #queueList .queueCue .cueBtns{ margin-top:auto; }
+    #queueList .queueCue .cueBtns{ margin-top:10px; }
+
+/* v2.74+ patch: make filename easier to read, reduce empty space, keep layout stable */
+
+/* v2.76 patch: queue cards scale proportionally WITHOUT changing layout (no reflow / no wrap jump) */
+:root{
+  --qScale: 1;           /* 0.80 ~ 1.10 */
+  --qMinW: 220px;        /* keep grid layout stable while scaling */
+  --qGapBase: 10px;      /* base gap between queue cards */
+}
+/* Keep grid layout stable; only change visual scale of cards */
+#queueList{
+  grid-template-columns: repeat(auto-fill, minmax(var(--qMinW, 220px), 1fr));
+  gap: calc(var(--qGapBase, 10px) + (var(--qScale, 1) - 1) * 220px);
+}
+/* Scale the whole card (text+buttons) proportionally */
+#queueList .queueCue{
+  transform: scale(var(--qScale, 1));
+  transform-origin: left top;
+  will-change: transform;
+}
+/* Reduce huge blank area: stop cueTitle from flex-filling empty space */
+#queueList .queueCue .cueTitle{ flex: 0 !important; }
+/* Make names easier to read */
+#queueList .queueCue .cueTitle .name[data-role="qName"]{
+  font-size: 20px !important;
+  line-height: 1.18 !important;
+}
+#queueList [data-role="qFileName"]{
+  font-size: 16px !important;
+  padding: 10px 12px !important;
+  border-radius: 999px !important;
+}
+
+#queueList .queueCue .cueTitle .name{
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: .2px;
+}
+#queueList .queueCue [data-role="qFileName"]{
+  font-size: 14px;
+  padding: 7px 10px;
+  max-width: 100%;
+  overflow:hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#queueList .queueCue .sub{ gap: 10px; }
+#queueList .queueCue .cueBtns{
+  margin-top: 8px;
+  padding: 10px 10px 12px;
+}
+
+
+    /* Ensure queue actions are always visible and never clipped */
+    #queueList .queueCue{ overflow: hidden; } /* keep card clean */
+    #queueList .queueCue .cueBtns{
+      margin-top:10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      padding:10px;
+      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.14));
+    }
+    #queueList .queueCue .cueBtns .leftBtns,
+    #queueList .queueCue .cueBtns .rightBtns{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    #queueList .queueCue .cueBtns .btn.small{
+      padding:10px 12px;
+      border-radius: 14px;
+      font-size: 12px;
+      min-width: 72px;
+      white-space: nowrap;
+    }
+    /* show more title info on desktop */
+    @media (min-width: 861px){
+      #queueList .queueCue .cueTitle .name{
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+    /* Queue: make file name easier to read, without changing layout when card size changes */
+    #queueList .queueCue .cueTitle .sub .tag.clip[data-role="qFileName"]{
+      font-size:14px;
+      font-weight:900;
+      padding:8px 10px;
+      max-width:100%;
+      display:inline-block;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      letter-spacing:.1px;
+    }
+
+    }
+
 
     /* 删除“当前播放”标题下的提示行（如果存在） */
     .panelHeader .sub{ display:none !important; }
@@ -20797,6 +20773,18 @@ ${v.cta}`,
       background: linear-gradient(180deg, rgba(255,255,255,.03), transparent);
       flex:0 0 auto;
     }
+    /* Queue tile size controls (desktop + mobile) */
+    .qTileCtl{flex:0 0 auto;}
+    .qTileRange{
+      width: 120px;
+      accent-color: var(--accent);
+      opacity:.95;
+    }
+    @media (max-width: 860px){
+      .qTileRange{ display:none; } /* 手机上用 +/- 更顺手 */
+      #qTileLabel{ display:none; }
+    }
+
     .card .cardHead h4{margin:0;font-size:13px; letter-spacing:.4px}
     .card .cardBody{padding:12px; overflow:auto; flex:1 1 auto;}
     .bigWave{
@@ -20922,6 +20910,31 @@ ${v.cta}`,
     .btn.tiny{padding:6px 8px; border-radius:10px; font-size:12px; line-height:1}
     .btn.qMode.on{border-color: rgba(110,231,255,.60); background: rgba(110,231,255,.14)}
     .modeBtns{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-left:10px}
+
+/* ===== v2.76 FINAL override: proportional scaling for queue cards (no layout reflow) ===== */
+:root{
+  --qScale: var(--qScale, 1);
+  --qMinW: var(--qMinW, 220px);
+  --qGapBase: var(--qGapBase, 10px);
+}
+#queueList{
+  grid-template-columns: repeat(auto-fill, minmax(var(--qMinW, 220px), 1fr)) !important;
+  gap: max(6px, calc(var(--qGapBase, 10px) + (var(--qScale, 1) - 1) * 220px)) !important;
+}
+#queueList .queueCue{
+  transform: scale(var(--qScale, 1)) !important;
+  transform-origin: left top !important;
+  will-change: transform;
+}
+#queueList .queueCue .cueTitle{ flex: 0 !important; }
+#queueList .queueCue .cueTitle .name[data-role="qName"]{
+  font-size: 20px !important;
+  line-height: 1.18 !important;
+}
+#queueList [data-role="qFileName"]{
+  font-size: 16px !important;
+  padding: 10px 12px !important;
+}
 </style>
 <style id="mobileUIEnhance">
 /* -------------------------
@@ -21030,6 +21043,52 @@ ${v.cta}`,
     aspect-ratio: auto !important;
     min-height: 132px;
   }
+
+  /* P1 当前队列（queueCue）：手机端卡片更紧凑 + 按键始终可见 */
+  #queueList{
+    grid-template-columns: repeat(auto-fill, minmax(var(--qMinW, 150px), 1fr)) !important;
+    gap: var(--qGap, 8px) !important;
+  }
+  #queueList .queueCue{
+    aspect-ratio: auto !important;  /* 取消强制正方形，避免按钮被裁切 */
+  }
+  #queueList .queueCue .cueTop{
+    padding:8px 8px 6px !important;
+    padding-right:36px !important;
+    gap:8px !important;
+  }
+  #queueList .queueCue .cueTitle .name{
+    font-size:14px !important;
+    line-height:1.2 !important;
+  }
+  #queueList .queueCue .cueTitle .sub{
+    gap:6px !important;
+  }
+  #queueList .queueCue .tag{
+    font-size:11px !important;
+    padding:4px 7px !important;
+  }
+  /* 文件名 Chip 在手机端先隐藏，减少高度（来源分类保留） */
+  #queueList .queueCue .cueBtns{
+    padding:8px !important;
+    gap:6px !important;
+    flex-wrap:wrap !important;
+  }
+  #queueList .queueCue .cueBtns .leftBtns,
+  #queueList .queueCue .cueBtns .rightBtns{
+    gap:6px !important;
+    flex-wrap:wrap !important;
+  }
+  #queueList .queueCue .cueBtns .btn.small{
+    padding:8px 10px !important;
+    border-radius:14px !important;
+    font-size:12px !important;
+  }
+  #queueList .queueCue .cueBtns .btn.tiny{
+    padding:6px 8px !important;
+    border-radius:12px !important;
+    font-size:12px !important;
+  }
   /* Modal as bottom sheet for easier thumb reach */
   .modal-panel{
     margin:0 !important;
@@ -21056,9 +21115,199 @@ ${v.cta}`,
   .sched-summary{grid-auto-columns: minmax(200px, 1fr) !important;}
   .day{min-height: 68px !important;}
   body[data-queue-grid="1"] #queueList{grid-template-columns:1fr !important;}
+  #queueList{grid-template-columns:1fr !important;}
+
 }
 </style>
-</meta></meta></head>
+</meta></meta><style id="p1MobileSwitchStyles">
+/* ===== Mobile panel switcher (queue / lib / list) ===== */
+.mSwitchBar{display:none; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid var(--line); background: rgba(15,22,33,.88); backdrop-filter: blur(10px); position:sticky; top:var(--top); z-index:20;}
+.mSeg{flex:1; display:flex; padding:4px; gap:4px; border:1px solid var(--line2); border-radius:999px; background: rgba(255,255,255,.03);}
+.mSegBtn{flex:1; border:none; background:transparent; color:var(--text); padding:10px 12px; border-radius:999px; cursor:pointer; font-weight:800;}
+.mSegBtn.on{background: rgba(110,231,255,.18); box-shadow: inset 0 0 0 1px rgba(110,231,255,.22);}
+.mHint{display:none; padding:8px 12px; border-bottom:1px solid var(--line2); color: var(--muted); font-size:12px; line-height:1.45; position:sticky; top:calc(var(--top) + 62px); z-index:19; background: rgba(11,15,20,.72); backdrop-filter: blur(10px);}
+
+@media (max-width: 860px){
+  :root{ --mob: 62px; }
+  .topbar{overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling: touch;}
+  .topbar::-webkit-scrollbar{display:none;}
+  #btnTopToggleLeft, #btnTopToggleMid{display:none;}
+  .mSwitchBar{display:flex;}
+  .mHint{display:block;}
+  .app{height: calc(100% - var(--top) - var(--mob));}
+
+  /* queue view */
+  body[data-mview="queue"] #colLeft,
+  body[data-mview="queue"] #colMid,
+  body[data-mview="queue"] #split1,
+  body[data-mview="queue"] #split2{display:none !important;}
+  body[data-mview="queue"] #colRight{display:flex !important; width:100% !important; min-width:0 !important;}
+  body[data-mview="queue"] #playlistCard{display:none !important;}
+
+  /* list view */
+  body[data-mview="list"] #colLeft,
+  body[data-mview="list"] #colMid,
+  body[data-mview="list"] #split1,
+  body[data-mview="list"] #split2{display:none !important;}
+  body[data-mview="list"] #colRight{display:flex !important; width:100% !important; min-width:0 !important;}
+  body[data-mview="list"] #queueCard{display:none !important;}
+
+  /* library view */
+  body[data-mview="lib"] #colRight,
+  body[data-mview="lib"] #split2{display:none !important;}
+
+  body[data-mview="lib"] .app{flex-direction:column; overflow:hidden;}
+  body[data-mview="lib"] .col{width:100% !important; min-width:0 !important; height:auto !important;}
+  body[data-mview="lib"] .panel{border-right:none;}
+
+  /* draggable height splitter between 类目列表 and 分类内容 */
+  body[data-mview="lib"] #split1{
+    display:block !important;
+    width:100% !important;
+    height:12px !important;
+    cursor:row-resize !important;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,.10), transparent);
+    position:relative;
+    flex:0 0 auto;
+  }
+  body[data-mview="lib"] #split1::before{
+    content:"";
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:56px;
+    height:4px;
+    border-radius:999px;
+    background: rgba(255,255,255,.22);
+    transform: translate(-50%, -50%);
+  }
+
+  body[data-mview="lib"] #colLeft{flex:0 0 auto;}
+  body[data-mview="lib"] #colMid{flex:1 1 auto;}
+  body[data-mview="lib"] #colLeft .panelBody{height: var(--mLibH, 32vh); overflow:auto;}
+  body[data-mview="lib"] #colMid .gridWrap{height: var(--mGridH, 54vh); overflow:auto;}
+
+  /* Fix: if user previously collapsed panes on desktop, still show them in mobile library view */
+  body[data-mview="lib"] #app.collapsed-left #colLeft{width:100% !important; min-width:0 !important; opacity:1 !important; pointer-events:auto !important;}
+  body[data-mview="lib"] #app.collapsed-mid  #colMid{width:100% !important; min-width:0 !important; opacity:1 !important; pointer-events:auto !important;}
+
+}
+
+
+/* === v2.77 patch: Queue cards scale by layout (tight grid), content always visible ===
+   - 缩小：显示更多卡片（列数增多）
+   - 放大：显示更少卡片（列数减少）
+   - 卡片内部排版固定，只做“等比”尺寸变化（通过统一变量缩放 padding / 字体 / 按钮）
+   - 间隔保持紧密，不再出现巨大空白
+*/
+:root{
+  --qTile: var(--qTile, 1);          /* 0.80 ~ 1.10 */
+  --qBaseMinW: 240px;               /* 基准卡片宽度（1.0） */
+  --qBaseGap: 8px;                  /* 卡片之间间隔（保持紧密） */
+}
+
+/* grid: 真实改变卡片尺寸 -> 缩小更多列，放大更少列 */
+#queueList{
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--qBaseMinW) * var(--qTile)), 1fr)) !important;
+  gap: var(--qBaseGap) !important;
+  align-content: start !important;
+}
+
+/* 取消 transform 缩放（会导致内容/间距异常） */
+#queueList .queueCue{
+  transform: none !important;
+  transform-origin: initial !important;
+  min-height: unset !important;
+  height: auto !important;
+  aspect-ratio: auto !important;
+}
+
+/* 保证标题区域不被挤没 */
+#queueList .queueCue .cueTitle{
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+/* 顶部区整体按比例缩放（排版固定） */
+#queueList .queueCue .cueTop{
+  padding: calc(10px * var(--qTile)) calc(10px * var(--qTile)) calc(8px * var(--qTile)) !important;
+  padding-right: calc(38px * var(--qTile)) !important;
+  gap: calc(10px * var(--qTile)) !important;
+}
+
+/* 曲名：更大、更好辨认（缩小也不低于 15px） */
+#queueList .queueCue .cueTitle .name[data-role="qName"]{
+  font-size: clamp(15px, calc(16px * var(--qTile)), 20px) !important;
+  line-height: 1.16 !important;
+  font-weight: 800 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* sub 行间距更紧凑 */
+#queueList .queueCue .cueTitle .sub{
+  margin-top: calc(6px * var(--qTile)) !important;
+  gap: calc(8px * var(--qTile)) !important;
+  flex-wrap: wrap !important;
+}
+
+/* 标签整体跟随缩放，保持紧凑 */
+#queueList .queueCue .tag{
+  font-size: clamp(11px, calc(12px * var(--qTile)), 14px) !important;
+  padding: calc(5px * var(--qTile)) calc(8px * var(--qTile)) !important;
+  border-radius: 999px !important;
+}
+
+/* 文件名 chip：强制显示 + 放大（你强调的重点） */
+#queueList .queueCue .cueTitle .sub .tag.clip.mono[data-role="qFileName"]{
+  display: inline-block !important;
+  font-size: clamp(13px, calc(14px * var(--qTile)), 18px) !important;
+  font-weight: 900 !important;
+  padding: clamp(7px, calc(8px * var(--qTile)), 10px) clamp(9px, calc(10px * var(--qTile)), 12px) !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  letter-spacing: .12px !important;
+}
+
+/* 进度条更薄一点，减少“空白感” */
+#queueList .queueCue .progress{
+  height: calc(6px * var(--qTile)) !important;
+}
+
+/* 按钮区：贴近内容 + 可换行但不遮挡 */
+#queueList .queueCue .cueBtns{
+  margin-top: calc(8px * var(--qTile)) !important;
+  padding: calc(10px * var(--qTile)) !important;
+  gap: calc(8px * var(--qTile)) !important;
+  display:flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+}
+
+/* 大按钮（播放/移除）跟随缩放 */
+#queueList .queueCue .cueBtns .btn.small{
+  font-size: clamp(12px, calc(12px * var(--qTile)), 14px) !important;
+  padding: calc(10px * var(--qTile)) calc(12px * var(--qTile)) !important;
+  border-radius: calc(14px * var(--qTile)) !important;
+  min-width: calc(76px * var(--qTile)) !important;
+  white-space: nowrap !important;
+}
+
+/* 模式小按钮（⏭🔁⏸）跟随缩放，保持可点 */
+#queueList .queueCue .cueBtns .btn.tiny{
+  width: calc(34px * var(--qTile)) !important;
+  height: calc(34px * var(--qTile)) !important;
+  border-radius: calc(12px * var(--qTile)) !important;
+}
+
+/* 卡片间距更紧凑：避免缩放后出现“空洞”视觉 */
+#queueList .queueCue{ margin: 0 !important; }
+</style>
+</head>
 <body>
 <div class="topbar">
 <div class="brand" title="离线单页 · P1风格音频播控台 v2.8">
@@ -21087,6 +21336,17 @@ ${v.cta}`,
 <input accept="audio/*" id="fileInput" multiple="" style="display:none" type="file">
 <input accept="application/json" id="projectInput" style="display:none" type="file">
 </input></input></div>
+<div class="mSwitchBar" id="mSwitchBar" aria-label="手机端互斥切换">
+  <div class="mSeg" role="tablist" aria-label="面板切换">
+    <button class="mSegBtn" data-mv="queue" type="button">队列</button>
+    <button class="mSegBtn" data-mv="lib" type="button">音乐库</button>
+    <button class="mSegBtn" data-mv="list" type="button">列表</button>
+  </div>
+  <button class="btn small primary" id="btnP1MobileImport" type="button">＋ 导入</button>
+</div>
+<div class="mHint" id="mHint">
+  iPhone / iPad 不能直接访问 Apple Music 曲库文件（系统限制）。请从「文件」App / 第三方 App 导出的音频文件导入。
+</div>
 <div class="app" id="app">
 <!-- Left -->
 <div class="col left" id="colLeft">
@@ -21203,8 +21463,14 @@ ${v.cta}`,
 <div class="split pq" id="splitPQ" title="拖动调整左右宽度"></div>
 <div class="card" id="queueCard">
 <div class="cardHead">
-<h4>当前队列</h4>
-<span class="tag" id="queueCount">0</span>
+  <h4>当前队列</h4>
+  <div class="row qTileCtl" style="gap:8px;align-items:center">
+    <span class="tag" id="queueCount">0</span>
+    <button class="btn tiny" id="btnQTileSm" title="队列卡片更小" type="button">▭−</button>
+    <input id="qTileRange" class="qTileRange" type="range" min="80" max="110" step="1" value="100" aria-label="队列卡片缩放比例"/>
+    <button class="btn tiny" id="btnQTileLg" title="队列卡片更大" type="button">▭＋</button>
+    <span class="tag clip" id="qTileLabel" title="当前卡片大小">M</span>
+  </div>
 </div>
 <div class="cardBody" style="position:relative">
 <div class="small">拖拽排序 · 可从中间拖入音频块</div>
@@ -21262,6 +21528,15 @@ ${v.cta}`,
 <button class="btn tiny" id="btnSaveNow" title="立刻写入本地存档">立即保存</button>
 </div>
 <div class="small muted" style="margin-top:6px">保存位置：浏览器本地（IndexedDB）。关闭页面不会丢失。</div>
+</div>
+
+<div class="field" style="min-width:260px">
+<label>入队规则</label>
+<div class="row" style="flex-wrap:wrap">
+<span class="tag" id="dedupeEnqueueTag" title="开启后：队列里已有的歌不会重复加入">去重入队：关</span>
+<button class="btn tiny" id="btnToggleDedupeEnqueue" title="切换：允许重复入队 / 去重入队">切换</button>
+</div>
+<div class="small muted" style="margin-top:6px">关闭：同一首允许重复入队；开启：队列里已有则忽略。</div>
 </div>
 <div class="field" style="min-width:320px">
 <label>磁盘工程文件（可选）</label>
@@ -21577,6 +21852,50 @@ ${v.cta}`,
       _pendingAudioKeys: new Set()
     };
 
+
+    // ===== 固定分类：未分类（外部拖拽默认入库） =====
+    const UNCAT_NAME = "未分类";
+
+    function isUncatCat(cat){
+      return !!cat && ((cat.name || "").trim() === UNCAT_NAME);
+    }
+
+    function ensureCatsArray(){
+      if (!Array.isArray(state.cats)) state.cats = [];
+    }
+
+    function ensureUncategorizedCat(){
+      ensureCatsArray();
+      // Prefer exact-name match; if none, create one.
+      let cat = state.cats.find(c => ((c.name || "").trim() === UNCAT_NAME)) || null;
+
+      if (!cat){
+        // Use a stable-ish id, but avoid collisions if user already has it.
+        let id = "cat_uncat_fixed";
+        if (state.cats.some(c=>c.id === id)) id = uuid();
+        cat = { id, name: UNCAT_NAME, order: 0, cues: [] };
+        state.cats.push(cat);
+      }else{
+        // Force exact name for consistency
+        cat.name = UNCAT_NAME;
+        if (!Array.isArray(cat.cues)) cat.cues = [];
+        if (!Number.isFinite(cat.order)) cat.order = 0;
+      }
+      return cat;
+    }
+
+    function normalizeCatOrders(){
+      ensureCatsArray();
+      const uncat = ensureUncategorizedCat();
+      // Keep uncat fixed at top
+      const others = state.cats.filter(c=>c.id !== uncat.id);
+      others.sort((a,b)=> (Number(a.order)||0) - (Number(b.order)||0));
+      uncat.order = 0;
+      others.forEach((c,i)=> c.order = i + 1);
+      state.cats = [uncat, ...others];
+    }
+
+
     // ===== UI helpers (v2.7) =====
     function ensureUI(){
       state.ui = state.ui || {};
@@ -21825,6 +22144,7 @@ ${v.cta}`,
         updateNowPlaying(null);
         renderGrid();
         renderQueue();
+        setTimeout(()=>scrollQueueToCue(cueId, "smooth"), 0);
         return;
       }
 
@@ -21875,6 +22195,8 @@ ${v.cta}`,
       updateNowPlaying(cueId, {paused:false});
       renderGrid();
       renderQueue();
+      // auto-follow: keep current cue visible in queue list
+      setTimeout(()=>scrollQueueToCue(cueId, "smooth"), 0);
 
       s.onended = () => {
         // node might already be stopped/replaced
@@ -22049,8 +22371,9 @@ ${v.cta}`,
         if (!hit) continue;
 
         const div = document.createElement("div");
+        const isUncat = isUncatCat(cat);
         div.className = "item" + (cat.id===state.curCatId ? " active":"");
-        div.draggable = true;
+        div.draggable = !isUncat;
         div.dataset.catId = cat.id;
         div.innerHTML = `
           <div class="dragHandle" title="拖拽排序">≡</div>
@@ -22079,6 +22402,7 @@ ${v.cta}`,
 
         const nameEl = div.querySelector('[data-role="catName"]');
         const doRename = ()=>{
+          if (isUncat){ toast("“未分类”是固定分类，不能重命名"); return; }
           if (!nameEl) return;
           inlineEdit(nameEl, cat.name, (val)=>{
             const v = (val||"").trim();
@@ -22131,6 +22455,8 @@ ${v.cta}`,
             doRename();
           });
         }
+        if (isUncat && rbtn) { try{ rbtn.remove(); }catch(e){} }
+
 
         bindDnDCategory(div);
         list.appendChild(div);
@@ -22340,6 +22666,7 @@ ${v.cta}`,
           const mode = (pl.queueModes && pl.queueModes[i]) ? pl.queueModes[i] : "next";
           const modeIcon = (mode==="loop") ? "🔁" : (mode==="pause") ? "⏸" : "⏭";
           const modeText = (mode==="loop") ? "单曲循环" : (mode==="pause") ? "播完暂停" : "顺序播放";
+          const srcTag = `<span class="tag clip mono" title="来源分类">📁 ${escapeHtml(cueSourceCatName(id))}</span>`;
 
           const card = document.createElement("div");
           card.className = "cue queueCue" + (isFocus ? " active":"");
@@ -22358,6 +22685,7 @@ ${v.cta}`,
                   <span class="mono">${fmtTime(clip.playDur)}</span>
                   ${cutTag}
                   <span class="tag mode mono" title="播放结束动作">${modeIcon} ${modeText}</span>
+                  ${srcTag}
                   ${cue.fileName?`<span class="tag clip mono" data-role="qFileName" title="双击重命名文件名">${escapeHtml(cue.fileName)}</span>`:""}
                 </div>
               </div>
@@ -22483,6 +22811,22 @@ ${v.cta}`,
         list._dndBound = true;
       }
     }
+
+
+// Keep the currently playing/selected queue item visible in the scroll viewport
+function scrollQueueToCue(cueId, behavior="smooth"){
+  if (!cueId) return;
+  const list = $("#queueList");
+  if (!list) return;
+  const el = list.querySelector(`.queueCue[data-cue-id="${cueId}"]`);
+  if (!el) return;
+  try{
+    el.scrollIntoView({behavior, block:"nearest", inline:"nearest"});
+  }catch(e){
+    // fallback
+    el.scrollIntoView();
+  }
+}
 
 
     function getCueProgressPct(cueId){
@@ -22865,21 +23209,32 @@ ${v.cta}`,
       if (idx<0) return;
       const cat = state.cats[idx];
 
+      if (isUncatCat(cat)){
+        toast("“未分类”是固定分类，不能删除");
+        return;
+      }
+
       // cleanup cues from state + all playlists
-      for (const id of cat.cues){
+      for (const id of (cat.cues || [])){
         const aKey = state.cues[id]?.audioKey;
         stopNode(id, {fade:false});
         delete state.cues[id];
         // 软删除：不立即清理音频数据，便于“撤销”恢复
         // deleteAudioKey(aKey);
         for (const pl of state.playlists){
-          pl.queue = pl.queue.filter(q=>q!==id);
+          pl.queue = (pl.queue || []).filter(q=>q!==id);
+          if (Array.isArray(pl.queueModes)){
+            const qi = pl.queueModes.length - 1;
+            // queueModes will be re-rendered anyway; keep best effort
+          }
         }
       }
       state.cats.splice(idx,1);
-      state.curCatId = state.cats[0]?.id || null;
+      normalizeCatOrders();
+      state.curCatId = state.cats[0]?.id || ensureUncategorizedCat().id;
       state.selectedCueId = null;
-      if (state.focusCueId && cat.cues.includes(state.focusCueId)){
+
+      if (state.focusCueId && (cat.cues || []).includes(state.focusCueId)){
         state.focusCueId = null;
         updateNowPlaying(null);
       }
@@ -22924,21 +23279,70 @@ ${v.cta}`,
     function enqueueCue(cueId){
       ensureDefaultPlaylists();
       const pl = getActivePlaylist();
-      const q = pl.queue || [];
-      if (!q.includes(cueId)){
+      if (!pl) return;
+      if (!Array.isArray(pl.queue)) pl.queue = [];
+      if (!Array.isArray(pl.queueModes)) pl.queueModes = [];
+      const q = pl.queue;
+      const dedupe = isDedupeEnqueueOn();
+
+      if (!dedupe || !q.includes(cueId)){
         pushUndo("加入队列");
         q.push(cueId);
-        if (!Array.isArray(pl.queueModes)) pl.queueModes = [];
         pl.queueModes.push("next");
         // 重新加入队列，默认视作“未播放”
         clearCuePlayed(pl, cueId);
         persist();
         renderQueue();
-        toast("已加入队列");
+        toast(dedupe ? "已加入队列" : "已加入队列（允许重复）");
       }else{
-        toast("队列里已有");
+        toast("队列里已有（已开启去重）");
       }
     }
+
+
+    function enqueueCueIds(cueIds, opts={}){
+      ensureDefaultPlaylists();
+      const pl = getActivePlaylist();
+      if (!pl) return;
+      if (!Array.isArray(pl.queue)) pl.queue = [];
+      if (!Array.isArray(pl.queueModes)) pl.queueModes = [];
+
+      const q = pl.queue;
+      const qm = pl.queueModes;
+      const ids = Array.isArray(cueIds) ? cueIds : [cueIds];
+      const dedupe = isDedupeEnqueueOn();
+
+      // insert position (optional)
+      let insertAt = -1;
+      const beforeId = opts.insertBeforeCueId || null;
+      if (beforeId){
+        const idx = q.indexOf(beforeId);
+        if (idx >= 0) insertAt = idx;
+      }
+
+      let added = 0;
+      for (const id of ids){
+        if (!id) continue;
+        if (dedupe && q.includes(id)) continue;
+        if (insertAt >= 0){
+          q.splice(insertAt, 0, id);
+          qm.splice(insertAt, 0, "next");
+          insertAt += 1;
+        }else{
+          q.push(id);
+          qm.push("next");
+        }
+        clearCuePlayed(pl, id);
+        added += 1;
+      }
+
+      if (added){
+        persist();
+        renderQueue();
+      }
+      return added;
+    }
+
 
     // ===== Playlists ops =====
     function addPlaylist(){
@@ -22980,17 +23384,46 @@ ${v.cta}`,
     }
 
     // ===== Import / Export =====
-    async function importFiles(files){
-      const cat = state.cats.find(c=>c.id===state.curCatId);
-      if (!cat){ toast("请先创建/选择分类"); return; }
+    async function importFiles(files, opts={}){
+      opts = opts || {};
+      const toUncat = !!opts.toUncat;
+      const enqueue = !!opts.enqueue;
+      const insertBeforeCueId = opts.insertBeforeCueId || null;
+
+      normalizeCatOrders();
+      const cat = toUncat ? ensureUncategorizedCat() : state.cats.find(c=>c.id===state.curCatId);
+      if (!cat){
+        toast("请先创建/选择分类");
+        return [];
+      }
+      if (toUncat && !state.curCatId){
+        // If nothing selected, show 未分类 by default.
+        state.curCatId = cat.id;
+      }
+
       ensureAudioUserGesture();
 
       const arr = Array.from(files || []);
-      if (!arr.length) return;
+      if (!arr.length) return [];
 
-      toast(`正在导入 ${arr.length} 个音频...`);
+      // Only accept audio-ish files (best effort). If browser doesn't provide type, allow by extension.
+      const isAudioFile = (f)=>{
+        const t = (f.type || "").toLowerCase();
+        if (t.startsWith("audio/")) return true;
+        const nm = (f.name || "").toLowerCase();
+        return /\.(mp3|wav|m4a|aac|flac|ogg|opus|webm)$/i.test(nm);
+      };
+      const audioArr = arr.filter(isAudioFile);
+      if (!audioArr.length){
+        toast("未检测到可导入的音频文件");
+        return [];
+      }
+
+      toast(`正在导入 ${audioArr.length} 个音频...`);
+
       const importedKeys = [];
-      for (const file of arr){
+      const importedCueIds = [];
+      for (const file of audioArr){
         try{
           const {arrayBuffer, audioBuf} = await decodeFile(file);
           const peaks = computePeaks(audioBuf, 140);
@@ -23003,19 +23436,53 @@ ${v.cta}`,
             duration: audioBuf.duration
           });
           state.cues[cue.id] = cue;
+          if (!Array.isArray(cat.cues)) cat.cues = [];
           cat.cues.push(cue.id);
+
           cue.audioKey = cue.id;
           cue.mimeType = file.type || "application/octet-stream";
+
           importedKeys.push(cue.audioKey);
+          importedCueIds.push(cue.id);
         }catch(e){
           console.error(e);
           toast(`导入失败：${file.name}`);
         }
       }
-      persist({audioKeys: importedKeys});
+
+      if (importedKeys.length){
+        persist({audioKeys: importedKeys});
+      }else{
+        persist();
+      }
+
       renderCats();
-      renderGrid();
-      toast("导入完成");
+      if (state.curCatId === cat.id) renderGrid();
+
+      if (enqueue && importedCueIds.length){
+        ensureDefaultPlaylists();
+        const pl = getActivePlaylist();
+        const wasEmpty = !(pl && Array.isArray(pl.queue) && pl.queue.length);
+        enqueueCueIds(importedCueIds, {insertBeforeCueId});
+        toast("已导入并加入队列");
+
+        // Auto-play only when queue was empty and nothing is currently playing
+        const anyPlaying = state.playingNodes && Object.keys(state.playingNodes).length > 0;
+        if (wasEmpty && !anyPlaying){
+          const first = importedCueIds[0];
+          state.selectedCueId = first;
+          state.focusCueId = first;
+          updateNowPlaying(first);
+          try{ playCue(first, {force:true}); }catch(e){}
+          persist();
+          renderQueue();
+          if (state.curCatId === cat.id) renderGrid();
+        }
+      }else{
+        toast(toUncat ? "已导入到：未分类 ✅" : "导入完成");
+      }
+
+      return importedCueIds;
     }
 
     function exportProject(){
@@ -23388,7 +23855,7 @@ ${v.cta}`,
             Object.assign(state, data);
           }else{
             // default
-            const defaults = ["01迎宾","02开场","03仪式","04敬酒","05互动","06退场","07救场"];
+            const defaults = ["未分类","01迎宾","02开场","03仪式","04敬酒","05互动","06退场","07救场"];
             state.cats = defaults.map((name,i)=>({id: uuid(), name, order: i+1, cues: []}));
             state.curCatId = state.cats[0]?.id || null;
             state.playlists = [];
@@ -23396,6 +23863,9 @@ ${v.cta}`,
             state.cues = {};
           }
           ensureUI();
+          normalizeCatOrders();
+          if (state.curCatId && !state.cats.some(c=>c.id===state.curCatId)) state.curCatId = ensureUncategorizedCat().id;
+          if (!state.curCatId) state.curCatId = ensureUncategorizedCat().id;
           ensureDefaultPlaylists();
           applyLayoutUI();
           persist();
@@ -23405,6 +23875,9 @@ ${v.cta}`,
         const data = row.data || {};
         Object.assign(state, data);
         ensureUI();
+        normalizeCatOrders();
+        if (state.curCatId && !state.cats.some(c=>c.id===state.curCatId)) state.curCatId = ensureUncategorizedCat().id;
+        if (!state.curCatId) state.curCatId = ensureUncategorizedCat().id;
 
         // apply UI widths
         if (state.ui?.playlistW){
@@ -23466,9 +23939,10 @@ ${v.cta}`,
       }catch(e){
         console.warn("load failed", e);
         // fallback default
-        const defaults = ["01迎宾","02开场","03仪式","04敬酒","05互动","06退场","07救场"];
+        const defaults = ["未分类","01迎宾","02开场","03仪式","04敬酒","05互动","06退场","07救场"];
         state.cats = defaults.map((name,i)=>({id: uuid(), name, order: i+1, cues: []}));
-        state.curCatId = state.cats[0]?.id || null;
+        normalizeCatOrders();
+        state.curCatId = ensureUncategorizedCat().id;
         state.cues = {};
         ensureDefaultPlaylists();
         state._dirty = false;
@@ -23497,6 +23971,11 @@ ${v.cta}`,
     // ===== Drag & Drop =====
     function bindDnDCategory(el){
       el.addEventListener("dragstart", (e)=>{
+        const selfCat = state.cats.find(c=>c.id===el.dataset.catId);
+        if (isUncatCat(selfCat)){
+          e.preventDefault();
+          return;
+        }
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", `cat:${el.dataset.catId}`);
       });
@@ -23513,8 +23992,13 @@ ${v.cta}`,
         const fromId = data.slice(4);
         const toId = el.dataset.catId;
         if (fromId===toId) return;
+
+        const fromCat = state.cats.find(c=>c.id===fromId);
+        const toCat = state.cats.find(c=>c.id===toId);
+        if (isUncatCat(fromCat) || isUncatCat(toCat)) return;
+
         reorderListById(state.cats, fromId, toId);
-        state.cats.forEach((c,i)=>c.order=i+1);
+        normalizeCatOrders();
         persist();
         renderCats();
       });
@@ -23575,12 +24059,25 @@ ${v.cta}`,
       });
       el.addEventListener("dragover", (e)=>{ e.preventDefault(); el.classList.add("dropHint"); });
       el.addEventListener("dragleave", ()=> el.classList.remove("dropHint"));
-      el.addEventListener("drop", (e)=>{
+      el.addEventListener("drop", async (e)=>{
         e.preventDefault();
         e.stopPropagation();
         el.classList.remove("dropHint");
-        const data = e.dataTransfer.getData("text/plain") || "";
+
         const toId = el.dataset.cueId;
+
+        // External files dropped onto a queue item: import -> 未分类 -> insert before this item
+        const files = e.dataTransfer && e.dataTransfer.files;
+        if (files && files.length){
+          try{
+            await importFiles(files, {toUncat:true, enqueue:true, insertBeforeCueId: toId});
+          }catch(err){
+            console.error(err);
+          }
+          return;
+        }
+
+        const data = e.dataTransfer.getData("text/plain") || "";
 
         const pl = getActivePlaylist();
         const q = pl.queue || [];
@@ -23613,6 +24110,7 @@ ${v.cta}`,
               q.push(fromCue);
               qm.push("next");
             }
+            clearCuePlayed(pl, fromCue);
             persist();
             renderQueue();
             toast("已拖入队列");
@@ -23623,19 +24121,19 @@ ${v.cta}`,
 
     function handleDropToQueue(e){
       e.preventDefault();
-      const data = e.dataTransfer.getData("text/plain") || "";
-      const pl = getActivePlaylist();
-      const q = pl.queue || [];
-      if (!Array.isArray(pl.queueModes)) pl.queueModes = [];
-      const qm = pl.queueModes;
 
+      // External files dropped from desktop/finder: import -> 未分类 -> enqueue
+      const files = e.dataTransfer && e.dataTransfer.files;
+      if (files && files.length){
+        importFiles(files, {toUncat:true, enqueue:true}).catch((err)=>{ console.error(err); });
+        return;
+      }
+
+      const data = e.dataTransfer.getData("text/plain") || "";
       if (data.startsWith("cue:")){
         const cueId = data.slice(4);
-        if (!q.includes(cueId)){
-          q.push(cueId);
-          qm.push("next");
-          persist();
-          renderQueue();
+        const added = enqueueCueIds([cueId]);
+        if (added){
           toast("已拖入队列");
         }
       }
@@ -23662,21 +24160,58 @@ ${v.cta}`,
       let startX = 0;
       let startLeft = 0;
       let lastW = 0;
+
+      // mobile: split1 becomes a vertical (height) splitter in "音乐库" view
+      let mDragging = false;
+      let mStartY = 0;
+      let mStartH = 0;
+      let mLastH = 0;
+      const isMobileLibSplit = ()=>{
+        return !!(splitEl && splitEl.id==="split1" && window.matchMedia("(max-width: 860px)").matches && document.body.dataset.mview==="lib");
+      };
+
       splitEl.addEventListener("pointerdown", (e)=>{
+        if (isMobileLibSplit()){
+          mDragging = true;
+          mStartY = e.clientY;
+          const leftBody = document.querySelector('#colLeft .panelBody');
+          mStartH = leftBody ? leftBody.getBoundingClientRect().height : 240;
+          mLastH = mStartH;
+          splitEl.setPointerCapture(e.pointerId);
+          e.preventDefault();
+          return;
+        }
         dragging = true;
         startX = e.clientX;
         startLeft = leftCol.getBoundingClientRect().width;
         lastW = startLeft;
         splitEl.setPointerCapture(e.pointerId);
       });
+
       splitEl.addEventListener("pointermove", (e)=>{
+        if (mDragging){
+          const dy = e.clientY - mStartY;
+          const res = applyMobileLibSplitHeight(mStartH + dy);
+          if (res) mLastH = res.left;
+          return;
+        }
         if (!dragging) return;
         const dx = e.clientX - startX;
         const newLeft = clamp(startLeft + dx, 220, window.innerWidth - 420);
         leftCol.style.width = newLeft + "px";
         lastW = newLeft;
       });
+
       const end = ()=>{
+        if (mDragging){
+          mDragging = false;
+          const finalH = Math.round(mLastH || mStartH || 240);
+          state.ui = state.ui || {};
+          state.ui.mLibH = finalH;
+          try{ localStorage.setItem(__MOBILE_LIB_SPLIT_KEY, String(finalH)); }catch(e){}
+          persist(); // auto save UI
+          return;
+        }
         if (!dragging) return;
         dragging = false;
         if (uiKey){
@@ -23688,6 +24223,7 @@ ${v.cta}`,
       splitEl.addEventListener("pointerup", end);
       splitEl.addEventListener("pointercancel", end);
     }
+
 
     function bindPaneResizer(splitEl, leftPane, containerEl){
       let dragging = false;
@@ -23751,11 +24287,84 @@ ${v.cta}`,
     function openModal(id){ $(id).classList.add("show"); }
     function closeModal(id){ $(id).classList.remove("show"); }
 
-    function openGlobalModal(){
+    
+    function isDedupeEnqueueOn(){
+      return !!(state.ui && state.ui.dedupeEnqueue);
+    }
+    function updateDedupeEnqueueUI(){
+      const tag = $("#dedupeEnqueueTag");
+      const btn = $("#btnToggleDedupeEnqueue");
+      const on = isDedupeEnqueueOn();
+      if (tag){
+        tag.textContent = "去重入队：" + (on ? "开" : "关");
+        tag.classList.toggle("good", on);
+      }
+      if (btn){
+        btn.textContent = on ? "关闭去重" : "开启去重";
+      }
+    }
+
+    const __MOBILE_LIB_SPLIT_KEY = "p1_mobile_libsplit_h_v1";
+    function applyMobileLibSplitHeight(targetH){
+      try{
+        const leftBody = document.querySelector('#colLeft .panelBody');
+        const midWrap = document.querySelector('#colMid .gridWrap');
+        const app = document.getElementById('app');
+        const leftHead = document.querySelector('#colLeft .panelHeader');
+        const midHead = document.querySelector('#colMid .gridHeader');
+        if (!leftBody || !midWrap || !app || !leftHead || !midHead) return null;
+
+        const appH = app.getBoundingClientRect().height || window.innerHeight;
+        const fixed = Math.round(leftHead.getBoundingClientRect().height + midHead.getBoundingClientRect().height + 12 + 18);
+        const minLeft = 140;
+        const minMid = 200;
+        const maxLeft = Math.max(minLeft, appH - fixed - minMid);
+        const newLeft = clamp(+targetH || minLeft, minLeft, maxLeft);
+        const newMid = clamp(appH - fixed - newLeft, minMid, appH);
+
+        leftBody.style.height = Math.round(newLeft) + "px";
+        midWrap.style.height  = Math.round(newMid) + "px";
+        document.documentElement.style.setProperty("--mLibH", Math.round(newLeft) + "px");
+        document.documentElement.style.setProperty("--mGridH", Math.round(newMid) + "px");
+        return {left: Math.round(newLeft), mid: Math.round(newMid)};
+      }catch(e){
+        return null;
+      }
+    }
+    function initMobileLibSplit(){
+      const isMobile = window.matchMedia("(max-width: 860px)").matches;
+      const isLib = (document.body.dataset.mview === "lib");
+      if (!isMobile || !isLib) return;
+      let saved = 0;
+      try{
+        saved = +((state.ui && state.ui.mLibH) || localStorage.getItem(__MOBILE_LIB_SPLIT_KEY) || 0);
+      }catch(e){}
+      if (saved > 50){
+        applyMobileLibSplitHeight(saved);
+      }else{
+        // apply default based on current layout
+        const leftBody = document.querySelector('#colLeft .panelBody');
+        if (leftBody){
+          applyMobileLibSplitHeight(leftBody.getBoundingClientRect().height || 240);
+        }
+      }
+    }
+
+    function cueSourceCatName(cueId){
+      for (const cat of (state.cats || [])){
+        if ((cat.cues || []).includes(cueId)){
+          return cat.name || "未分类";
+        }
+      }
+      return "未分类";
+    }
+
+function openGlobalModal(){
       $("#dfadeIn").value = String(state.dfFadeIn);
       $("#dfadeOut").value = String(state.dfFadeOut);
       $("#projectName").value = state.projectName || "local";
       applyLayoutUI();
+      updateDedupeEnqueueUI();
       openModal("#globalModal");
     }
 
@@ -24105,6 +24714,16 @@ ${v.cta}`,
         toast("已保存工程设置");
       };
 
+      const _btnDedupe = $("#btnToggleDedupeEnqueue");
+      if (_btnDedupe){
+        _btnDedupe.onclick = ()=>{
+          state.ui = state.ui || {};
+          state.ui.dedupeEnqueue = !isDedupeEnqueueOn();
+          persist();
+          updateDedupeEnqueueUI();
+          toast(isDedupeEnqueueOn() ? "已开启：去重入队" : "已关闭：允许重复入队");
+        };
+      }
 
       // layout collapse (v2.8)
       const _btnLeft = $("#btnToggleLeftPane");
@@ -24224,7 +24843,7 @@ ${v.cta}`,
         e.preventDefault();
         dz.classList.remove("dropHint");
         const files = e.dataTransfer.files;
-        if (files && files.length) importFiles(files);
+        if (files && files.length) importFiles(files, {toUncat:true});
       });
 
       // resizers
@@ -24490,7 +25109,63 @@ ${v.cta}`,
         if (!modal) return;
         modal.addEventListener("click", (e)=>{ if (e.target === modal) closeModal(id); });
       });
-    }
+    
+      // ===== Queue card SCALE controls (proportional scale, NO reflow) =====
+      (function(){
+        const KEY = "p1.queueTilePct.v2";
+        const range = $("#qTileRange");
+        const btnSm = $("#btnQTileSm");
+        const btnLg = $("#btnQTileLg");
+        const label = $("#qTileLabel");
+
+        const clampNum = (v, a, b)=> Math.max(a, Math.min(b, v));
+
+        const apply = (pct, silent=false)=>{
+          let P = clampNum(Number(pct)||100, 80, 110);  // percent
+          const S = Math.round(P) / 100;               // scale
+          document.documentElement.style.setProperty("--qTile", String(S));
+          // backward compat (older css may read --qScale)
+          document.documentElement.style.setProperty("--qScale", String(S));
+
+          if (range) range.value = String(P);
+          if (label){
+            label.textContent = `${Math.round(S*100)}%`;
+            label.title = `队列卡片大小：${Math.round(S*100)}%（缩小=更多卡片，放大=更少卡片）`;
+          }
+          try{ localStorage.setItem(KEY, String(P)); }catch(e){}
+          if (!silent) toast(`队列卡片：${Math.round(S*100)}%`);
+
+          // keep the currently focused/playing cue visible after scaling
+          try{
+            const cueId = state.focusCueId || state.selectedCueId || Object.keys(state.playingNodes||{})[0];
+            cueId && setTimeout(()=>scrollQueueToCue(cueId, "auto"), 0);
+          }catch(e){}
+        };
+
+        // init
+        let initP = null;
+        try{ initP = localStorage.getItem(KEY); }catch(e){}
+        if (!initP){
+          const isMobile = window.matchMedia && window.matchMedia("(max-width: 860px)").matches;
+          initP = isMobile ? "92" : "100";
+        }
+        apply(initP, true);
+
+        if (range){
+          range.addEventListener("input", ()=> apply(range.value, true));
+          range.addEventListener("change", ()=> apply(range.value, false));
+        }
+        btnSm && (btnSm.onclick = ()=> {
+          const cur = range ? Number(range.value) : (Number(initP)||100);
+          apply(cur - 3);
+        });
+        btnLg && (btnLg.onclick = ()=> {
+          const cur = range ? Number(range.value) : (Number(initP)||100);
+          apply(cur + 3);
+        });
+      })();
+
+}
 
     function isTextInputFocused(){
       const el = document.activeElement;
@@ -24689,7 +25364,56 @@ function handleSeekClick(e, kind){
     }
 
     
-    // ===== Init =====
+        // ===== Mobile panel switcher (queue/lib/list) =====
+    function initMobilePanelSwitcher(){
+      const bar = document.getElementById("mSwitchBar");
+      if (!bar) return;
+      const key = "p1_mobile_view";
+      const btns = Array.from(bar.querySelectorAll(".mSegBtn"));
+      const setView = (mv, silent=false)=>{
+        mv = (mv==="queue" || mv==="lib" || mv==="list") ? mv : "queue";
+        document.body.dataset.mview = mv;
+        try{ if (mv==="lib") initMobileLibSplit(); }catch(e){}
+        btns.forEach(b=> b.classList.toggle("on", (b.dataset.mv||"")===mv));
+        try{ localStorage.setItem(key, mv); }catch(e){}
+        if (!silent){
+          try{ toast(mv==="queue"?"队列":""+(mv==="lib"?"音乐库":"列表")); }catch(e){}
+        }
+      };
+      let mv = "queue";
+      try{ mv = (localStorage.getItem(key) || "queue"); }catch(e){}
+      setView(mv, true);
+
+      btns.forEach(b=>{
+        b.addEventListener("click", ()=>{
+          setView(b.dataset.mv);
+        });
+      });
+
+      const imp = document.getElementById("btnP1MobileImport");
+      if (imp){
+        imp.addEventListener("click", ()=>{
+          const fi = document.getElementById("fileInput");
+          fi && fi.click();
+        });
+      }
+
+      // Keep view reasonable when resizing across breakpoints
+      window.addEventListener("resize", ()=>{
+        if (window.innerWidth > 860){
+          // on wide screens, show all as normal (unset)
+          try{ delete document.body.dataset.mview; }catch(e){}
+          btns.forEach(b=> b.classList.remove("on"));
+        }else{
+          // on mobile, re-apply last selection
+          let mv2 = "queue";
+          try{ mv2 = (localStorage.getItem(key) || "queue"); }catch(e){}
+          setView(mv2, true);
+        }
+      });
+    }
+
+// ===== Init =====
     async function bootstrap(){
       await initVersionBadge();
       await load();
@@ -24697,6 +25421,7 @@ function handleSeekClick(e, kind){
       updateTopbar();
       renderAll();
       bindUI();
+      initMobilePanelSwitcher();
       applyLayoutUI();
       updateDiskUI();
       startRaf();
