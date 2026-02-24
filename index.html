@@ -14503,9 +14503,13 @@ pl.updatedAt = Date.now();
     const ua = navigator.userAgent || "";
     const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && (navigator.maxTouchPoints||0) > 1);
     document.body.dataset.ios = isIOS ? "1" : "0";
+    // iOS: relax file picker filtering (some audio files show grey when accept=audio/*)
+    try{ if (isIOS){ const af = document.getElementById("audioFile"); if (af) af.setAttribute("accept",""); } }catch(e){}
+
 
     const KEY = "music_mobile_view_v2";
-    const mql = window.matchMedia("(max-width: 860px)");
+    const mql = window.matchMedia("(max-width: 980px)");
+    const mqlCoarse = window.matchMedia("(pointer: coarse)");
 
     const colLib = $("#kgColLib");
     const colPl  = $("#kgColPl");
@@ -14524,7 +14528,7 @@ pl.updatedAt = Date.now();
       // Fail-safe: do not break if DOM changed
       if (!grid || !colLib || !colPl || !colQ) return;
 
-      if (mql.matches){
+      if (mql.matches || mqlCoarse.matches || isIOS){
         // Force single column + hide resizers on touch
         grid.style.gridTemplateColumns = "1fr";
         getResizers().forEach(r=> r.style.display = "none");
@@ -14578,7 +14582,7 @@ pl.updatedAt = Date.now();
     });
 
     try{ mql.addEventListener("change", sync); }catch(e){ try{ mql.addListener(sync); }catch(_){} }
-    window.addEventListener("orientationchange", ()=> setTimeout(sync, 80), {passive:true});
+      window.addEventListener("orientationchange", ()=> setTimeout(sync, 80), {passive:true});
     sync();
   }
 
@@ -15285,6 +15289,14 @@ function ktvGetP1Bridge(){
   function ktvTick(){
     // only tick after init
     if (!KTVL.inited) return;
+    // performance gate: only run when KTV panel/overlay/cast is active
+    try{
+      const det = document.getElementById('ktvDetails');
+      const ov  = document.getElementById('ktvOverlay');
+      const castOpen = (KTVL.castWin && !KTVL.castWin.closed);
+      const active = castOpen || (ov && ov.classList.contains('show')) || (det && det.open);
+      if (!active) return;
+    }catch(e){ return; }
     try{
       const pb = ktvGetPlayback();
       const pbInfo = $("#ktvPbInfo");
@@ -16193,10 +16205,10 @@ ${"</scr"+"ipt>"}
 
     // start tick
     if (!KTVL.timer){
-      KTVL.timer = setInterval(ktvTick, 50);
+      KTVL.timer = setInterval(ktvTick, 120);
     }
     // immediate tick once
-    setTimeout(ktvTick, 50);
+    setTimeout(ktvTick, 120);
   }
 
   // --- KTV fallback (self-heal): if UI gets re-rendered and listeners drop, keep KTV buttons usable ---
@@ -20340,8 +20352,8 @@ ${v.cta}`,
     .rightTop::-webkit-scrollbar,
     .cardBody::-webkit-scrollbar,
     .modal::-webkit-scrollbar{
-      width:5px;
-      height:5px;
+      width:4px;
+      height:4px;
     }
     .panelBody::-webkit-scrollbar-thumb,
     .grid::-webkit-scrollbar-thumb,
@@ -20374,18 +20386,59 @@ ${v.cta}`,
     /* lists */
     .list{margin-top:12px; display:flex; flex-direction:column; gap:8px;}
     /* 队列：改为方块卡片（与中间“音频块”一致的 cue 风格） */
+    /* === 演出级：队列卡片大小（恢复老版本：百分比缩放 + 紧凑网格） === */
+    :root{
+      --qTile: 1;          /* 0.80 ~ 1.10 */
+      --qBaseMinW: 192px;               /* 80%基准对应的卡片最小宽度 */               /* 基准卡片宽度（1.0） */
+      --qBaseGap: 0px;
+      --qCardScale: 1;           /* 外框缩放：以80%为基准(80->1.0) */                 /* 卡片间距 */
+    }
+
+    /* Queue tile size controls */
+    .qTileCtl{flex:0 0 auto; display:flex; align-items:center; gap:6px;}
+    .qTileRange{
+      width:120px;
+      accent-color: var(--accent);
+      opacity:.95;
+    }
+    @media (max-width: 860px){
+      .qTileRange{ width:84px; } /* 窄屏仍保留滑条 */
+      #qTileLabel{ display:none; }
+    }
+
     #queueList{
       display:grid;
-      grid-template-columns: repeat(auto-fill, minmax(var(--qMinW, 220px), 1fr));
-      gap: var(--qGap, 10px);
-      align-content:start;
-      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
+      grid-template-columns: repeat(auto-fit, minmax(var(--qMinW, 192px), 1fr)) !important;
+      gap: var(--qBaseGap) !important;
+      align-content:start !important;
     }
-    #queueList .queueCue{
-      aspect-ratio: auto;
-      /* height should follow content; keep layout fixed when card width changes */
-      min-height: unset;
-      height: auto;
+    /* 内容随卡片等比缩放（更像老版本手感） */
+    #queueList .queueCue{ transform:none !important; }
+    #queueList .queueCue .cueTop{
+      padding: calc(10px * var(--qTile)) calc(10px * var(--qTile)) calc(8px * var(--qTile)) !important;
+      padding-right: calc(38px * var(--qTile)) !important;
+      gap: calc(10px * var(--qTile)) !important;
+    }
+    #queueList .queueCue .cueTitle{ min-width:0 !important; }
+    #queueList .queueCue .cueTitle .name[data-role="qName"]{
+      font-size: clamp(15px, calc(16px * var(--qTile)), 20px) !important;
+      line-height: 1.16 !important;
+      font-weight: 800 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    #queueList .queueCue .cueTop .btn{
+      padding: calc(6px * var(--qTile)) calc(10px * var(--qTile)) !important;
+    }
+
+    
+    /* 队列方块：等比例自动放大（兼容旧版体验） */
+#queueList .qItem, #queueList .item, #queueList .cueCard, #queueList .cue{
+      aspect-ratio: 1 / 1;
+    }
+#queueList .queueCue{
+      aspect-ratio: 1 / 1;
       display:flex;
       flex-direction:column;
     }
@@ -20410,108 +20463,32 @@ ${v.cta}`,
       background: rgba(255,93,108,.08);
       box-shadow: inset 0 0 0 2px rgba(255,93,108,.18);
     }
-    #queueList .queueCue .cueBtns{ margin-top:10px; }
+    #queueList .queueCue .cueBtns{ margin-top:auto; }
 
-/* v2.74+ patch: make filename easier to read, reduce empty space, keep layout stable */
-
-/* v2.76 patch: queue cards scale proportionally WITHOUT changing layout (no reflow / no wrap jump) */
-:root{
-  --qScale: 1;           /* 0.80 ~ 1.10 */
-  --qMinW: 220px;        /* keep grid layout stable while scaling */
-  --qGapBase: 10px;      /* base gap between queue cards */
-}
-/* Keep grid layout stable; only change visual scale of cards */
-#queueList{
-  grid-template-columns: repeat(auto-fill, minmax(var(--qMinW, 220px), 1fr));
-  gap: calc(var(--qGapBase, 10px) + (var(--qScale, 1) - 1) * 220px);
-}
-/* Scale the whole card (text+buttons) proportionally */
-#queueList .queueCue{
-  transform: scale(var(--qScale, 1));
-  transform-origin: left top;
-  will-change: transform;
-}
-/* Reduce huge blank area: stop cueTitle from flex-filling empty space */
-#queueList .queueCue .cueTitle{ flex: 0 !important; }
-/* Make names easier to read */
-#queueList .queueCue .cueTitle .name[data-role="qName"]{
-  font-size: 20px !important;
-  line-height: 1.18 !important;
-}
-#queueList [data-role="qFileName"]{
-  font-size: 16px !important;
-  padding: 10px 12px !important;
-  border-radius: 999px !important;
-}
-
-#queueList .queueCue .cueTitle .name{
-  font-size: 18px;
-  line-height: 1.2;
-  letter-spacing: .2px;
-}
-#queueList .queueCue [data-role="qFileName"]{
-  font-size: 14px;
-  padding: 7px 10px;
-  max-width: 100%;
-  overflow:hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-#queueList .queueCue .sub{ gap: 10px; }
-#queueList .queueCue .cueBtns{
-  margin-top: 8px;
-  padding: 10px 10px 12px;
-}
-
-
-    /* Ensure queue actions are always visible and never clipped */
-    #queueList .queueCue{ overflow: hidden; } /* keep card clean */
-    #queueList .queueCue .cueBtns{
-      margin-top:10px;
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      padding:10px;
-      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.14));
+    /* === v8：缩放只影响卡片尺寸，不影响卡片内部排版/空白/按钮布局 === */
+    :root{ --qBaseGap: 0px; }
+    #queueList{ gap: var(--qBaseGap) !important; }
+    /* 取消按 qTile 缩放内部 padding/按钮/字体（保持设计排版不变） */
+    #queueList .queueCue .cueTop{
+      padding: 10px 10px 8px !important;
+      padding-right: 38px !important;
+      gap: 10px !important;
     }
-    #queueList .queueCue .cueBtns .leftBtns,
-    #queueList .queueCue .cueBtns .rightBtns{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      align-items:center;
+    #queueList .queueCue .cueTop .btn{ padding: 6px 10px !important; }
+    #queueList .queueCue .cueBtns{ margin-top: 8px !important; }
+    /* 标题：默认不截断，允许换行；字体大小由 JS 自适应 */
+    #queueList .queueCue .cueTitle .name[data-role="qName"]{
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: clip !important;
+      word-break: break-word !important;
+      overflow-wrap: anywhere !important;
+      font-size: var(--qNameSize, 16px) !important;
+      line-height: 1.15 !important;
+      max-width: 100% !important;
     }
-    #queueList .queueCue .cueBtns .btn.small{
-      padding:10px 12px;
-      border-radius: 14px;
-      font-size: 12px;
-      min-width: 72px;
-      white-space: nowrap;
-    }
-    /* show more title info on desktop */
-    @media (min-width: 861px){
-      #queueList .queueCue .cueTitle .name{
-        white-space: normal;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-      }
-
-    /* Queue: make file name easier to read, without changing layout when card size changes */
-    #queueList .queueCue .cueTitle .sub .tag.clip[data-role="qFileName"]{
-      font-size:14px;
-      font-weight:900;
-      padding:8px 10px;
-      max-width:100%;
-      display:inline-block;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-      letter-spacing:.1px;
-    }
-
-    }
+    /* 卡片贴近：移除额外间距（仅保留边框分隔） */
+    #queueList .queueCue{ margin: 0 !important; }
 
 
     /* 删除“当前播放”标题下的提示行（如果存在） */
@@ -20773,18 +20750,6 @@ ${v.cta}`,
       background: linear-gradient(180deg, rgba(255,255,255,.03), transparent);
       flex:0 0 auto;
     }
-    /* Queue tile size controls (desktop + mobile) */
-    .qTileCtl{flex:0 0 auto;}
-    .qTileRange{
-      width: 120px;
-      accent-color: var(--accent);
-      opacity:.95;
-    }
-    @media (max-width: 860px){
-      .qTileRange{ display:none; } /* 手机上用 +/- 更顺手 */
-      #qTileLabel{ display:none; }
-    }
-
     .card .cardHead h4{margin:0;font-size:13px; letter-spacing:.4px}
     .card .cardBody{padding:12px; overflow:auto; flex:1 1 auto;}
     .bigWave{
@@ -20911,30 +20876,16 @@ ${v.cta}`,
     .btn.qMode.on{border-color: rgba(110,231,255,.60); background: rgba(110,231,255,.14)}
     .modeBtns{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-left:10px}
 
-/* ===== v2.76 FINAL override: proportional scaling for queue cards (no layout reflow) ===== */
-:root{
-  --qScale: var(--qScale, 1);
-  --qMinW: var(--qMinW, 220px);
-  --qGapBase: var(--qGapBase, 10px);
-}
-#queueList{
-  grid-template-columns: repeat(auto-fill, minmax(var(--qMinW, 220px), 1fr)) !important;
-  gap: max(6px, calc(var(--qGapBase, 10px) + (var(--qScale, 1) - 1) * 220px)) !important;
-}
-#queueList .queueCue{
-  transform: scale(var(--qScale, 1)) !important;
-  transform-origin: left top !important;
-  will-change: transform;
-}
-#queueList .queueCue .cueTitle{ flex: 0 !important; }
-#queueList .queueCue .cueTitle .name[data-role="qName"]{
-  font-size: 20px !important;
-  line-height: 1.18 !important;
-}
-#queueList [data-role="qFileName"]{
-  font-size: 16px !important;
-  padding: 10px 12px !important;
-}
+    /* v20：队列曲名固定2行；字体大小由脚本按长度自动微调 */
+    #queueList .queueCue .cueTitle .name[data-role="qName"]{
+      white-space: normal !important;
+      display: -webkit-box !important;
+      -webkit-line-clamp: 2 !important;
+      -webkit-box-orient: vertical !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
 </style>
 <style id="mobileUIEnhance">
 /* -------------------------
@@ -21043,52 +20994,6 @@ ${v.cta}`,
     aspect-ratio: auto !important;
     min-height: 132px;
   }
-
-  /* P1 当前队列（queueCue）：手机端卡片更紧凑 + 按键始终可见 */
-  #queueList{
-    grid-template-columns: repeat(auto-fill, minmax(var(--qMinW, 150px), 1fr)) !important;
-    gap: var(--qGap, 8px) !important;
-  }
-  #queueList .queueCue{
-    aspect-ratio: auto !important;  /* 取消强制正方形，避免按钮被裁切 */
-  }
-  #queueList .queueCue .cueTop{
-    padding:8px 8px 6px !important;
-    padding-right:36px !important;
-    gap:8px !important;
-  }
-  #queueList .queueCue .cueTitle .name{
-    font-size:14px !important;
-    line-height:1.2 !important;
-  }
-  #queueList .queueCue .cueTitle .sub{
-    gap:6px !important;
-  }
-  #queueList .queueCue .tag{
-    font-size:11px !important;
-    padding:4px 7px !important;
-  }
-  /* 文件名 Chip 在手机端先隐藏，减少高度（来源分类保留） */
-  #queueList .queueCue .cueBtns{
-    padding:8px !important;
-    gap:6px !important;
-    flex-wrap:wrap !important;
-  }
-  #queueList .queueCue .cueBtns .leftBtns,
-  #queueList .queueCue .cueBtns .rightBtns{
-    gap:6px !important;
-    flex-wrap:wrap !important;
-  }
-  #queueList .queueCue .cueBtns .btn.small{
-    padding:8px 10px !important;
-    border-radius:14px !important;
-    font-size:12px !important;
-  }
-  #queueList .queueCue .cueBtns .btn.tiny{
-    padding:6px 8px !important;
-    border-radius:12px !important;
-    font-size:12px !important;
-  }
   /* Modal as bottom sheet for easier thumb reach */
   .modal-panel{
     margin:0 !important;
@@ -21115,200 +21020,153 @@ ${v.cta}`,
   .sched-summary{grid-auto-columns: minmax(200px, 1fr) !important;}
   .day{min-height: 68px !important;}
   body[data-queue-grid="1"] #queueList{grid-template-columns:1fr !important;}
-  #queueList{grid-template-columns:1fr !important;}
-
 }
+
+/* ===== v9：缩放只影响卡片尺寸；卡片内部排版/留白保持不变 ===== */
+#queueList{ gap: 0px !important; }
+#queueList .queueCue{ margin: 0 !important; }
+#queueList .queueCue .cueTop{
+  padding: 10px 10px 8px !important;
+  padding-right: 38px !important;
+  gap: 10px !important;
+}
+#queueList .queueCue .cueTop .btn{
+  padding: 6px 10px !important;
+}
+/* 歌名固定两行：太长则自动缩小字体（JS 设置 --qNameSize） */
+#queueList .queueCue .cueTitle .name[data-role="qName"]{
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  font-size: var(--qNameSize, 16px) !important;
+  line-height: 1.15 !important;
+  max-height: 2.3em !important;
+  max-width: 100% !important;
+}
+#queueList .queueCue .cueTitle{ min-height: 2.3em !important; }
+
 </style>
-</meta></meta><style id="p1MobileSwitchStyles">
-/* ===== Mobile panel switcher (queue / lib / list) ===== */
-.mSwitchBar{display:none; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid var(--line); background: rgba(15,22,33,.88); backdrop-filter: blur(10px); position:sticky; top:var(--top); z-index:20;}
-.mSeg{flex:1; display:flex; padding:4px; gap:4px; border:1px solid var(--line2); border-radius:999px; background: rgba(255,255,255,.03);}
-.mSegBtn{flex:1; border:none; background:transparent; color:var(--text); padding:10px 12px; border-radius:999px; cursor:pointer; font-weight:800;}
-.mSegBtn.on{background: rgba(110,231,255,.18); box-shadow: inset 0 0 0 1px rgba(110,231,255,.22);}
-.mHint{display:none; padding:8px 12px; border-bottom:1px solid var(--line2); color: var(--muted); font-size:12px; line-height:1.45; position:sticky; top:calc(var(--top) + 62px); z-index:19; background: rgba(11,15,20,.72); backdrop-filter: blur(10px);}
+</meta></meta><style id="p1MobilePaneLock">
+/* ===== Mobile: 3-pane (Left / Mid / Right) mutually exclusive & locked ===== */
+.p1MobileBar{
+  display:none;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin: 10px 0 10px;
+}
+.p1MobileBar .seg{
+  display:inline-flex;
+  align-items:stretch;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:999px;
+  overflow:hidden;
+  background: rgba(255,255,255,.04);
+}
+.p1MobileBar .seg .segBtn{
+  padding:9px 14px;
+  font-size:13px;
+  line-height:1;
+  color: rgba(255,255,255,.75);
+  background: transparent;
+  border:0;
+  cursor:pointer;
+}
+.p1MobileBar .seg .segBtn.on{
+  color: rgba(255,255,255,.95);
+  background: rgba(110,231,255,.12);
+}
+.p1MobileHint{ display:none; margin: 0 0 10px; font-size:12px; color: rgba(255,255,255,.70); }
+.iosOnly{ display:none; }
+body[data-ios="1"] .iosOnly{ display:inline; }
 
 @media (max-width: 860px){
-  :root{ --mob: 62px; }
-  .topbar{overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling: touch;}
-  .topbar::-webkit-scrollbar{display:none;}
-  #btnTopToggleLeft, #btnTopToggleMid{display:none;}
-  .mSwitchBar{display:flex;}
-  .mHint{display:block;}
-  .app{height: calc(100% - var(--top) - var(--mob));}
+  .p1MobileBar{ display:flex; }
+  .p1MobileHint{ display:block; }
 
-  /* queue view */
-  body[data-mview="queue"] #colLeft,
-  body[data-mview="queue"] #colMid,
-  body[data-mview="queue"] #split1,
-  body[data-mview="queue"] #split2{display:none !important;}
-  body[data-mview="queue"] #colRight{display:flex !important; width:100% !important; min-width:0 !important;}
-  body[data-mview="queue"] #playlistCard{display:none !important;}
+  /* lock: hide horizontal resizers on touch */
+  #split1, #split2{ display:none !important; }
+  .app{ overflow:hidden; }
+  #colLeft, #colMid, #colRight{
+    width: 100% !important;
+    min-width: 0 !important;
+  }
 
-  /* list view */
-  body[data-mview="list"] #colLeft,
-  body[data-mview="list"] #colMid,
-  body[data-mview="list"] #split1,
-  body[data-mview="list"] #split2{display:none !important;}
-  body[data-mview="list"] #colRight{display:flex !important; width:100% !important; min-width:0 !important;}
-  body[data-mview="list"] #queueCard{display:none !important;}
+  /* show only selected pane */
+  body[data-p1-mobileview="left"] #colLeft{ display:flex !important; }
+  body[data-p1-mobileview="left"] #colMid,
+  body[data-p1-mobileview="left"] #colRight{ display:none !important; }
 
-  /* library view */
-  body[data-mview="lib"] #colRight,
-  body[data-mview="lib"] #split2{display:none !important;}
+  body[data-p1-mobileview="mid"] #colMid{ display:flex !important; }
+  body[data-p1-mobileview="mid"] #colLeft,
+  body[data-p1-mobileview="mid"] #colRight{ display:none !important; }
 
-  body[data-mview="lib"] .app{flex-direction:column; overflow:hidden;}
-  body[data-mview="lib"] .col{width:100% !important; min-width:0 !important; height:auto !important;}
-  body[data-mview="lib"] .panel{border-right:none;}
+  body[data-p1-mobileview="right"] #colRight{ display:flex !important; }
+  body[data-p1-mobileview="right"] #colLeft,
+  body[data-p1-mobileview="right"] #colMid{ display:none !important; }
+}
 
-  /* draggable height splitter between 类目列表 and 分类内容 */
-  body[data-mview="lib"] #split1{
-    display:block !important;
+
+/* ===== Mobile enhancement (P1): playlist + queue as swipeable pages (left/right) ===== */
+@media (max-width: 920px){
+  /* hide old divider on mobile */
+  #splitPQ{ display:none !important; }
+
+  /* bottom area becomes horizontal swipe container */
+  #bottomGrid{
+    display:flex !important;
+    flex-direction:row !important;
+    gap:0 !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    scroll-snap-type:x mandatory !important;
+    -webkit-overflow-scrolling:touch;
+    scroll-behavior:smooth;
+  }
+
+  #bottomGrid > .card{
+    flex:0 0 100% !important;
     width:100% !important;
-    height:12px !important;
-    cursor:row-resize !important;
-    background: linear-gradient(180deg, transparent, rgba(255,255,255,.10), transparent);
-    position:relative;
-    flex:0 0 auto;
-  }
-  body[data-mview="lib"] #split1::before{
-    content:"";
-    position:absolute;
-    left:50%;
-    top:50%;
-    width:56px;
-    height:4px;
-    border-radius:999px;
-    background: rgba(255,255,255,.22);
-    transform: translate(-50%, -50%);
+    min-width:100% !important;
+    scroll-snap-align:start !important;
+    scroll-snap-stop:always !important;
   }
 
-  body[data-mview="lib"] #colLeft{flex:0 0 auto;}
-  body[data-mview="lib"] #colMid{flex:1 1 auto;}
-  body[data-mview="lib"] #colLeft .panelBody{height: var(--mLibH, 32vh); overflow:auto;}
-  body[data-mview="lib"] #colMid .gridWrap{height: var(--mGridH, 54vh); overflow:auto;}
-
-  /* Fix: if user previously collapsed panes on desktop, still show them in mobile library view */
-  body[data-mview="lib"] #app.collapsed-left #colLeft{width:100% !important; min-width:0 !important; opacity:1 !important; pointer-events:auto !important;}
-  body[data-mview="lib"] #app.collapsed-mid  #colMid{width:100% !important; min-width:0 !important; opacity:1 !important; pointer-events:auto !important;}
-
+  /* avoid accidental horizontal drag handles */
+  #playlistCard, #queueCard{ height:100% !important; }
 }
 
-
-/* === v2.77 patch: Queue cards scale by layout (tight grid), content always visible ===
-   - 缩小：显示更多卡片（列数增多）
-   - 放大：显示更少卡片（列数减少）
-   - 卡片内部排版固定，只做“等比”尺寸变化（通过统一变量缩放 padding / 字体 / 按钮）
-   - 间隔保持紧密，不再出现巨大空白
-*/
-:root{
-  --qTile: var(--qTile, 1);          /* 0.80 ~ 1.10 */
-  --qBaseMinW: 240px;               /* 基准卡片宽度（1.0） */
-  --qBaseGap: 8px;                  /* 卡片之间间隔（保持紧密） */
+/* Fix: if left/mid were collapsed on desktop, mobile switching must still show content */
+@media (max-width: 860px){
+  body[data-p1-mobileview="left"] .app.collapsed-left #colLeft{
+    width:100% !important;
+    min-width:0 !important;
+    opacity:1 !important;
+    pointer-events:auto !important;
+  }
+  body[data-p1-mobileview="mid"] .app.collapsed-mid #colMid{
+    width:100% !important;
+    min-width:0 !important;
+    opacity:1 !important;
+    pointer-events:auto !important;
+  }
 }
 
-/* grid: 真实改变卡片尺寸 -> 缩小更多列，放大更少列 */
-#queueList{
-  grid-template-columns: repeat(auto-fill, minmax(calc(var(--qBaseMinW) * var(--qTile)), 1fr)) !important;
-  gap: var(--qBaseGap) !important;
-  align-content: start !important;
-}
-
-/* 取消 transform 缩放（会导致内容/间距异常） */
-#queueList .queueCue{
-  transform: none !important;
-  transform-origin: initial !important;
-  min-height: unset !important;
-  height: auto !important;
-  aspect-ratio: auto !important;
-}
-
-/* 保证标题区域不被挤没 */
-#queueList .queueCue .cueTitle{
-  flex: 1 1 auto !important;
-  min-width: 0 !important;
-  overflow: hidden !important;
-}
-
-/* 顶部区整体按比例缩放（排版固定） */
-#queueList .queueCue .cueTop{
-  padding: calc(10px * var(--qTile)) calc(10px * var(--qTile)) calc(8px * var(--qTile)) !important;
-  padding-right: calc(38px * var(--qTile)) !important;
-  gap: calc(10px * var(--qTile)) !important;
-}
-
-/* 曲名：更大、更好辨认（缩小也不低于 15px） */
-#queueList .queueCue .cueTitle .name[data-role="qName"]{
-  font-size: clamp(15px, calc(16px * var(--qTile)), 20px) !important;
-  line-height: 1.16 !important;
-  font-weight: 800 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-
-/* sub 行间距更紧凑 */
-#queueList .queueCue .cueTitle .sub{
-  margin-top: calc(6px * var(--qTile)) !important;
-  gap: calc(8px * var(--qTile)) !important;
-  flex-wrap: wrap !important;
-}
-
-/* 标签整体跟随缩放，保持紧凑 */
-#queueList .queueCue .tag{
-  font-size: clamp(11px, calc(12px * var(--qTile)), 14px) !important;
-  padding: calc(5px * var(--qTile)) calc(8px * var(--qTile)) !important;
-  border-radius: 999px !important;
-}
-
-/* 文件名 chip：强制显示 + 放大（你强调的重点） */
-#queueList .queueCue .cueTitle .sub .tag.clip.mono[data-role="qFileName"]{
-  display: inline-block !important;
-  font-size: clamp(13px, calc(14px * var(--qTile)), 18px) !important;
-  font-weight: 900 !important;
-  padding: clamp(7px, calc(8px * var(--qTile)), 10px) clamp(9px, calc(10px * var(--qTile)), 12px) !important;
-  max-width: 100% !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-  letter-spacing: .12px !important;
-}
-
-/* 进度条更薄一点，减少“空白感” */
-#queueList .queueCue .progress{
-  height: calc(6px * var(--qTile)) !important;
-}
-
-/* 按钮区：贴近内容 + 可换行但不遮挡 */
-#queueList .queueCue .cueBtns{
-  margin-top: calc(8px * var(--qTile)) !important;
-  padding: calc(10px * var(--qTile)) !important;
-  gap: calc(8px * var(--qTile)) !important;
-  display:flex !important;
-  flex-wrap: wrap !important;
-  align-items: center !important;
-}
-
-/* 大按钮（播放/移除）跟随缩放 */
-#queueList .queueCue .cueBtns .btn.small{
-  font-size: clamp(12px, calc(12px * var(--qTile)), 14px) !important;
-  padding: calc(10px * var(--qTile)) calc(12px * var(--qTile)) !important;
-  border-radius: calc(14px * var(--qTile)) !important;
-  min-width: calc(76px * var(--qTile)) !important;
-  white-space: nowrap !important;
-}
-
-/* 模式小按钮（⏭🔁⏸）跟随缩放，保持可点 */
-#queueList .queueCue .cueBtns .btn.tiny{
-  width: calc(34px * var(--qTile)) !important;
-  height: calc(34px * var(--qTile)) !important;
-  border-radius: calc(12px * var(--qTile)) !important;
-}
-
-/* 卡片间距更紧凑：避免缩放后出现“空洞”视觉 */
-#queueList .queueCue{ margin: 0 !important; }
 </style>
 </head>
 <body>
+<script>
+  // Bridge desktop APIs into srcdoc iframe (P1 console runs inside iframe)
+  try{
+    if (!window.HHFS && window.parent && window.parent.HHFS) window.HHFS = window.parent.HHFS;
+    if (!window.HostHandbookDesktop && window.parent && window.parent.HostHandbookDesktop) window.HostHandbookDesktop = window.parent.HostHandbookDesktop;
+  }catch(e){}
+</script>
 <div class="topbar">
 <div class="brand" title="离线单页 · P1风格音频播控台 v2.8">
 <span class="dot"></span>
@@ -21325,27 +21183,30 @@ ${v.cta}`,
 <span class="mono" id="masterVolText">0.85</span>
 </input></div>
 <button class="btn small" id="btnGlobalSettings">设置</button>
+<button class="btn small" id="btnShowMode" title="演出模式：防熄屏/更稳（可关闭）">演出模式：关</button>
 <div class="pill" id="savePill" title="自动保存状态"><span id="saveStateText">已保存</span></div>
 <button class="btn small" disabled="" id="btnUndo" title="撤销上一步（Ctrl+Z）">撤销</button>
 <div class="spacer"></div>
 <button class="btn" id="btnImport" title="导入音频（I）">导入音频</button>
 <button class="btn" id="btnExport" title="导出工程（E）">导出工程</button>
+<button class="btn" id="btnExportZip" title="导出便携包 ZIP（含音频）">便携包ZIP</button>
+<button class="btn" id="btnImportZip" title="导入便携包 ZIP">导入ZIP</button>
 <button class="btn" id="btnImportProject" title="导入工程">导入工程</button>
 <button class="btn danger" id="btnResetStates" title="重置已播状态（R）">状态重置</button>
 <button class="btn" id="btnHelp" title="快捷键/使用说明（?）">帮助</button>
 <input accept="audio/*" id="fileInput" multiple="" style="display:none" type="file">
 <input accept="application/json" id="projectInput" style="display:none" type="file">
 </input></input></div>
-<div class="mSwitchBar" id="mSwitchBar" aria-label="手机端互斥切换">
-  <div class="mSeg" role="tablist" aria-label="面板切换">
-    <button class="mSegBtn" data-mv="queue" type="button">队列</button>
-    <button class="mSegBtn" data-mv="lib" type="button">音乐库</button>
-    <button class="mSegBtn" data-mv="list" type="button">列表</button>
+<div class="p1MobileBar" id="p1MobileBar" aria-label="手机端三列互斥切换">
+  <div class="seg" role="tablist" aria-label="面板切换">
+    <button class="segBtn" data-pmv="right" type="button">队列</button>
+    <button class="segBtn" data-pmv="mid" type="button">当前分类</button>
+    <button class="segBtn" data-pmv="left" type="button">素材库</button>
   </div>
-  <button class="btn small primary" id="btnP1MobileImport" type="button">＋ 导入</button>
+  <button class="btn small" id="btnMobileImportP1" type="button">＋ 导入</button>
 </div>
-<div class="mHint" id="mHint">
-  iPhone / iPad 不能直接访问 Apple Music 曲库文件（系统限制）。请从「文件」App / 第三方 App 导出的音频文件导入。
+<div class="p1MobileHint muted small" id="p1MobileHint">
+  <span class="iosOnly">iPhone / iPad 无法直接访问 Apple Music 的受保护曲目（系统限制）。请从「文件」App / 第三方 App 导出的音频文件导入。</span>
 </div>
 <div class="app" id="app">
 <!-- Left -->
@@ -21463,14 +21324,16 @@ ${v.cta}`,
 <div class="split pq" id="splitPQ" title="拖动调整左右宽度"></div>
 <div class="card" id="queueCard">
 <div class="cardHead">
-  <h4>当前队列</h4>
-  <div class="row qTileCtl" style="gap:8px;align-items:center">
-    <span class="tag" id="queueCount">0</span>
-    <button class="btn tiny" id="btnQTileSm" title="队列卡片更小" type="button">▭−</button>
-    <input id="qTileRange" class="qTileRange" type="range" min="80" max="110" step="1" value="100" aria-label="队列卡片缩放比例"/>
-    <button class="btn tiny" id="btnQTileLg" title="队列卡片更大" type="button">▭＋</button>
-    <span class="tag clip" id="qTileLabel" title="当前卡片大小">M</span>
-  </div>
+<h4>当前队列</h4>
+<div class="row" style="display:flex; gap:8px; align-items:center; justify-content:flex-end">
+<span class="tag" id="queueCount">0</span>
+<div class="qTileCtl" title="队列卡片大小（记忆）">
+  <button class="btn tiny" id="btnQTileSm" title="队列卡片更小" type="button">▭－</button>
+  <input id="qTileRange" class="qTileRange" type="range" min="60" max="120" step="1" value="80" aria-label="队列卡片缩放比例"/>
+  <button class="btn tiny" id="btnQTileLg" title="队列卡片更大" type="button">▭＋</button>
+  <span class="tag clip" id="qTileLabel" title="当前卡片大小">100%</span>
+</div>
+</div>
 </div>
 <div class="cardBody" style="position:relative">
 <div class="small">拖拽排序 · 可从中间拖入音频块</div>
@@ -21529,25 +21392,26 @@ ${v.cta}`,
 </div>
 <div class="small muted" style="margin-top:6px">保存位置：浏览器本地（IndexedDB）。关闭页面不会丢失。</div>
 </div>
-
-<div class="field" style="min-width:260px">
-<label>入队规则</label>
-<div class="row" style="flex-wrap:wrap">
-<span class="tag" id="dedupeEnqueueTag" title="开启后：队列里已有的歌不会重复加入">去重入队：关</span>
-<button class="btn tiny" id="btnToggleDedupeEnqueue" title="切换：允许重复入队 / 去重入队">切换</button>
-</div>
-<div class="small muted" style="margin-top:6px">关闭：同一首允许重复入队；开启：队列里已有则忽略。</div>
-</div>
 <div class="field" style="min-width:320px">
 <label>磁盘工程文件（可选）</label>
 <div class="row" style="flex-wrap:wrap">
-<button class="btn tiny" id="btnBindDiskFile" title="选择一个 .json 文件，用于写入工程备份（含音频）">绑定文件</button>
+<button class="btn tiny" id="btnBindDiskFile" title="绑定一个工程文件（推荐 .hhproj.json：轻量、不含音频）">绑定文件</button>
 <button class="btn tiny" id="btnWriteDiskNow" title="立刻写入到已绑定的文件">写入磁盘</button>
 <button class="btn tiny" id="btnToggleDiskAuto" title="是否跟随本地自动保存一起写入磁盘（节流约 60 秒）">自动：关</button>
 <button class="btn tiny danger" id="btnUnbindDiskFile" title="解除绑定（不会删除磁盘文件）">解除</button>
 </div>
 <div class="small muted" id="diskFileHint" style="margin-top:6px">未绑定（推荐 Chrome/Edge；部分浏览器/环境可能不支持直接写入磁盘）</div>
 </div>
+</div>
+<div class="row" style="margin-top:14px; gap:12px; flex-wrap:wrap">
+  <div class="field" style="min-width:320px">
+    <label>缺失音频重连</label>
+    <div class="row" style="flex-wrap:wrap">
+      <button class="btn tiny" id="btnRelinkMissing" title="导入轻量工程后，如果提示缺失音频，可用此功能批量重连">选择曲库文件夹并重连</button>
+      <button class="btn tiny" id="btnOpenLibraryFolder" title="桌面端：打开内置曲库目录（用于拷贝到其他设备）">打开内置曲库</button>
+    </div>
+    <div class="small muted" id="missingHint" style="margin-top:6px">缺失音频：0</div>
+  </div>
 </div>
 <div class="hr"></div>
 <div class="row">
@@ -21842,6 +21706,7 @@ ${v.cta}`,
       audio: null,
       playingNodes: {}, // cueId -> {cueId, source, gain, startedAt, offset, duration}
       focusCueId: null, // last triggered / shown in "当前播放"
+      focusQueueIdx: null, // queue occurrence index (supports duplicates)
       pausedFocus: null, // {cueId, offset, remaining}
       raf: null,
       trimDraft: {cueId:null, in:0, out:0, head:0},
@@ -21851,50 +21716,6 @@ ${v.cta}`,
       _lastSavedAt: 0,
       _pendingAudioKeys: new Set()
     };
-
-
-    // ===== 固定分类：未分类（外部拖拽默认入库） =====
-    const UNCAT_NAME = "未分类";
-
-    function isUncatCat(cat){
-      return !!cat && ((cat.name || "").trim() === UNCAT_NAME);
-    }
-
-    function ensureCatsArray(){
-      if (!Array.isArray(state.cats)) state.cats = [];
-    }
-
-    function ensureUncategorizedCat(){
-      ensureCatsArray();
-      // Prefer exact-name match; if none, create one.
-      let cat = state.cats.find(c => ((c.name || "").trim() === UNCAT_NAME)) || null;
-
-      if (!cat){
-        // Use a stable-ish id, but avoid collisions if user already has it.
-        let id = "cat_uncat_fixed";
-        if (state.cats.some(c=>c.id === id)) id = uuid();
-        cat = { id, name: UNCAT_NAME, order: 0, cues: [] };
-        state.cats.push(cat);
-      }else{
-        // Force exact name for consistency
-        cat.name = UNCAT_NAME;
-        if (!Array.isArray(cat.cues)) cat.cues = [];
-        if (!Number.isFinite(cat.order)) cat.order = 0;
-      }
-      return cat;
-    }
-
-    function normalizeCatOrders(){
-      ensureCatsArray();
-      const uncat = ensureUncategorizedCat();
-      // Keep uncat fixed at top
-      const others = state.cats.filter(c=>c.id !== uncat.id);
-      others.sort((a,b)=> (Number(a.order)||0) - (Number(b.order)||0));
-      uncat.order = 0;
-      others.forEach((c,i)=> c.order = i + 1);
-      state.cats = [uncat, ...others];
-    }
-
 
     // ===== UI helpers (v2.7) =====
     function ensureUI(){
@@ -21990,9 +21811,12 @@ ${v.cta}`,
       }
     }
 
-    async function decodeFile(file){
-      const {ctx} = ensureAudio();
+    async function decodeFile(file, opts={decode:true}){
       const buf = await file.arrayBuffer();
+      const doDecode = !(opts && opts.decode===false);
+      if (!doDecode) return {arrayBuffer: buf, audioBuf: null};
+      ensureAudioUserGesture();
+      const {ctx} = ensureAudio();
       const audioBuf = await ctx.decodeAudioData(buf.slice(0));
       return {arrayBuffer: buf, audioBuf};
     }
@@ -22087,9 +21911,13 @@ ${v.cta}`,
       }
       state.pausedFocus = null;
       state.focusCueId = null;
+      state.focusQueueIdx = null;
       updateNowPlaying(null);
       renderGrid();
       renderQueue();
+      try{ installQueueAutoScale(); }catch(e){}
+      try{ installQueueNameAutoFit(); }catch(e){}
+
     }
 
     function pauseOrResumeFocus(){
@@ -22106,6 +21934,7 @@ ${v.cta}`,
         const q = getActiveQueue();
         if (q.length){
           ensureAudioUserGesture();
+          state.focusQueueIdx = 0;
           playCue(q[0], {force:true});
         }
         return;
@@ -22129,9 +21958,21 @@ ${v.cta}`,
       renderQueue();
     }
 
-    function playCue(cueId, opts={}){
+    async function playCue(cueId, opts={}){
       const c = getCue(cueId);
-      if (!c || !c.audioBuf){
+      if (!c){ return; }
+
+      // lazy-load audio (avoid decoding everything on startup)
+      if (!c.audioBuf){
+        try{
+          const db = await openDB();
+          await ensureCueAudioFromDB(db, c);
+        }catch(e){
+          console.warn("lazy load audio failed", e);
+        }
+      }
+
+      if (!c.audioBuf){
         toast("该音频块未绑定音频文件");
         return;
       }
@@ -22144,7 +21985,6 @@ ${v.cta}`,
         updateNowPlaying(null);
         renderGrid();
         renderQueue();
-        setTimeout(()=>scrollQueueToCue(cueId, "smooth"), 0);
         return;
       }
 
@@ -22195,8 +22035,6 @@ ${v.cta}`,
       updateNowPlaying(cueId, {paused:false});
       renderGrid();
       renderQueue();
-      // auto-follow: keep current cue visible in queue list
-      setTimeout(()=>scrollQueueToCue(cueId, "smooth"), 0);
 
       s.onended = () => {
         // node might already be stopped/replaced
@@ -22303,7 +22141,12 @@ ${v.cta}`,
       if (!q.length) return;
 
       // only auto-advance when the ended cue is in active queue
-      const idx = q.indexOf(cueId);
+      let idx = -1;
+      if (Number.isInteger(state.focusQueueIdx) && q[state.focusQueueIdx] === cueId){
+        idx = state.focusQueueIdx;
+      }else{
+        idx = q.indexOf(cueId);
+      }
       if (idx < 0) return;
 
       if (!Array.isArray(pl.queueModes)) pl.queueModes = [];
@@ -22312,6 +22155,8 @@ ${v.cta}`,
       // 每个队列条目独立：顺序 / 单曲循环 / 播完暂停
       if (mode === "loop"){
         ensureAudioUserGesture();
+        // keep same idx for looping this entry
+        state.focusQueueIdx = idx;
         playCue(cueId, {force:true});
         return;
       }
@@ -22321,20 +22166,24 @@ ${v.cta}`,
 
       // otherwise follow playlist order (保持原有：顺序/随机 + 列表循环)
       let nextId = null;
+      let nextIdx = null;
+
       if (pl.settings.order === "shuffle"){
-        if (q.length === 1){
-          nextId = q[0];
-        }else{
-          const pool = q.filter(id=>id!==cueId);
-          nextId = pool[Math.floor(Math.random()*pool.length)];
-        }
+        nextIdx = (q.length===1) ? 0 : Math.floor(Math.random()*q.length);
+        nextId = q[nextIdx];
       }else{
-        if (idx < q.length-1) nextId = q[idx+1];
-        else if (pl.settings.loopMode === "queue") nextId = q[0];
+        if (idx < q.length-1){
+          nextIdx = idx + 1;
+          nextId = q[nextIdx];
+        }else if (pl.settings.loopMode === "queue"){
+          nextIdx = 0;
+          nextId = q[0];
+        }
       }
 
-      if (nextId){
+      if (nextId != null){
         ensureAudioUserGesture();
+        state.focusQueueIdx = nextIdx;
         playCue(nextId, {force:true});
       }
     }
@@ -22347,6 +22196,7 @@ ${v.cta}`,
       renderQueue();
       updateTopbar();
       updateNowPlaying(state.focusCueId || state.pausedFocus?.cueId || null, {paused: !!state.pausedFocus});
+      updateMissingHint();
     }
 
     function updateTopbar(){
@@ -22371,9 +22221,8 @@ ${v.cta}`,
         if (!hit) continue;
 
         const div = document.createElement("div");
-        const isUncat = isUncatCat(cat);
         div.className = "item" + (cat.id===state.curCatId ? " active":"");
-        div.draggable = !isUncat;
+        div.draggable = true;
         div.dataset.catId = cat.id;
         div.innerHTML = `
           <div class="dragHandle" title="拖拽排序">≡</div>
@@ -22402,7 +22251,6 @@ ${v.cta}`,
 
         const nameEl = div.querySelector('[data-role="catName"]');
         const doRename = ()=>{
-          if (isUncat){ toast("“未分类”是固定分类，不能重命名"); return; }
           if (!nameEl) return;
           inlineEdit(nameEl, cat.name, (val)=>{
             const v = (val||"").trim();
@@ -22455,8 +22303,6 @@ ${v.cta}`,
             doRename();
           });
         }
-        if (isUncat && rbtn) { try{ rbtn.remove(); }catch(e){} }
-
 
         bindDnDCategory(div);
         list.appendChild(div);
@@ -22549,9 +22395,10 @@ ${v.cta}`,
             const action = btn.dataset.action;
             if (action==="play"){
               state.selectedCueId = cue.id;
+              state.focusQueueIdx = null;
               ensureAudioUserGesture();
               if (state.playingNodes[cue.id]) stopNode(cue.id, {fade:true});
-              else playCue(cue.id, {force:true});
+              else { state.focusQueueIdx = null; playCue(cue.id, {force:true}); }
               persist();
               renderGrid();
               return;
@@ -22572,6 +22419,7 @@ ${v.cta}`,
             }
           }else{
             state.selectedCueId = cue.id;
+            state.focusQueueIdx = null;
             ensureAudioUserGesture();
             playCue(cue.id, {force:true});
             persist();
@@ -22658,7 +22506,9 @@ ${v.cta}`,
           const cue = state.cues[id];
           if (!cue) continue;
 
-          const isFocus = (state.focusCueId===id) || (state.pausedFocus?.cueId===id);
+          const focusIdx = Number.isInteger(state.focusQueueIdx) ? state.focusQueueIdx : null;
+          const focusCue = state.pausedFocus?.cueId || state.focusCueId;
+          const isFocus = (focusIdx===i) || (focusIdx===null && focusCue===id);
           const isPlaying = !!state.playingNodes[id];
           const stateClass = isPlaying ? "playing" : (playedSet.has(id) ? "played" : "ready");
           const clip = cueClip(cue);
@@ -22666,7 +22516,6 @@ ${v.cta}`,
           const mode = (pl.queueModes && pl.queueModes[i]) ? pl.queueModes[i] : "next";
           const modeIcon = (mode==="loop") ? "🔁" : (mode==="pause") ? "⏸" : "⏭";
           const modeText = (mode==="loop") ? "单曲循环" : (mode==="pause") ? "播完暂停" : "顺序播放";
-          const srcTag = `<span class="tag clip mono" title="来源分类">📁 ${escapeHtml(cueSourceCatName(id))}</span>`;
 
           const card = document.createElement("div");
           card.className = "cue queueCue" + (isFocus ? " active":"");
@@ -22685,7 +22534,6 @@ ${v.cta}`,
                   <span class="mono">${fmtTime(clip.playDur)}</span>
                   ${cutTag}
                   <span class="tag mode mono" title="播放结束动作">${modeIcon} ${modeText}</span>
-                  ${srcTag}
                   ${cue.fileName?`<span class="tag clip mono" data-role="qFileName" title="双击重命名文件名">${escapeHtml(cue.fileName)}</span>`:""}
                 </div>
               </div>
@@ -22730,6 +22578,10 @@ ${v.cta}`,
                 pushUndo("从队列移除");
                 q.splice(i, 1);
                 if (pl && Array.isArray(pl.queueModes)) pl.queueModes.splice(i,1);
+                if (Number.isInteger(state.focusQueueIdx)){
+                  if (state.focusQueueIdx === i) state.focusQueueIdx = null;
+                  else if (state.focusQueueIdx > i) state.focusQueueIdx = state.focusQueueIdx - 1;
+                }
                 if (pl && pl.playedIds) pl.playedIds = pl.playedIds.filter(x=>x!==id);
                 persist();
                 renderQueue();
@@ -22739,6 +22591,7 @@ ${v.cta}`,
                 e.stopPropagation();
                 state.selectedCueId = id;
                 state.focusCueId = id;
+                state.focusQueueIdx = i;
                 persist();
                 renderGrid();
                 ensureAudioUserGesture();
@@ -22750,6 +22603,7 @@ ${v.cta}`,
 
             state.selectedCueId = id;
             state.focusCueId = id;
+            state.focusQueueIdx = i;
             persist();
             renderGrid();
             ensureAudioUserGesture();
@@ -22810,23 +22664,116 @@ ${v.cta}`,
         list.addEventListener("drop", (e)=>{ handleDropToQueue(e); });
         list._dndBound = true;
       }
+      // title auto-fit (v8)
+      try{ fitQueueTitles(); }catch(e){}
+      // keep now-playing cue visible in queue
+      try{
+        const f = state.pausedFocus?.cueId || state.focusCueId || null;
+        if (f) followNowPlayingInQueue(f, {force:false});
+      }catch(e){}
     }
 
 
-// Keep the currently playing/selected queue item visible in the scroll viewport
-function scrollQueueToCue(cueId, behavior="smooth"){
-  if (!cueId) return;
-  const list = $("#queueList");
-  if (!list) return;
-  const el = list.querySelector(`.queueCue[data-cue-id="${cueId}"]`);
-  if (!el) return;
-  try{
-    el.scrollIntoView({behavior, block:"nearest", inline:"nearest"});
-  }catch(e){
-    // fallback
-    el.scrollIntoView();
+    // ✅ 队列卡片大小（老版本控制 + 记忆）：80%~110%，缩小=更多卡片，放大=更少卡片
+    function installQueueAutoScale(){
+      const root = document.documentElement;
+      if (root.dataset.qTileCtl === "1") return;
+      root.dataset.qTileCtl = "1";
+
+      const KEY = "p1.queueTilePct.v2";
+      const range = $("#qTileRange");
+      const btnSm = $("#btnQTileSm");
+      const btnLg = $("#btnQTileLg");
+      const label = $("#qTileLabel");
+
+      const clampNum = (v,a,b)=> Math.max(a, Math.min(b, v));
+
+      const BASE = 80; // 以 80% 为基准：80% 时卡片尺寸=1.0
+const apply = (pct, silent=false)=>{
+  let P = clampNum(Number(pct)||BASE, 60, 140); // UI percent
+  const S = (Math.round(P) / BASE);             // scale factor (80 -> 1.0)
+  root.style.setProperty("--qTile","1");
+  root.style.setProperty("--qCardScale", String(S));
+  // ✅ 兼容 Chrome：不要用 calc() 乘法，直接在 JS 里算出 min-width
+  const baseMinW = 192; // px（80% 基准）
+  root.style.setProperty("--qMinW", Math.max(120, Math.round(baseMinW * S)) + "px");
+  // backward compat
+  root.style.setProperty("--qScale", String(S));
+
+  if (range) range.value = String(P);
+  if (label){
+    label.textContent = `${Math.round(P)}%`;
+    label.title = `队列卡片大小：${Math.round(P)}%（以80%为基准）`;
   }
-}
+  try{ localStorage.setItem(KEY, String(P)); }catch(e){}
+  if (!silent && typeof toast === "function") toast(`队列卡片：${Math.round(P)}%`);
+};
+
+
+      // init
+      let initP = null;
+      try{ initP = localStorage.getItem(KEY); }catch(e){}
+      if (!initP){
+        const isMobile = window.matchMedia && window.matchMedia("(max-width: 860px)").matches;
+        initP = "80";
+      }
+      apply(initP, true);
+
+
+      // v20：队列曲名2行 + 长度自动缩字（仅作用于队列卡片标题）
+      function installQueueNameAutoFit(){
+        const list = $("#queueList");
+        if (!list || list.dataset.qNameFit === "1") return;
+        list.dataset.qNameFit = "1";
+        let t = null;
+        const applyFit = ()=>{
+          clearTimeout(t);
+          t = setTimeout(()=>{
+            const els = list.querySelectorAll('.cueTitle .name[data-role="qName"]');
+            els.forEach(el=>{
+              const s = (el.textContent || "").trim();
+              const n = s.length;
+              let fs = 15; // baseline
+              if (n <= 10) fs = 17;
+              else if (n <= 18) fs = 16;
+              else if (n <= 26) fs = 15;
+              else if (n <= 36) fs = 14;
+              else fs = 13;
+              el.style.fontSize = fs + "px";
+            });
+          }, 30);
+        };
+        try{
+          const mo = new MutationObserver(applyFit);
+          mo.observe(list, {childList:true, subtree:true});
+        }catch(e){}
+        applyFit();
+      }
+
+
+      if (range){
+        range.addEventListener("input", ()=> apply(range.value, true));
+        range.addEventListener("change", ()=> apply(range.value, false));
+      }
+      if (btnSm){
+        btnSm.onclick = ()=> {
+          const cur = range ? Number(range.value) : (Number(initP)||100);
+          apply(cur - 2);
+        };
+      }
+      if (btnLg){
+        btnLg.onclick = ()=> {
+          const cur = range ? Number(range.value) : (Number(initP)||100);
+          apply(cur + 2);
+        };
+      }
+      if (label){
+        label.style.cursor = "pointer";
+        label.title = (label.title || "") + "（点击恢复 80%）";
+        label.addEventListener("click", ()=> apply(80, false));
+      }
+    }
+
 
 
     function getCueProgressPct(cueId){
@@ -22838,7 +22785,88 @@ function scrollQueueToCue(cueId, behavior="smooth"){
       return pct;
     }
 
-    // ===== Now playing + wave/progress drawing =====
+        // ===== 演出级：自动跟随正在播放（保持在可见区域） =====
+    let __followLastCueId = null;
+    let __followLastAt = 0;
+    let __followSuspendUntil = 0;
+
+    function followNowPlayingInQueue(cueId, opts={}){
+      if (!cueId) return;
+      const list = $("#queueList");
+      if (!list) return;
+
+      const now = Date.now();
+      const force = !!opts.force;
+      if (!force && now < __followSuspendUntil) return;
+
+      let el = null;
+      if (Number.isInteger(state.focusQueueIdx)){
+        el = list.querySelector(`.queueCue[data-queue-index="${state.focusQueueIdx}"]`);
+      }
+      if (!el) el = list.querySelector(`.queueCue[data-cue-id="${cueId}"]`);
+      if (!el) return;
+
+      // Visible check within nearest scroll container
+      const sc = el.closest(".rightBottom") || el.closest(".cardBody") || list.parentElement || document.documentElement;
+      const r = el.getBoundingClientRect();
+      const sr = sc.getBoundingClientRect ? sc.getBoundingClientRect() : {top:0,bottom:window.innerHeight,left:0,right:window.innerWidth};
+      const visible = (r.top >= sr.top + 6) && (r.bottom <= sr.bottom - 6);
+
+      // Throttle if already visible and same cue
+      if (!force && visible && __followLastCueId===cueId && (now-__followLastAt)<1400) return;
+
+      if (!visible || force){
+        const behavior = opts.behavior || (force ? "smooth" : "auto");
+        try{
+          el.scrollIntoView({block:"nearest", inline:"nearest", behavior});
+        }catch(e){
+          try{ el.scrollIntoView(); }catch(_){}
+        }
+      }
+
+      __followLastCueId = cueId;
+      __followLastAt = now;
+    }
+
+    function bindFollowSuspend(){
+      const list = $("#queueList");
+      if (!list || list._followSuspendBound) return;
+      list._followSuspendBound = true;
+      const suspend = (ms)=>{ __followSuspendUntil = Date.now() + ms; };
+      // 用户主动滚动/拖拽时短暂停止“拉回”
+      list.addEventListener("wheel", ()=> suspend(2200), {passive:true});
+      list.addEventListener("touchmove", ()=> suspend(2200), {passive:true});
+      list.addEventListener("pointerdown", ()=> suspend(3500), {passive:true});
+    }
+
+    
+    // ===== v8: Queue title auto-fit (prefer showing full names) =====
+    function fitQueueTitles(){
+      const list = $("#queueList");
+      if (!list) return;
+      const els = list.querySelectorAll('[data-role="qName"]');
+      els.forEach(el=>{
+        const t = (el.textContent || "").trim();
+        if (!t) return;
+        // Always keep full name accessible
+        el.setAttribute("title", t);
+
+        // Length-based font sizing (stable, no reflow thrash)
+        const n = t.length;
+        let size = 16;
+        if (n <= 10) size = 18;
+        else if (n <= 16) size = 17;
+        else if (n <= 22) size = 16;
+        else if (n <= 30) size = 14;
+        else if (n <= 40) size = 13;
+        else size = 12;
+
+        // Apply as CSS var so layout rules stay consistent
+        el.style.setProperty("--qNameSize", size + "px");
+      });
+    }
+
+// ===== Now playing + wave/progress drawing =====
     function updateNowPlaying(cueId, extra={}){
       const tag = $("#playStateTag");
       if (!cueId){
@@ -22862,6 +22890,7 @@ function scrollQueueToCue(cueId, behavior="smooth"){
       tag.textContent = extra.paused ? "Paused" : "Playing";
       drawWave($("#bigWave"), cue.peaks, {cueId, clip, drawHead: true});
       $("#btnCueSettings").disabled = false;
+      try{ followNowPlayingInQueue(cueId); }catch(e){}
     }
 
     function drawWave(canvas, peaks, opts){
@@ -23061,6 +23090,28 @@ function scrollQueueToCue(cueId, behavior="smooth"){
         if (!cue || cue.audioBuf) return;
         const key = cue.audioKey || cue.id;
         cue.audioKey = key;
+        // Desktop 曲库落盘：优先从内置曲库读取（避免 IndexedDB 体积膨胀）
+        // 1) 优先走桌面桥接读取（最稳：不依赖 fetch 自定义协议）
+        if (!cue.arrayBuffer && cue.libraryRelPath && window.HHFS && typeof window.HHFS.readLibraryFile === "function"){
+          try{
+            const ab = await window.HHFS.readLibraryFile(cue.libraryRelPath);
+            if (ab && ab.byteLength){
+              cue.arrayBuffer = ab;
+              cue.mimeType = cue.mimeType || mimeFromName(cue.fileName || cue.libraryRelPath) || "application/octet-stream";
+            }
+          }catch(e){ /* ignore */ }
+        }
+        // 2) 兜底：用 hhlib:// URL + fetch（需要协议支持 fetch）
+        if (!cue.arrayBuffer && cue.libraryRelPath && window.HHFS && typeof window.HHFS.libraryUrl === "function"){
+          try{
+            const url = window.HHFS.libraryUrl(cue.libraryRelPath);
+            const res = await fetch(url);
+            if (res && res.ok){
+              cue.arrayBuffer = await res.arrayBuffer();
+              cue.mimeType = cue.mimeType || mimeFromName(cue.fileName || cue.libraryRelPath) || "application/octet-stream";
+            }
+          }catch(e){ /* ignore */ }
+        }
         if (!cue.arrayBuffer){
           const arow = await idbGet(db, "audio", key);
           if (arow && arow.blob){
@@ -23081,6 +23132,9 @@ function scrollQueueToCue(cueId, behavior="smooth"){
           if (e !== 0) e = clamp(e, 0, cue.duration);
           if (e >= cue.duration - 1e-4) e = 0;
           cue.end = e;
+          cue.state = "ready";
+        }else{
+          cue.state = "missing";
         }
       }catch(e){
         console.warn("ensureCueAudioFromDB failed", cue?.fileName, e);
@@ -23209,32 +23263,21 @@ function scrollQueueToCue(cueId, behavior="smooth"){
       if (idx<0) return;
       const cat = state.cats[idx];
 
-      if (isUncatCat(cat)){
-        toast("“未分类”是固定分类，不能删除");
-        return;
-      }
-
       // cleanup cues from state + all playlists
-      for (const id of (cat.cues || [])){
+      for (const id of cat.cues){
         const aKey = state.cues[id]?.audioKey;
         stopNode(id, {fade:false});
         delete state.cues[id];
         // 软删除：不立即清理音频数据，便于“撤销”恢复
         // deleteAudioKey(aKey);
         for (const pl of state.playlists){
-          pl.queue = (pl.queue || []).filter(q=>q!==id);
-          if (Array.isArray(pl.queueModes)){
-            const qi = pl.queueModes.length - 1;
-            // queueModes will be re-rendered anyway; keep best effort
-          }
+          pl.queue = pl.queue.filter(q=>q!==id);
         }
       }
       state.cats.splice(idx,1);
-      normalizeCatOrders();
-      state.curCatId = state.cats[0]?.id || ensureUncategorizedCat().id;
+      state.curCatId = state.cats[0]?.id || null;
       state.selectedCueId = null;
-
-      if (state.focusCueId && (cat.cues || []).includes(state.focusCueId)){
+      if (state.focusCueId && cat.cues.includes(state.focusCueId)){
         state.focusCueId = null;
         updateNowPlaying(null);
       }
@@ -23279,72 +23322,19 @@ function scrollQueueToCue(cueId, behavior="smooth"){
     function enqueueCue(cueId){
       ensureDefaultPlaylists();
       const pl = getActivePlaylist();
-      if (!pl) return;
-      if (!Array.isArray(pl.queue)) pl.queue = [];
+      const q = pl.queue || (pl.queue = []);
+      pushUndo("加入队列");
+      q.push(cueId);
       if (!Array.isArray(pl.queueModes)) pl.queueModes = [];
-      const q = pl.queue;
-      const dedupe = isDedupeEnqueueOn();
-
-      if (!dedupe || !q.includes(cueId)){
-        pushUndo("加入队列");
-        q.push(cueId);
-        pl.queueModes.push("next");
-        // 重新加入队列，默认视作“未播放”
-        clearCuePlayed(pl, cueId);
-        persist();
-        renderQueue();
-        toast(dedupe ? "已加入队列" : "已加入队列（允许重复）");
-      }else{
-        toast("队列里已有（已开启去重）");
-      }
+      pl.queueModes.push("next");
+      // 重新加入队列，默认视作“未播放”
+      clearCuePlayed(pl, cueId);
+      persist();
+      renderQueue();
+      toast("已加入队列");
     }
 
 
-    function enqueueCueIds(cueIds, opts={}){
-      ensureDefaultPlaylists();
-      const pl = getActivePlaylist();
-      if (!pl) return;
-      if (!Array.isArray(pl.queue)) pl.queue = [];
-      if (!Array.isArray(pl.queueModes)) pl.queueModes = [];
-
-      const q = pl.queue;
-      const qm = pl.queueModes;
-      const ids = Array.isArray(cueIds) ? cueIds : [cueIds];
-      const dedupe = isDedupeEnqueueOn();
-
-      // insert position (optional)
-      let insertAt = -1;
-      const beforeId = opts.insertBeforeCueId || null;
-      if (beforeId){
-        const idx = q.indexOf(beforeId);
-        if (idx >= 0) insertAt = idx;
-      }
-
-      let added = 0;
-      for (const id of ids){
-        if (!id) continue;
-        if (dedupe && q.includes(id)) continue;
-        if (insertAt >= 0){
-          q.splice(insertAt, 0, id);
-          qm.splice(insertAt, 0, "next");
-          insertAt += 1;
-        }else{
-          q.push(id);
-          qm.push("next");
-        }
-        clearCuePlayed(pl, id);
-        added += 1;
-      }
-
-      if (added){
-        persist();
-        renderQueue();
-      }
-      return added;
-    }
-
-
-    // ===== Playlists ops =====
     function addPlaylist(){
       ensureDefaultPlaylists();
       const order = state.playlists.length ? Math.max(...state.playlists.map(p=>p.order))+1 : 1;
@@ -23383,133 +23373,545 @@ function scrollQueueToCue(cueId, behavior="smooth"){
       toast("已删除播放列表");
     }
 
-    // ===== Import / Export =====
+        // ===== Import / Export =====
+    function getMissingCueIds(){
+      const out = [];
+      for (const [id, cue] of Object.entries(state.cues || {})){
+        if (cue && cue.state === "missing") out.push(id);
+      }
+      return out;
+    }
+    function updateMissingHint(){
+      const el = $("#missingHint");
+      if (!el) return;
+      const n = getMissingCueIds().length;
+      el.textContent = `缺失音频：${n}`;
+      el.classList.toggle("dangerText", n > 0);
+      const btn = $("#btnRelinkMissing");
+      if (btn) btn.disabled = (n===0);
+    }
+
+    async function pickRelinkFolder(){
+      // Desktop (Electron) 优先：系统目录选择器 + 后台扫描
+      if (window.HHFS && typeof window.HHFS.pickDirectory === "function"){
+        return {mode:"desktop", dirPath: await window.HHFS.pickDirectory()};
+      }
+      // Browser fallback：File System Access API
+      if (typeof window.showDirectoryPicker === "function"){
+        const handle = await window.showDirectoryPicker({mode:"read"});
+        return {mode:"browser", handle};
+      }
+      return {mode:"none"};
+    }
+
+    function isLikelyAudioFileName(name){
+      const n = String(name || "").toLowerCase();
+      return /\.(mp3|wav|m4a|aac|flac|ogg|opus)$/i.test(n);
+    }
+    function mimeFromName(name){
+      const n = String(name || "").toLowerCase();
+      if (n.endsWith(".mp3")) return "audio/mpeg";
+      if (n.endsWith(".wav")) return "audio/wav";
+      if (n.endsWith(".m4a")) return "audio/mp4";
+      if (n.endsWith(".aac")) return "audio/aac";
+      if (n.endsWith(".flac")) return "audio/flac";
+      if (n.endsWith(".ogg")) return "audio/ogg";
+      if (n.endsWith(".opus")) return "audio/opus";
+      return "";
+    }
+
+    // ===== Fingerprint (Hash-based relink) =====
+    async function sha256Hex(buf){
+      if (!buf) return "";
+      if (!crypto?.subtle?.digest) return "";
+      const hash = await crypto.subtle.digest("SHA-256", buf);
+      return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,"0")).join("");
+    }
+
+    async function fingerprintFile(file){
+      // 轻量指纹：SHA-256( sizeLE64 + head256KB + tail256KB )
+      try{
+        const size = file?.size || 0;
+        const headSize = Math.min(256*1024, size);
+        const tailSize = Math.min(256*1024, Math.max(0, size - headSize));
+        const head = await file.slice(0, headSize).arrayBuffer();
+        const tail = await file.slice(Math.max(0, size - tailSize), size).arrayBuffer();
+
+        const sizeBuf = new Uint8Array(8);
+        const dv = new DataView(sizeBuf.buffer);
+        dv.setBigUint64(0, BigInt(size), true);
+
+        const merged = new Uint8Array(sizeBuf.byteLength + head.byteLength + tail.byteLength);
+        merged.set(sizeBuf, 0);
+        merged.set(new Uint8Array(head), sizeBuf.byteLength);
+        merged.set(new Uint8Array(tail), sizeBuf.byteLength + head.byteLength);
+
+        const hex = await sha256Hex(merged.buffer);
+        return hex ? ("sha256s1:" + hex) : "";
+      }catch(e){
+        return "";
+      }
+    }
+
+
+    async function relinkMissingAudio(){
+      try{
+        const missingIds = getMissingCueIds();
+        if (!missingIds.length){
+          toast("没有缺失音频");
+          updateMissingHint();
+          return;
+        }
+
+        toast(`缺失音频：${missingIds.length}，请选择曲库文件夹...`);
+        const sel = await pickRelinkFolder();
+        if (!sel || sel.mode === "none"){ toast("当前环境不支持选择文件夹"); return; }
+        if (sel.mode === "desktop"){
+          const dirPath = sel.dirPath;
+          if (!dirPath) return;
+
+          if (!window.HHFS || typeof window.HHFS.relinkByFolder !== "function"){
+            toast("哈希重连不可用：桌面壳桥接未注入或版本过旧。请使用 v0.5.4+ 桌面打包工程重新打包。");
+            return;
+          }
+
+          const payload = missingIds.map(id=>{
+            const c = state.cues[id] || {};
+            return {
+              id,
+              fileName: c.fileName || "",
+              sha1: c.sha1 || "",
+              fp: c.fp || "",
+              size: c.sourceSize || 0
+            };
+          });
+
+          const result = await window.HHFS.relinkByFolder({dirPath, missing: payload});
+          let ok = 0;
+
+          for (const item of (result?.linked || [])){
+            const cue = state.cues[item.id];
+            if (!cue) continue;
+
+            cue.libraryRelPath = item.relPath || cue.libraryRelPath || "";
+            cue.sha1 = item.sha1 || cue.sha1 || "";
+            cue.fp = item.fp || cue.fp || "";
+            cue.sourcePath = item.sourcePath || cue.sourcePath || "";
+            cue.sourceSize = item.size || cue.sourceSize || 0;
+            cue.sourceLastModified = item.mtimeMs || cue.sourceLastModified || 0;
+            cue.mimeType = cue.mimeType || mimeFromName(cue.fileName || "") || "application/octet-stream";
+            cue.state = "ready";
+            cue.arrayBuffer = null;
+            cue.audioBuf = null;
+            ok++;
+          }
+
+          persist();
+          renderAll();
+          toast(ok ? `已重连 ${ok} 个音频（hash匹配）` : "未在该文件夹中找到可重连的音频");
+          return;
+        }
+
+        // Browser mode: scan directory handles (can be slow)
+        const root = sel.handle;
+        const map = new Map(); // filenameLower -> File
+        async function walk(dirHandle){
+          for await (const [name, entry] of dirHandle.entries()){
+            if (entry.kind === "file"){
+              if (!isLikelyAudioFileName(name)) continue;
+              if (!map.has(name.toLowerCase())){
+                try{
+                  const file = await entry.getFile();
+                  map.set(name.toLowerCase(), file);
+                }catch(e){}
+              }
+            }else if (entry.kind === "directory"){
+              await walk(entry);
+            }
+          }
+        }
+        await walk(root);
+
+        const db = await openDB();
+        let ok = 0;
+        for (const id of missingIds){
+          const cue = state.cues[id];
+          if (!cue) continue;
+          const fn = String(cue.fileName || "");
+          const file = map.get(fn.toLowerCase());
+          if (!file) continue;
+
+          const key = cue.audioKey || cue.id || id;
+          cue.audioKey = key;
+          cue.mimeType = file.type || cue.mimeType || "application/octet-stream";
+          cue.sourceSize = file.size || cue.sourceSize || 0;
+          cue.sourceLastModified = file.lastModified || cue.sourceLastModified || 0;
+          cue.state = "ready";
+          cue.arrayBuffer = null;
+          cue.audioBuf = null;
+
+          await idbPut(db, "audio", {key, blob: file});
+          ok++;
+        }
+        persist();
+        renderAll();
+        toast(ok ? `已重连 ${ok} 个音频` : "未找到可重连的文件（请确认文件名一致）");
+      }catch(e){
+        console.warn("relinkMissingAudio failed", e);
+        toast("重连失败（可能被取消或权限不足）");
+      }
+    }
+
     async function importFiles(files, opts={}){
-      opts = opts || {};
-      const toUncat = !!opts.toUncat;
-      const enqueue = !!opts.enqueue;
-      const insertBeforeCueId = opts.insertBeforeCueId || null;
-
-      normalizeCatOrders();
-      const cat = toUncat ? ensureUncategorizedCat() : state.cats.find(c=>c.id===state.curCatId);
-      if (!cat){
-        toast("请先创建/选择分类");
-        return [];
-      }
-      if (toUncat && !state.curCatId){
-        // If nothing selected, show 未分类 by default.
-        state.curCatId = cat.id;
-      }
-
       ensureAudioUserGesture();
-
       const arr = Array.from(files || []);
-      if (!arr.length) return [];
+      if (!arr.length) return;
+      const doDecodeImport = arr.length <= 12; // 大批量导入时，先不解码，首播再生成波形/时长
+      const importedIds = [];
 
-      // Only accept audio-ish files (best effort). If browser doesn't provide type, allow by extension.
-      const isAudioFile = (f)=>{
-        const t = (f.type || "").toLowerCase();
-        if (t.startsWith("audio/")) return true;
-        const nm = (f.name || "").toLowerCase();
-        return /\.(mp3|wav|m4a|aac|flac|ogg|opus|webm)$/i.test(nm);
-      };
-      const audioArr = arr.filter(isAudioFile);
-      if (!audioArr.length){
-        toast("未检测到可导入的音频文件");
-        return [];
+      // 如果没有选中分类：允许在“拖入队列/拖入导入”等场景自动落到【未分类】
+      const fallbackName = (opts && opts.fallbackCatName) ? String(opts.fallbackCatName) : "";
+      if (fallbackName && !state.curCatId){
+        let cat0 = (state.cats||[]).find(c=>c && c.name===fallbackName);
+        if (!cat0){
+          // create exact name
+          const order = state.cats.length ? Math.max(...state.cats.map(c=>c.order))+1 : 1;
+          cat0 = {id: uuid(), name: fallbackName, order, cues: []};
+          state.cats.push(cat0);
+          state.cats.sort((a,b)=>a.order-b.order);
+        }
+        state.curCatId = cat0.id;
       }
 
-      toast(`正在导入 ${audioArr.length} 个音频...`);
+      // 先尝试“链接缺失音频”（借鉴 P1：工程不内嵌音频数据）
+      const missingByFileName = new Map(); // filenameLower -> [cueId...]
+      const missingByHash = new Map();     // "sha1:xxxx" or "sha256s1:xxxx" -> [cueId...]
+      let missingHashCount = 0;
 
-      const importedKeys = [];
-      const importedCueIds = [];
-      for (const file of audioArr){
+      for (const [id, cue] of Object.entries(state.cues || {})){
+        if (!cue || cue.state !== "missing") continue;
+
+        // 1) Hash 匹配（更稳：文件改名也能找回）
+        if (cue.sha1){
+          const hk = "sha1:" + String(cue.sha1);
+          if (!missingByHash.has(hk)) missingByHash.set(hk, []);
+          missingByHash.get(hk).push(id);
+          missingHashCount++;
+        }
+        if (cue.fp){
+          const hk = String(cue.fp);
+          if (!missingByHash.has(hk)) missingByHash.set(hk, []);
+          missingByHash.get(hk).push(id);
+          missingHashCount++;
+        }
+
+        // 2) 文件名兜底
+        if (cue.fileName){
+          const k = String(cue.fileName).toLowerCase();
+          if (!missingByFileName.has(k)) missingByFileName.set(k, []);
+          missingByFileName.get(k).push(id);
+        }
+      }
+
+      const pendingKeys = new Set();
+      let newImportedCount = 0;
+      let relinkedCount = 0;
+
+      toast(`正在导入 ${arr.length} 个音频...`);
+
+      for (const file of arr){
         try{
-          const {arrayBuffer, audioBuf} = await decodeFile(file);
-          const peaks = computePeaks(audioBuf, 140);
+                    const keyName = String(file.name || "").toLowerCase();
+
+          // Desktop：用 hash（sha1/fp）优先重连，避免同名误链接；并把音频落盘到内置曲库
+          const isDesktop = !!(window.HHFS && file.path && typeof window.HHFS.importToLibrary === "function");
+          if (isDesktop){
+            const r = await window.HHFS.importToLibrary(file.path);
+            const hk1 = (r && r.sha1) ? ("sha1:" + String(r.sha1)) : "";
+            const hk2 = (r && r.fp) ? String(r.fp) : "";
+            let miss = [];
+            if (hk1 && missingByHash.has(hk1)) miss = missingByHash.get(hk1) || [];
+            else if (hk2 && missingByHash.has(hk2)) miss = missingByHash.get(hk2) || [];
+            else miss = missingByFileName.get(keyName) || [];
+
+            // A) 命中缺失块：绑定回去（不新增、不解码）
+            if (miss.length){
+              const audioKey = miss[0];
+              for (const id of miss){
+                const cue = state.cues[id];
+                if (!cue) continue;
+                cue.audioKey = audioKey;
+                cue.mimeType = cue.mimeType || file.type || mimeFromName(file.name) || "application/octet-stream";
+                cue.libraryRelPath = r.relPath || cue.libraryRelPath || "";
+                cue.sha1 = r.sha1 || cue.sha1 || "";
+                cue.fp = r.fp || cue.fp || "";
+                cue.arrayBuffer = null;
+                cue.audioBuf = null;
+                cue.peaks = cue.peaks || [];
+                cue.duration = cue.duration || 0;
+                cue.state = "ready";
+                cue.sourcePath = file.path || cue.sourcePath || "";
+                cue.sourceSize = r.size || file.size || cue.sourceSize || 0;
+                cue.sourceLastModified = r.mtimeMs || file.lastModified || cue.sourceLastModified || 0;
+              }
+              relinkedCount += miss.length;
+              if (hk1) missingByHash.delete(hk1);
+              if (hk2) missingByHash.delete(hk2);
+              missingByFileName.delete(keyName);
+              continue;
+            }
+
+            // B) 否则：作为新音频导入到当前分类（不解码，首播再生成波形/时长）
+            const cat = state.cats.find(c=>c.id===state.curCatId);
+            if (!cat){
+              toast("请先创建/选择分类（或先导入工程再导入音频以自动链接）");
+              continue;
+            }
+            const cue = makeCue({
+              name: file.name.replace(/\.[^/.]+$/, ""),
+              fileName: file.name,
+              audioBuf: null,
+              arrayBuffer: null,
+              peaks: [],
+              duration: 0
+            });
+            cue.sourcePath = file.path || "";
+            cue.sourceSize = r.size || file.size || 0;
+            cue.sourceLastModified = r.mtimeMs || file.lastModified || 0;
+            cue.sha1 = r.sha1 || "";
+            cue.fp = r.fp || "";
+            cue.libraryRelPath = r.relPath || "";
+
+            state.cues[cue.id] = cue;
+            cat.cues.push(cue.id);
+            cue.audioKey = cue.id;
+            cue.mimeType = file.type || mimeFromName(file.name) || "application/octet-stream";
+            cue.state = "ready";
+            newImportedCount += 1;
+          importedIds.push(cue.id);
+            importedIds.push(cue.id);
+            continue;
+          }
+
+          // Browser：先 hash 再文件名（避免同名误链接）
+          let miss = missingByFileName.get(keyName) || [];
+          let fp = "";
+          if (!miss.length && missingHashCount > 0){
+            fp = await fingerprintFile(file).catch(()=> "");
+            if (fp && missingByHash.has(fp)) miss = missingByHash.get(fp) || [];
+          }
+
+          // A) 命中缺失块：绑定回去（不会新增块）
+          if (miss.length){
+            const audioKey = miss[0]; // 让同一份媒体共享一个 audioKey（逻辑引用）
+            const {arrayBuffer, audioBuf} = await decodeFile(file, {decode: doDecodeImport});
+            const peaks = audioBuf ? computePeaks(audioBuf, 140) : [];
+            const dur = audioBuf ? audioBuf.duration : 0;
+
+            for (const id of miss){
+              const cue = state.cues[id];
+              if (!cue) continue;
+              cue.audioKey = audioKey;
+              cue.mimeType = file.type || cue.mimeType || "application/octet-stream";
+              cue.arrayBuffer = arrayBuffer;
+              cue.audioBuf = audioBuf;
+              cue.peaks = (peaks && peaks.length) ? peaks : (cue.peaks || []);
+              cue.duration = dur || cue.duration || 0;
+              cue.fp = cue.fp || fp || "";
+              cue.state = "ready";
+              cue.sourcePath = (file.path || cue.sourcePath || "");
+              cue.sourceSize = file.size || cue.sourceSize || 0;
+              cue.sourceLastModified = file.lastModified || cue.sourceLastModified || 0;
+            }
+
+            pendingKeys.add(audioKey);
+            relinkedCount += miss.length;
+            if (fp) missingByHash.delete(fp);
+            missingByFileName.delete(keyName);
+            continue;
+          }
+// B) 否则：作为新音频导入到当前分类
+          const cat = state.cats.find(c=>c.id===state.curCatId);
+          if (!cat){
+            toast("请先创建/选择分类（或先导入工程再导入音频以自动链接）");
+            continue;
+          }
+
+          // Desktop：落盘到内置曲库；首播再解码生成波形/时长
+          if (window.HHFS && file.path && typeof window.HHFS.importToLibrary === "function"){
+            const r = await window.HHFS.importToLibrary(file.path);
+            const cue = makeCue({
+              name: file.name.replace(/\.[^/.]+$/, ""),
+              fileName: file.name,
+              audioBuf: null,
+              arrayBuffer: null,
+              peaks: [],
+              duration: 0
+            });
+            cue.sourcePath = file.path || "";
+            cue.sourceSize = r.size || file.size || 0;
+            cue.sourceLastModified = r.mtimeMs || file.lastModified || 0;
+            cue.sha1 = r.sha1 || "";
+            cue.libraryRelPath = r.relPath;
+
+            state.cues[cue.id] = cue;
+            cat.cues.push(cue.id);
+            cue.audioKey = cue.id;
+            cue.mimeType = file.type || mimeFromName(file.name) || "application/octet-stream";
+            cue.state = "ready";
+            newImportedCount += 1;
+          importedIds.push(cue.id);
+            importedIds.push(cue.id);
+            continue;
+          }
+
+          const {arrayBuffer, audioBuf} = await decodeFile(file, {decode: doDecodeImport});
+          const peaks = audioBuf ? computePeaks(audioBuf, 140) : [];
           const cue = makeCue({
             name: file.name.replace(/\.[^/.]+$/, ""),
             fileName: file.name,
             audioBuf,
             arrayBuffer,
             peaks,
-            duration: audioBuf.duration
+            duration: audioBuf ? audioBuf.duration : 0
           });
-          state.cues[cue.id] = cue;
-          if (!Array.isArray(cat.cues)) cat.cues = [];
-          cat.cues.push(cue.id);
+          cue.sourcePath = (file.path || "");
+          cue.sourceSize = file.size || 0;
+          cue.sourceLastModified = file.lastModified || 0;
+          // 内容指纹：用于跨设备/改名重连
+          if (!cue.fp){ try{ cue.fp = await fingerprintFile(file); }catch(e){ cue.fp = ""; } }
 
+          state.cues[cue.id] = cue;
+          cat.cues.push(cue.id);
           cue.audioKey = cue.id;
           cue.mimeType = file.type || "application/octet-stream";
-
-          importedKeys.push(cue.audioKey);
-          importedCueIds.push(cue.id);
+          pendingKeys.add(cue.audioKey);
+          newImportedCount += 1;
+          importedIds.push(cue.id);
         }catch(e){
           console.error(e);
           toast(`导入失败：${file.name}`);
         }
       }
 
-      if (importedKeys.length){
-        persist({audioKeys: importedKeys});
-      }else{
-        persist();
+      if (pendingKeys.size){
+        persist({audioKeys: Array.from(pendingKeys)});
       }
-
       renderCats();
-      if (state.curCatId === cat.id) renderGrid();
-
-      if (enqueue && importedCueIds.length){
-        ensureDefaultPlaylists();
-        const pl = getActivePlaylist();
-        const wasEmpty = !(pl && Array.isArray(pl.queue) && pl.queue.length);
-        enqueueCueIds(importedCueIds, {insertBeforeCueId});
-        toast("已导入并加入队列");
-
-        // Auto-play only when queue was empty and nothing is currently playing
-        const anyPlaying = state.playingNodes && Object.keys(state.playingNodes).length > 0;
-        if (wasEmpty && !anyPlaying){
-          const first = importedCueIds[0];
-          state.selectedCueId = first;
-          state.focusCueId = first;
-          updateNowPlaying(first);
-          try{ playCue(first, {force:true}); }catch(e){}
-          persist();
-          renderQueue();
-          if (state.curCatId === cat.id) renderGrid();
-        }
-      }else{
-        toast(toUncat ? "已导入到：未分类 ✅" : "导入完成");
-      }
-
-      return importedCueIds;
+      renderGrid();
+      toast(`导入完成：新增 ${newImportedCount}，已链接 ${relinkedCount}`);
+      return importedIds;
     }
 
-    function exportProject(){
-      const data = serializeProject();
-      const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+        
+    // ===== Export / Import (P1-style) =====
+    function exportProject(ev){
+      // 默认导出：轻量工程（不含音频，P1风格）
+      // Shift+点击：完整工程（含音频，可能很大）
+      if (ev && ev.shiftKey) return exportProjectFull();
+      return exportProjectLite();
+    }
+
+    function exportProjectLite(){
+      try{
+        const data = serializeProjectLite();
+        downloadJSON(data, `${safeProjectName()}_${isoDate()}_lite.hhproj.json`);
+        toast("已导出轻量工程（不含音频）");
+      }catch(e){
+        console.error(e);
+        toast("导出失败：" + (e?.message || e));
+      }
+    }
+
+    function exportProjectFull(){
+      try{
+        const cueCount = Object.keys(state.cues || {}).length;
+        if (cueCount >= 80){
+          toast("曲库较大：完整导出可能卡死。建议用“便携包ZIP”或“轻量工程+曲库迁移”。");
+          return;
+        }
+        const data = serializeProject();
+        downloadJSON(data, `${safeProjectName()}_${isoDate()}.json`);
+        toast("已导出完整工程（含音频）");
+      }catch(e){
+        console.error(e);
+        toast("导出失败：" + (e?.message || e));
+      }
+    }
+
+    async function exportPortableZip(){
+      // C 方案：便携包 ZIP（工程 + 音频）
+      if (!window.HHFS || typeof window.HHFS.exportPortableZip !== "function"){
+        toast("便携包ZIP：检测不到桌面壳桥接（HHFS未注入）。请确认打开的是 v0.5.4+ 桌面App，而不是浏览器或旧版本。");
+        return;
+      }
+      try{
+        const data = serializeProjectLite();
+        data.portable = true;
+        data.exportedAt = Date.now();
+        await window.HHFS.exportPortableZip(data);
+        toast("便携包ZIP已导出");
+      }catch(e){
+        console.error(e);
+        toast("便携包导出失败：" + (e?.message || e));
+      }
+    }
+
+    async function importPortableZip(){
+      if (!window.HHFS || typeof window.HHFS.importPortableZip !== "function"){
+        toast("导入ZIP：检测不到桌面壳桥接（HHFS未注入）。请确认打开的是 v0.5.4+ 桌面App。");
+        return;
+      }
+      try{
+        const data = await window.HHFS.importPortableZip();
+        if (!data) return;
+        await importProjectData(data);
+        toast("便携包已导入");
+      }catch(e){
+        console.error(e);
+        toast("导入ZIP失败：" + (e?.message || e));
+      }
+    }
+
+    function downloadJSON(obj, filename){
+      const blob = new Blob([JSON.stringify(obj, null, 2)], {type:"application/json"});
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      const nm = (state.projectName || "audio_console").replace(/[^\w\-一-龥]+/g,"_");
-      a.download = `${nm}_${new Date().toISOString().slice(0,10)}.json`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      toast("已导出工程");
+      setTimeout(()=>{ try{ URL.revokeObjectURL(a.href);}catch(e){} }, 1200);
     }
 
-    function serializeProject(){
+    function safeProjectName(){
+      return (state.projectName || "audio_console").replace(/[^\w\-一-龥]+/g,"_").slice(0,60) || "audio_console";
+    }
+    function isoDate(){ return new Date().toISOString().slice(0,10); }
+
+    function serializeProjectLite(){
       const cues = {};
-      for (const [id, c] of Object.entries(state.cues)){
+      for (const [id, c] of Object.entries(state.cues || {})){
         cues[id] = {
           ...c,
+          // 不导出音频数据（避免文件巨大/导出卡死）
           audioBuf: null,
-          arrayBufferB64: c.arrayBuffer ? arrayBufferToBase64(c.arrayBuffer) : null,
+          arrayBufferB64: null,
           arrayBuffer: null,
+          // 保留指纹信息用于跨设备重连
+          sha1: c.sha1 || "",
+          fp: c.fp || "",
+          libraryRelPath: c.libraryRelPath || "",
+          sourcePath: c.sourcePath || "",
+          sourceSize: c.sourceSize || 0,
+          sourceLastModified: c.sourceLastModified || 0,
+          audioKey: (c.audioKey || id),
+          state: c.state || (c.libraryRelPath || c.sourcePath ? "ready" : "missing")
         };
       }
       return {
-        v: 2,
+        v: 5,
+        includesAudio: false,
         projectName: state.projectName,
         dfFadeIn: state.dfFadeIn,
         dfFadeOut: state.dfFadeOut,
@@ -23523,9 +23925,38 @@ function scrollQueueToCue(cueId, behavior="smooth"){
       };
     }
 
-    async function importProjectFile(file){
+    function serializeProject(){
+      const cues = {};
+      for (const [id, c] of Object.entries(state.cues || {})){
+        cues[id] = {
+          ...c,
+          audioBuf: null,
+          arrayBufferB64: c.arrayBuffer ? arrayBufferToBase64(c.arrayBuffer) : null,
+          arrayBuffer: null,
+        };
+      }
+      return {
+        v: 5,
+        includesAudio: true,
+        projectName: state.projectName,
+        dfFadeIn: state.dfFadeIn,
+        dfFadeOut: state.dfFadeOut,
+        masterVol: state.masterVol,
+        mode: state.mode,
+        cats: state.cats,
+        cues,
+        playlists: state.playlists,
+        activePlaylistId: state.activePlaylistId,
+        savedAt: Date.now()
+      };
+    }
+async function importProjectFile(file){
       const text = await file.text();
       const data = JSON.parse(text);
+      return importProjectData(data);
+    }
+
+    async function importProjectData(data){
       if (!data || !data.cats || !data.cues){ throw new Error("工程格式不正确"); }
 
       state.projectName = data.projectName || "import";
@@ -23551,8 +23982,9 @@ function scrollQueueToCue(cueId, behavior="smooth"){
       for (const [id, c] of Object.entries(data.cues)){
         const cue = {...c};
         cue.id = id;
-        cue.audioKey = id;
-        cue.state = "ready";
+        cue.audioKey = (c.audioKey || id);
+        cue.state = (c.arrayBufferB64 ? "ready" : (c.libraryRelPath || c.sourcePath ? "ready" : "missing"));
+
         cue.audioBuf = null;
         cue.arrayBuffer = null;
 
@@ -23560,7 +23992,7 @@ function scrollQueueToCue(cueId, behavior="smooth"){
           try{
             const buf = base64ToArrayBuffer(c.arrayBufferB64);
             cue.arrayBuffer = buf;
-            cue.mimeType = cue.mimeType || "audio/wav";
+            cue.mimeType = cue.mimeType || mimeFromName(cue.fileName || "") || "audio/wav";
             importedKeys.push(cue.audioKey);
             const {ctx} = ensureAudio();
             cue.audioBuf = await ctx.decodeAudioData(buf.slice(0));
@@ -23570,6 +24002,7 @@ function scrollQueueToCue(cueId, behavior="smooth"){
             }
           }catch(e){
             console.warn("音频重建失败", cue.fileName, e);
+            cue.state = cue.state === "ready" ? "missing" : cue.state;
           }
         }
         delete cue.arrayBufferB64;
@@ -23582,7 +24015,8 @@ function scrollQueueToCue(cueId, behavior="smooth"){
 
       persist({audioKeys: importedKeys});
       renderAll();
-      toast("工程已导入");
+      updateMissingHint();
+      return true;
     }
 
         // ===== Persist (IndexedDB) =====
@@ -23762,10 +24196,10 @@ function scrollQueueToCue(cueId, behavior="smooth"){
         return;
       }
       try{
-        const nm = ((state.projectName || "audio_console").replace(/[^\w\-一-龥]+/g,"_") || "audio_console") + ".json";
+        const nm = ((state.projectName || "audio_console").replace(/[^\w\-一-龥]+/g,"_") || "audio_console") + ".hhproj.json";
         const handle = await window.showSaveFilePicker({
           suggestedName: nm,
-          types: [{ description: "工程文件（JSON）", accept: {"application/json":[".json"]} }]
+          types: [{ description: "工程文件（JSON）", accept: {"application/json":[".hhproj.json",".json"]} }]
         });
         if (!handle) return;
         state._diskFileHandle = handle;
@@ -23793,8 +24227,9 @@ function scrollQueueToCue(cueId, behavior="smooth"){
         return false;
       }
       try{
-        const data = serializeProject(); // includes audio in base64 for portability
-        const json = JSON.stringify(data, null, 2);
+        // 默认写入轻量工程（不含音频，借鉴 P1）
+        const data = serializeProjectLite();
+        const json = JSON.stringify(data);
         const writable = await state._diskFileHandle.createWritable();
         await writable.write(json);
         await writable.close();
@@ -23855,7 +24290,7 @@ function scrollQueueToCue(cueId, behavior="smooth"){
             Object.assign(state, data);
           }else{
             // default
-            const defaults = ["未分类","01迎宾","02开场","03仪式","04敬酒","05互动","06退场","07救场"];
+            const defaults = ["01迎宾","02开场","03仪式","04敬酒","05互动","06退场","07救场"];
             state.cats = defaults.map((name,i)=>({id: uuid(), name, order: i+1, cues: []}));
             state.curCatId = state.cats[0]?.id || null;
             state.playlists = [];
@@ -23863,9 +24298,6 @@ function scrollQueueToCue(cueId, behavior="smooth"){
             state.cues = {};
           }
           ensureUI();
-          normalizeCatOrders();
-          if (state.curCatId && !state.cats.some(c=>c.id===state.curCatId)) state.curCatId = ensureUncategorizedCat().id;
-          if (!state.curCatId) state.curCatId = ensureUncategorizedCat().id;
           ensureDefaultPlaylists();
           applyLayoutUI();
           persist();
@@ -23875,9 +24307,6 @@ function scrollQueueToCue(cueId, behavior="smooth"){
         const data = row.data || {};
         Object.assign(state, data);
         ensureUI();
-        normalizeCatOrders();
-        if (state.curCatId && !state.cats.some(c=>c.id===state.curCatId)) state.curCatId = ensureUncategorizedCat().id;
-        if (!state.curCatId) state.curCatId = ensureUncategorizedCat().id;
 
         // apply UI widths
         if (state.ui?.playlistW){
@@ -23890,46 +24319,16 @@ function scrollQueueToCue(cueId, behavior="smooth"){
 
         // apply collapsed state
         applyLayoutUI();
-
-
-        // restore audio blobs for each cue
+        // lazy restore: do NOT decode/load all audio on boot (large libraries will stutter)
+        // audio will be loaded from IDB only when you play / edit a cue.
         const cueArr = Object.values(state.cues || {});
         for (const cue of cueArr){
+          if (!cue) continue;
           cue.audioBuf = null;
           cue.arrayBuffer = null;
-          const key = cue.audioKey || cue.id;
-          cue.audioKey = key;
-
-          const arow = await idbGet(db, "audio", key);
-          if (arow && arow.blob){
-            const ab = await arow.blob.arrayBuffer();
-            cue.arrayBuffer = ab;
-            cue.mimeType = cue.mimeType || arow.blob.type || "application/octet-stream";
-            try{
-              const {ctx} = ensureAudio();
-              cue.audioBuf = await ctx.decodeAudioData(ab.slice(0));
-              cue.duration = cue.audioBuf.duration;
-              // trim unit normalization: v2.2 used ratio (0-1), v2.4 uses seconds (end=0 means to end)
-              const trimUnit = (data.trimUnit || "ratio");
-              if (trimUnit !== "sec"){
-                const s = clamp(+cue.start || 0, 0, 1) * cue.duration;
-                let e = (+cue.end || 0);
-                e = (e <= 0) ? 0 : (clamp(e, 0, 1) * cue.duration);
-                if (e >= cue.duration - 1e-4) e = 0;
-                cue.start = s;
-                cue.end = e;
-              }else{
-                cue.start = clamp(+cue.start || 0, 0, cue.duration);
-                let e = (+cue.end || 0);
-                if (e !== 0) e = clamp(e, 0, cue.duration);
-                if (e >= cue.duration - 1e-4) e = 0;
-                cue.end = e;
-              }
-              cue.peaks = cue.peaks || computePeaks(cue.audioBuf, 140);
-            }catch(e){
-              console.warn("decodeAudioData failed", e);
-            }
-          }
+          cue.audioKey = cue.audioKey || cue.id;
+          cue.state = cue.state || "ready";
+          // keep cue.duration / cue.peaks from saved state if present
         }
 
         // ensure defaults and clean
@@ -23939,10 +24338,9 @@ function scrollQueueToCue(cueId, behavior="smooth"){
       }catch(e){
         console.warn("load failed", e);
         // fallback default
-        const defaults = ["未分类","01迎宾","02开场","03仪式","04敬酒","05互动","06退场","07救场"];
+        const defaults = ["01迎宾","02开场","03仪式","04敬酒","05互动","06退场","07救场"];
         state.cats = defaults.map((name,i)=>({id: uuid(), name, order: i+1, cues: []}));
-        normalizeCatOrders();
-        state.curCatId = ensureUncategorizedCat().id;
+        state.curCatId = state.cats[0]?.id || null;
         state.cues = {};
         ensureDefaultPlaylists();
         state._dirty = false;
@@ -23971,11 +24369,6 @@ function scrollQueueToCue(cueId, behavior="smooth"){
     // ===== Drag & Drop =====
     function bindDnDCategory(el){
       el.addEventListener("dragstart", (e)=>{
-        const selfCat = state.cats.find(c=>c.id===el.dataset.catId);
-        if (isUncatCat(selfCat)){
-          e.preventDefault();
-          return;
-        }
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", `cat:${el.dataset.catId}`);
       });
@@ -23984,7 +24377,7 @@ function scrollQueueToCue(cueId, behavior="smooth"){
         el.classList.add("dropHint");
       });
       el.addEventListener("dragleave", ()=> el.classList.remove("dropHint"));
-      el.addEventListener("drop", (e)=>{
+      el.addEventListener("drop", async (e)=>{
         e.preventDefault();
         el.classList.remove("dropHint");
         const data = e.dataTransfer.getData("text/plain") || "";
@@ -23992,13 +24385,8 @@ function scrollQueueToCue(cueId, behavior="smooth"){
         const fromId = data.slice(4);
         const toId = el.dataset.catId;
         if (fromId===toId) return;
-
-        const fromCat = state.cats.find(c=>c.id===fromId);
-        const toCat = state.cats.find(c=>c.id===toId);
-        if (isUncatCat(fromCat) || isUncatCat(toCat)) return;
-
         reorderListById(state.cats, fromId, toId);
-        normalizeCatOrders();
+        state.cats.forEach((c,i)=>c.order=i+1);
         persist();
         renderCats();
       });
@@ -24055,7 +24443,7 @@ function scrollQueueToCue(cueId, behavior="smooth"){
     function bindDnDQueueItem(el){
       el.addEventListener("dragstart", (e)=>{
         e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", `q:${el.dataset.cueId}`);
+        e.dataTransfer.setData("text/plain", `qi:${el.dataset.queueIndex}`);
       });
       el.addEventListener("dragover", (e)=>{ e.preventDefault(); el.classList.add("dropHint"); });
       el.addEventListener("dragleave", ()=> el.classList.remove("dropHint"));
@@ -24063,37 +24451,57 @@ function scrollQueueToCue(cueId, behavior="smooth"){
         e.preventDefault();
         e.stopPropagation();
         el.classList.remove("dropHint");
-
-        const toId = el.dataset.cueId;
-
-        // External files dropped onto a queue item: import -> 未分类 -> insert before this item
-        const files = e.dataTransfer && e.dataTransfer.files;
-        if (files && files.length){
-          try{
-            await importFiles(files, {toUncat:true, enqueue:true, insertBeforeCueId: toId});
-          }catch(err){
-            console.error(err);
-          }
-          return;
-        }
-
         const data = e.dataTransfer.getData("text/plain") || "";
+        const toId = el.dataset.cueId;
 
         const pl = getActivePlaylist();
         const q = pl.queue || [];
         if (!Array.isArray(pl.queueModes)) pl.queueModes = [];
         const qm = pl.queueModes;
 
-        if (data.startsWith("q:")){
-          const fromId = data.slice(2);
-          if (fromId===toId) return;
-          const from = q.indexOf(fromId);
-          const to = q.indexOf(toId);
-          if (from<0 || to<0) return;
+        // ✅ 外部文件直接丢到某一条队列卡片：导入并插入到该位置之前
+        try{
+          const files = e.dataTransfer && e.dataTransfer.files;
+          if (files && files.length){
+            const idxTo = Number(el.dataset.queueIndex || "0");
+            const added = await importFiles(files, {fallbackCatName:"未分类"});
+            if (added && added.length){
+              q.splice(idxTo, 0, ...added);
+              qm.splice(idxTo, 0, ...Array(added.length).fill("next"));
+              if (Number.isInteger(state.focusQueueIdx) && state.focusQueueIdx >= idxTo){
+                state.focusQueueIdx = state.focusQueueIdx + added.length;
+              }
+              persist();
+              renderQueue();
+              toast(`已插入队列：${added.length} 首`);
+            }else{
+              toast("导入完成（未新增）");
+            }
+            return;
+          }
+        }catch(err){ console.error(err); }
+
+        if (data.startsWith("qi:")){
+          const from = Number(data.slice(3));
+          const to = Number(el.dataset.queueIndex);
+          if (!Number.isFinite(from) || !Number.isFinite(to)) return;
+          if (from===to) return;
+          if (from<0 || to<0 || from>=q.length || to>=q.length) return;
+
           const [item] = q.splice(from, 1);
           q.splice(to, 0, item);
           const [m] = qm.splice(from, 1);
           qm.splice(to, 0, (m==="loop"||m==="pause"||m==="next") ? m : "next");
+
+          // keep focus index aligned (supports duplicates)
+          if (Number.isInteger(state.focusQueueIdx)){
+            let f = state.focusQueueIdx;
+            if (f===from) f = to;
+            else if (from < to && f>from && f<=to) f -= 1;
+            else if (from > to && f>=to && f<from) f += 1;
+            state.focusQueueIdx = f;
+          }
+
           persist();
           renderQueue();
           return;
@@ -24101,16 +24509,13 @@ function scrollQueueToCue(cueId, behavior="smooth"){
 
         if (data.startsWith("cue:")){
           const fromCue = data.slice(4);
-          if (!q.includes(fromCue)){
-            const idxTo = q.indexOf(toId);
-            if (idxTo>=0){
-              q.splice(idxTo,0,fromCue);
-              qm.splice(idxTo,0,"next");
-            }else{
-              q.push(fromCue);
-              qm.push("next");
+          {
+            const idxTo = Number(el.dataset.queueIndex || "0");
+            q.splice(idxTo,0,fromCue);
+            qm.splice(idxTo,0,"next");
+            if (Number.isInteger(state.focusQueueIdx) && state.focusQueueIdx >= idxTo){
+              state.focusQueueIdx = state.focusQueueIdx + 1;
             }
-            clearCuePlayed(pl, fromCue);
             persist();
             renderQueue();
             toast("已拖入队列");
@@ -24119,21 +24524,46 @@ function scrollQueueToCue(cueId, behavior="smooth"){
       });
     }
 
-    function handleDropToQueue(e){
+    async function handleDropToQueue(e){
       e.preventDefault();
 
-      // External files dropped from desktop/finder: import -> 未分类 -> enqueue
-      const files = e.dataTransfer && e.dataTransfer.files;
-      if (files && files.length){
-        importFiles(files, {toUncat:true, enqueue:true}).catch((err)=>{ console.error(err); });
-        return;
-      }
+      // ✅ 外部文件拖拽到“当前队列”：直接导入并加入队列（不影响原 cue 拖拽）
+      try{
+        const files = e.dataTransfer && e.dataTransfer.files;
+        if (files && files.length){
+          const added = await importFiles(files, {fallbackCatName:"未分类"});
+          if (added && added.length){
+            const pl2 = getActivePlaylist();
+            const q2 = pl2.queue || (pl2.queue = []);
+            if (!Array.isArray(pl2.queueModes)) pl2.queueModes = [];
+            const qm2 = pl2.queueModes;
+            for (const id of added){
+              q2.push(id);
+              qm2.push("next");
+            }
+            persist();
+            renderQueue();
+            toast(`已加入队列：${added.length} 首`);
+          }else{
+            toast("导入完成（未新增）");
+          }
+          return;
+        }
+      }catch(err){ console.error(err); }
 
       const data = e.dataTransfer.getData("text/plain") || "";
+      const pl = getActivePlaylist();
+      const q = pl.queue || [];
+      if (!Array.isArray(pl.queueModes)) pl.queueModes = [];
+      const qm = pl.queueModes;
+
       if (data.startsWith("cue:")){
         const cueId = data.slice(4);
-        const added = enqueueCueIds([cueId]);
-        if (added){
+        {
+          q.push(cueId);
+          qm.push("next");
+          persist();
+          renderQueue();
           toast("已拖入队列");
         }
       }
@@ -24160,58 +24590,21 @@ function scrollQueueToCue(cueId, behavior="smooth"){
       let startX = 0;
       let startLeft = 0;
       let lastW = 0;
-
-      // mobile: split1 becomes a vertical (height) splitter in "音乐库" view
-      let mDragging = false;
-      let mStartY = 0;
-      let mStartH = 0;
-      let mLastH = 0;
-      const isMobileLibSplit = ()=>{
-        return !!(splitEl && splitEl.id==="split1" && window.matchMedia("(max-width: 860px)").matches && document.body.dataset.mview==="lib");
-      };
-
       splitEl.addEventListener("pointerdown", (e)=>{
-        if (isMobileLibSplit()){
-          mDragging = true;
-          mStartY = e.clientY;
-          const leftBody = document.querySelector('#colLeft .panelBody');
-          mStartH = leftBody ? leftBody.getBoundingClientRect().height : 240;
-          mLastH = mStartH;
-          splitEl.setPointerCapture(e.pointerId);
-          e.preventDefault();
-          return;
-        }
         dragging = true;
         startX = e.clientX;
         startLeft = leftCol.getBoundingClientRect().width;
         lastW = startLeft;
         splitEl.setPointerCapture(e.pointerId);
       });
-
       splitEl.addEventListener("pointermove", (e)=>{
-        if (mDragging){
-          const dy = e.clientY - mStartY;
-          const res = applyMobileLibSplitHeight(mStartH + dy);
-          if (res) mLastH = res.left;
-          return;
-        }
         if (!dragging) return;
         const dx = e.clientX - startX;
         const newLeft = clamp(startLeft + dx, 220, window.innerWidth - 420);
         leftCol.style.width = newLeft + "px";
         lastW = newLeft;
       });
-
       const end = ()=>{
-        if (mDragging){
-          mDragging = false;
-          const finalH = Math.round(mLastH || mStartH || 240);
-          state.ui = state.ui || {};
-          state.ui.mLibH = finalH;
-          try{ localStorage.setItem(__MOBILE_LIB_SPLIT_KEY, String(finalH)); }catch(e){}
-          persist(); // auto save UI
-          return;
-        }
         if (!dragging) return;
         dragging = false;
         if (uiKey){
@@ -24224,19 +24617,80 @@ function scrollQueueToCue(cueId, behavior="smooth"){
       splitEl.addEventListener("pointercancel", end);
     }
 
+    function bindPaneResizer(splitEl, topPane, containerEl){
+      if (!splitEl || !topPane || !containerEl) return;
 
-    function bindPaneResizer(splitEl, leftPane, containerEl){
+      const queuePane = document.getElementById("queueCard") || splitEl.nextElementSibling;
+
+      const isStacked = ()=>{
+        try{
+          const fd = getComputedStyle(containerEl).flexDirection;
+          return (fd === "column");
+        }catch(e){
+          try{ return window.matchMedia("(max-width: 920px)").matches; }catch(_){ return false; }
+        }
+      };
+
+      // apply saved size
+      try{
+        if (typeof ensureUI === "function") ensureUI();
+        if (typeof state !== "undefined" && state && state.ui){
+          if (isStacked() && state.ui.playlistH){
+            const h = Math.round(+state.ui.playlistH || 0);
+            if (h > 0){
+              topPane.style.flex = "0 0 auto";
+              topPane.style.height = h + "px";
+            }
+          }else if (!isStacked() && state.ui.playlistW){
+            const w = Math.round(+state.ui.playlistW || 0);
+            if (w > 0){
+              topPane.style.width = w + "px";
+              topPane.style.flex  = `0 0 ${w}px`;
+            }
+          }
+        }
+      }catch(e){}
+
       let dragging = false;
-      let startX = 0;
-      let startW = 0;
+      let startX = 0, startY = 0;
+      let startW = 0, startH = 0;
+
       splitEl.addEventListener("pointerdown", (e)=>{
         dragging = true;
-        startX = e.clientX;
-        startW = leftPane.getBoundingClientRect().width;
+        startX = e.clientX; startY = e.clientY;
+        startW = topPane.getBoundingClientRect().width;
+        startH = topPane.getBoundingClientRect().height;
         splitEl.setPointerCapture(e.pointerId);
       });
+
       splitEl.addEventListener("pointermove", (e)=>{
         if (!dragging) return;
+
+        if (isStacked()){
+          const dy = e.clientY - startY;
+          const containerH = containerEl.getBoundingClientRect().height;
+          const splitH = splitEl.getBoundingClientRect().height || 14;
+          const minTop = 140;
+          const minBottom = 180;
+          const maxTop = Math.max(minTop, containerH - minBottom - splitH - 8);
+          const next = clamp(startH + dy, minTop, maxTop);
+
+          topPane.style.flex = "0 0 auto";
+          topPane.style.height = `${Math.round(next)}px`;
+
+          if (queuePane){
+            queuePane.style.flex = "1 1 auto";
+            queuePane.style.height = "";
+          }
+
+          try{
+            state.ui = state.ui || {};
+            state.ui.playlistH = Math.round(next);
+            persist(); // auto save UI
+          }catch(err){}
+          return;
+        }
+
         const dx = e.clientX - startX;
         const containerW = containerEl.getBoundingClientRect().width;
         const splitW = splitEl.getBoundingClientRect().width || 14;
@@ -24246,16 +24700,21 @@ function scrollQueueToCue(cueId, behavior="smooth"){
         const maxLeft = Math.max(minLeft, containerW - minRight - splitW - gap);
 
         const next = clamp(startW + dx, minLeft, maxLeft);
-        leftPane.style.width = `${next}px`;
-        leftPane.style.flex = `0 0 ${next}px`;
+        topPane.style.width = `${Math.round(next)}px`;
+        topPane.style.flex = `0 0 ${Math.round(next)}px`;
 
-        state.ui = state.ui || {};
-        state.ui.playlistW = Math.round(next);
-        persist(); // auto save UI
+        try{
+          state.ui = state.ui || {};
+          state.ui.playlistW = Math.round(next);
+          persist(); // auto save UI
+        }catch(err){}
       });
-      splitEl.addEventListener("pointerup", ()=> dragging = false);
-      splitEl.addEventListener("pointercancel", ()=> dragging = false);
+
+      const end = ()=> dragging = false;
+      splitEl.addEventListener("pointerup", end);
+      splitEl.addEventListener("pointercancel", end);
     }
+
 
 
     function bindVerticalResizer(splitEl, topEl, bottomEl){
@@ -24287,84 +24746,11 @@ function scrollQueueToCue(cueId, behavior="smooth"){
     function openModal(id){ $(id).classList.add("show"); }
     function closeModal(id){ $(id).classList.remove("show"); }
 
-    
-    function isDedupeEnqueueOn(){
-      return !!(state.ui && state.ui.dedupeEnqueue);
-    }
-    function updateDedupeEnqueueUI(){
-      const tag = $("#dedupeEnqueueTag");
-      const btn = $("#btnToggleDedupeEnqueue");
-      const on = isDedupeEnqueueOn();
-      if (tag){
-        tag.textContent = "去重入队：" + (on ? "开" : "关");
-        tag.classList.toggle("good", on);
-      }
-      if (btn){
-        btn.textContent = on ? "关闭去重" : "开启去重";
-      }
-    }
-
-    const __MOBILE_LIB_SPLIT_KEY = "p1_mobile_libsplit_h_v1";
-    function applyMobileLibSplitHeight(targetH){
-      try{
-        const leftBody = document.querySelector('#colLeft .panelBody');
-        const midWrap = document.querySelector('#colMid .gridWrap');
-        const app = document.getElementById('app');
-        const leftHead = document.querySelector('#colLeft .panelHeader');
-        const midHead = document.querySelector('#colMid .gridHeader');
-        if (!leftBody || !midWrap || !app || !leftHead || !midHead) return null;
-
-        const appH = app.getBoundingClientRect().height || window.innerHeight;
-        const fixed = Math.round(leftHead.getBoundingClientRect().height + midHead.getBoundingClientRect().height + 12 + 18);
-        const minLeft = 140;
-        const minMid = 200;
-        const maxLeft = Math.max(minLeft, appH - fixed - minMid);
-        const newLeft = clamp(+targetH || minLeft, minLeft, maxLeft);
-        const newMid = clamp(appH - fixed - newLeft, minMid, appH);
-
-        leftBody.style.height = Math.round(newLeft) + "px";
-        midWrap.style.height  = Math.round(newMid) + "px";
-        document.documentElement.style.setProperty("--mLibH", Math.round(newLeft) + "px");
-        document.documentElement.style.setProperty("--mGridH", Math.round(newMid) + "px");
-        return {left: Math.round(newLeft), mid: Math.round(newMid)};
-      }catch(e){
-        return null;
-      }
-    }
-    function initMobileLibSplit(){
-      const isMobile = window.matchMedia("(max-width: 860px)").matches;
-      const isLib = (document.body.dataset.mview === "lib");
-      if (!isMobile || !isLib) return;
-      let saved = 0;
-      try{
-        saved = +((state.ui && state.ui.mLibH) || localStorage.getItem(__MOBILE_LIB_SPLIT_KEY) || 0);
-      }catch(e){}
-      if (saved > 50){
-        applyMobileLibSplitHeight(saved);
-      }else{
-        // apply default based on current layout
-        const leftBody = document.querySelector('#colLeft .panelBody');
-        if (leftBody){
-          applyMobileLibSplitHeight(leftBody.getBoundingClientRect().height || 240);
-        }
-      }
-    }
-
-    function cueSourceCatName(cueId){
-      for (const cat of (state.cats || [])){
-        if ((cat.cues || []).includes(cueId)){
-          return cat.name || "未分类";
-        }
-      }
-      return "未分类";
-    }
-
-function openGlobalModal(){
+    function openGlobalModal(){
       $("#dfadeIn").value = String(state.dfFadeIn);
       $("#dfadeOut").value = String(state.dfFadeOut);
       $("#projectName").value = state.projectName || "local";
       applyLayoutUI();
-      updateDedupeEnqueueUI();
       openModal("#globalModal");
     }
 
@@ -24669,6 +25055,8 @@ function openGlobalModal(){
       $("#btnBrowse").onclick = ()=> $("#fileInput").click();
       $("#fileInput").addEventListener("change", (e)=> importFiles(e.target.files));
       $("#btnExport").onclick = exportProject;
+      const _bz=$("#btnExportZip"); if(_bz) _bz.onclick = exportPortableZip;
+      const _iz=$("#btnImportZip"); if(_iz) _iz.onclick = importPortableZip;
       $("#btnImportProject").onclick = ()=> $("#projectInput").click();
       $("#projectInput").addEventListener("change", async (e)=>{
         const f = e.target.files?.[0];
@@ -24703,6 +25091,46 @@ function openGlobalModal(){
       $("#helpClose").onclick = ()=> closeModal("#helpModal");
 
       $("#btnGlobalSettings").onclick = openGlobalModal;
+      // ===== 演出模式（防熄屏/Wake Lock，可关闭）=====
+      (function(){
+        const KEY = "p1.showMode.v1";
+        const btn = $("#btnShowMode");
+        if (!btn) return;
+
+        let wake = null;
+        async function requestWake(){
+          try{
+            if (navigator.wakeLock && navigator.wakeLock.request){
+              wake = await navigator.wakeLock.request("screen");
+            }
+          }catch(e){ wake = null; }
+        }
+        async function releaseWake(){
+          try{ if (wake && wake.release) await wake.release(); }catch(e){}
+          wake = null;
+        }
+        function setShow(on, silent=false){
+          document.body.dataset.showMode = on ? "1" : "0";
+          btn.textContent = on ? "演出模式：开" : "演出模式：关";
+          btn.classList.toggle("primary", !!on);
+          try{ localStorage.setItem(KEY, on ? "1" : "0"); }catch(e){}
+          if (on) requestWake(); else releaseWake();
+          if (!silent && typeof toast === "function") toast(on ? "演出模式已开启（防熄屏）" : "演出模式已关闭");
+        }
+
+        let init = "0";
+        try{ init = localStorage.getItem(KEY) || "0"; }catch(e){}
+        setShow(init === "1", true);
+
+        btn.onclick = ()=> setShow(!(document.body.dataset.showMode === "1"));
+
+        document.addEventListener("visibilitychange", ()=>{
+          if (document.visibilityState === "visible" && document.body.dataset.showMode === "1"){
+            requestWake();
+          }
+        });
+      })();
+
       $("#globalClose").onclick = ()=> closeModal("#globalModal");
       $("#globalSave").onclick = ()=>{
         state.dfFadeIn = Math.max(0, +$("#dfadeIn").value || 0);
@@ -24714,16 +25142,6 @@ function openGlobalModal(){
         toast("已保存工程设置");
       };
 
-      const _btnDedupe = $("#btnToggleDedupeEnqueue");
-      if (_btnDedupe){
-        _btnDedupe.onclick = ()=>{
-          state.ui = state.ui || {};
-          state.ui.dedupeEnqueue = !isDedupeEnqueueOn();
-          persist();
-          updateDedupeEnqueueUI();
-          toast(isDedupeEnqueueOn() ? "已开启：去重入队" : "已关闭：允许重复入队");
-        };
-      }
 
       // layout collapse (v2.8)
       const _btnLeft = $("#btnToggleLeftPane");
@@ -24750,6 +25168,18 @@ function openGlobalModal(){
         state.ui.diskAuto = !state.ui.diskAuto;
         updateDiskUI();
         persist();
+      };
+
+      // relink missing audio
+      const _btnRelinkMissing = $("#btnRelinkMissing");
+      const _btnOpenLib = $("#btnOpenLibraryFolder");
+      if (_btnRelinkMissing) _btnRelinkMissing.onclick = ()=> relinkMissingAudio();
+      if (_btnOpenLib) _btnOpenLib.onclick = ()=>{
+        if (window.HHFS && typeof window.HHFS.openLibraryFolder === "function"){
+          window.HHFS.openLibraryFolder();
+        }else{
+          toast("打开内置曲库失败：检测不到桌面壳桥接（HHFS未注入）。请用 v0.5.4+ 桌面App 打开。");
+        }
       };
 
       // manual save (optional)
@@ -24843,7 +25273,7 @@ function openGlobalModal(){
         e.preventDefault();
         dz.classList.remove("dropHint");
         const files = e.dataTransfer.files;
-        if (files && files.length) importFiles(files, {toUncat:true});
+        if (files && files.length) importFiles(files);
       });
 
       // resizers
@@ -25109,63 +25539,7 @@ function openGlobalModal(){
         if (!modal) return;
         modal.addEventListener("click", (e)=>{ if (e.target === modal) closeModal(id); });
       });
-    
-      // ===== Queue card SCALE controls (proportional scale, NO reflow) =====
-      (function(){
-        const KEY = "p1.queueTilePct.v2";
-        const range = $("#qTileRange");
-        const btnSm = $("#btnQTileSm");
-        const btnLg = $("#btnQTileLg");
-        const label = $("#qTileLabel");
-
-        const clampNum = (v, a, b)=> Math.max(a, Math.min(b, v));
-
-        const apply = (pct, silent=false)=>{
-          let P = clampNum(Number(pct)||100, 80, 110);  // percent
-          const S = Math.round(P) / 100;               // scale
-          document.documentElement.style.setProperty("--qTile", String(S));
-          // backward compat (older css may read --qScale)
-          document.documentElement.style.setProperty("--qScale", String(S));
-
-          if (range) range.value = String(P);
-          if (label){
-            label.textContent = `${Math.round(S*100)}%`;
-            label.title = `队列卡片大小：${Math.round(S*100)}%（缩小=更多卡片，放大=更少卡片）`;
-          }
-          try{ localStorage.setItem(KEY, String(P)); }catch(e){}
-          if (!silent) toast(`队列卡片：${Math.round(S*100)}%`);
-
-          // keep the currently focused/playing cue visible after scaling
-          try{
-            const cueId = state.focusCueId || state.selectedCueId || Object.keys(state.playingNodes||{})[0];
-            cueId && setTimeout(()=>scrollQueueToCue(cueId, "auto"), 0);
-          }catch(e){}
-        };
-
-        // init
-        let initP = null;
-        try{ initP = localStorage.getItem(KEY); }catch(e){}
-        if (!initP){
-          const isMobile = window.matchMedia && window.matchMedia("(max-width: 860px)").matches;
-          initP = isMobile ? "92" : "100";
-        }
-        apply(initP, true);
-
-        if (range){
-          range.addEventListener("input", ()=> apply(range.value, true));
-          range.addEventListener("change", ()=> apply(range.value, false));
-        }
-        btnSm && (btnSm.onclick = ()=> {
-          const cur = range ? Number(range.value) : (Number(initP)||100);
-          apply(cur - 3);
-        });
-        btnLg && (btnLg.onclick = ()=> {
-          const cur = range ? Number(range.value) : (Number(initP)||100);
-          apply(cur + 3);
-        });
-      })();
-
-}
+    }
 
     function isTextInputFocused(){
       const el = document.activeElement;
@@ -25332,17 +25706,30 @@ function handleSeekClick(e, kind){
       const q = pl.queue || [];
       if (!q.length) return;
       const cur = state.focusCueId || state.pausedFocus?.cueId;
+
       // “下一曲”视为切歌：把当前曲标记为已播放（队列内）
       if (cur && cur !== null){ markCuePlayedIfInQueue(cur); }
-      let next = null;
+
+      let nextId = null;
+      let nextIdx = null;
+
       if (pl.settings.order === "shuffle"){
-        next = q.length===1 ? q[0] : q[Math.floor(Math.random()*q.length)];
+        nextIdx = (q.length===1) ? 0 : Math.floor(Math.random()*q.length);
+        nextId = q[nextIdx];
       }else{
-        const idx = cur ? q.indexOf(cur) : -1;
-        next = (idx>=0 && idx<q.length-1) ? q[idx+1] : q[0];
+        let idx = -1;
+        if (Number.isInteger(state.focusQueueIdx) && q[state.focusQueueIdx] === cur){
+          idx = state.focusQueueIdx;
+        }else{
+          idx = cur ? q.indexOf(cur) : -1;
+        }
+        nextIdx = (idx>=0 && idx<q.length-1) ? (idx+1) : 0;
+        nextId = q[nextIdx];
       }
+
+      state.focusQueueIdx = nextIdx;
       ensureAudioUserGesture();
-      playCue(next, {force:true});
+      playCue(nextId, {force:true});
     }
 
     function playPrevInQueue(){
@@ -25350,70 +25737,34 @@ function handleSeekClick(e, kind){
       const q = pl.queue || [];
       if (!q.length) return;
       const cur = state.focusCueId || state.pausedFocus?.cueId;
+
       // “上一曲”视为切歌：把当前曲标记为已播放（队列内）
       if (cur && cur !== null){ markCuePlayedIfInQueue(cur); }
-      let prev = null;
+
+      let prevId = null;
+      let prevIdx = null;
+
       if (pl.settings.order === "shuffle"){
-        prev = q.length===1 ? q[0] : q[Math.floor(Math.random()*q.length)];
+        prevIdx = (q.length===1) ? 0 : Math.floor(Math.random()*q.length);
+        prevId = q[prevIdx];
       }else{
-        const idx = cur ? q.indexOf(cur) : -1;
-        prev = (idx>0) ? q[idx-1] : q[q.length-1];
+        let idx = -1;
+        if (Number.isInteger(state.focusQueueIdx) && q[state.focusQueueIdx] === cur){
+          idx = state.focusQueueIdx;
+        }else{
+          idx = cur ? q.indexOf(cur) : -1;
+        }
+        prevIdx = (idx>0) ? (idx-1) : (q.length-1);
+        prevId = q[prevIdx];
       }
+
+      state.focusQueueIdx = prevIdx;
       ensureAudioUserGesture();
-      playCue(prev, {force:true});
+      playCue(prevId, {force:true});
     }
 
     
-        // ===== Mobile panel switcher (queue/lib/list) =====
-    function initMobilePanelSwitcher(){
-      const bar = document.getElementById("mSwitchBar");
-      if (!bar) return;
-      const key = "p1_mobile_view";
-      const btns = Array.from(bar.querySelectorAll(".mSegBtn"));
-      const setView = (mv, silent=false)=>{
-        mv = (mv==="queue" || mv==="lib" || mv==="list") ? mv : "queue";
-        document.body.dataset.mview = mv;
-        try{ if (mv==="lib") initMobileLibSplit(); }catch(e){}
-        btns.forEach(b=> b.classList.toggle("on", (b.dataset.mv||"")===mv));
-        try{ localStorage.setItem(key, mv); }catch(e){}
-        if (!silent){
-          try{ toast(mv==="queue"?"队列":""+(mv==="lib"?"音乐库":"列表")); }catch(e){}
-        }
-      };
-      let mv = "queue";
-      try{ mv = (localStorage.getItem(key) || "queue"); }catch(e){}
-      setView(mv, true);
-
-      btns.forEach(b=>{
-        b.addEventListener("click", ()=>{
-          setView(b.dataset.mv);
-        });
-      });
-
-      const imp = document.getElementById("btnP1MobileImport");
-      if (imp){
-        imp.addEventListener("click", ()=>{
-          const fi = document.getElementById("fileInput");
-          fi && fi.click();
-        });
-      }
-
-      // Keep view reasonable when resizing across breakpoints
-      window.addEventListener("resize", ()=>{
-        if (window.innerWidth > 860){
-          // on wide screens, show all as normal (unset)
-          try{ delete document.body.dataset.mview; }catch(e){}
-          btns.forEach(b=> b.classList.remove("on"));
-        }else{
-          // on mobile, re-apply last selection
-          let mv2 = "queue";
-          try{ mv2 = (localStorage.getItem(key) || "queue"); }catch(e){}
-          setView(mv2, true);
-        }
-      });
-    }
-
-// ===== Init =====
+    // ===== Init =====
     async function bootstrap(){
       await initVersionBadge();
       await load();
@@ -25421,10 +25772,13 @@ function handleSeekClick(e, kind){
       updateTopbar();
       renderAll();
       bindUI();
-      initMobilePanelSwitcher();
+      try{ installQueueAutoScale(); }catch(e){}
+      try{ const f = state.pausedFocus?.cueId || state.focusCueId || state.selectedCueId; if(f) followNowPlayingInQueue(f,{force:false}); }catch(e){}
       applyLayoutUI();
       updateDiskUI();
       startRaf();
+      // 演出级：播放中每 1.2s 自动跟随一次（确保正在播放始终可见）
+      setInterval(()=>{ try{ const f = state.pausedFocus?.cueId || state.focusCueId; if (f && state.playingNodes && state.playingNodes[f]) followNowPlayingInQueue(f, {force:false}); }catch(e){} }, 1200);
       updateSavePill();
       // safety autosave: flush dirty state periodically
       setInterval(()=>{ if (state._dirty && !state._saving) saveProjectNow(); }, 8000);
@@ -25759,8 +26113,113 @@ function handleSeekClick(e, kind){
 <button aria-label="打开目录" class="hostCatalogFab" hidden="" id="linesCatalogBtn" type="button">
 <span aria-hidden="true" class="ico">📑</span><span class="txt">目录</span>
 </button>
+<script id="p1MobilePaneScript">
+(()=>{
+  const ua = navigator.userAgent || "";
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && (navigator.maxTouchPoints||0) > 1);
+  try{ document.body.dataset.ios = isIOS ? "1" : "0"; }catch(e){}
+
+  // iOS: relax file picker filtering (some audio files show grey when accept=audio/*)
+  try{
+    if (isIOS){
+      const fi = document.getElementById("fileInput");
+      if (fi) fi.setAttribute("accept","");
+    }
+  }catch(e){}
+
+  const bar = document.getElementById("p1MobileBar");
+  if (!bar) return;
+
+  const KEY = "p1_mobile_pane_view_v1";
+  const mql = window.matchMedia("(max-width: 860px)");
+  const isMobile = ()=> (mql && mql.matches);
+
+  function paint(v){
+    bar.querySelectorAll(".segBtn").forEach(b=>{
+      b.classList.toggle("on", (b.getAttribute("data-pmv")||"") === v);
+    });
+  }
+
+  function ensurePaneVisible(v){
+    try{
+      const app = document.getElementById("app");
+      if (!app) return;
+      let changed = false;
+
+      if (v === "left"){
+        if (app.classList.contains("collapsed-left")){
+          app.classList.remove("collapsed-left");
+          changed = true;
+        }
+        if (typeof state !== "undefined" && state && state.ui && state.ui.collapseLeft){
+          state.ui.collapseLeft = false;
+          changed = true;
+        }
+      }
+      if (v === "mid"){
+        if (app.classList.contains("collapsed-mid")){
+          app.classList.remove("collapsed-mid");
+          changed = true;
+        }
+        if (typeof state !== "undefined" && state && state.ui && state.ui.collapseMid){
+          state.ui.collapseMid = false;
+          changed = true;
+        }
+      }
+
+      if (changed){
+        if (typeof applyLayoutUI === "function") applyLayoutUI();
+        if (typeof persist === "function") persist();
+      }
+    }catch(e){}
+  }
+
+  function apply(v){
+    v = (v==="left"||v==="mid"||v==="right") ? v : "right";
+    if (isMobile()){
+      ensurePaneVisible(v);
+      document.body.dataset.p1Mobileview = v;
+    }else{
+      delete document.body.dataset.p1Mobileview;
+    }
+    paint(v);
+  }
+
+  function setView(v, save=true){
+    apply(v);
+    if (save){
+      try{ localStorage.setItem(KEY, v); }catch(e){}
+    }
+  }
+
+  bar.querySelectorAll(".segBtn").forEach(btn=>{
+    btn.addEventListener("click", ()=> setView(btn.getAttribute("data-pmv")));
+  });
+
+  const imp = document.getElementById("btnMobileImportP1");
+  if (imp){
+    imp.addEventListener("click", ()=>{
+      const fi = document.getElementById("fileInput");
+      fi && fi.click();
+    });
+  }
+
+  function sync(){
+    let v = "right";
+    try{ v = localStorage.getItem(KEY) || "right"; }catch(e){}
+    apply(v);
+  }
+
+  try{ mql.addEventListener("change", sync); }catch(e){ try{ mql.addListener(sync); }catch(_){} }
+  window.addEventListener("orientationchange", ()=> setTimeout(sync, 80), {passive:true});
+
+  // default immediately (avoid flash)
+  sync();
+})();
+</script>
 </body>
-</html></template><script>/* __MOBILE_LEARN_ACTION_SHEET__ */
+</html>
+</template><script>/* __MOBILE_LEARN_ACTION_SHEET__ */
 (function(){
   const bottom = document.getElementById('bottomNav');
   if(!bottom) return;
@@ -25913,4 +26372,179 @@ function handleSeekClick(e, kind){
   // Optional: when tapping outside (anywhere else), keep sheet behavior handled by backdrop.
   // Initialize
   ensure();
-})();</script></body></html>
+})();</script>
+<!-- P1 Local File Safe Bindings (v14) -->
+<script id="p1-local-safe-bindings">
+(function(){
+  const HEIGHT_KEY = "music_p1_console_height_v1";
+  const FULL_KEY   = "music_p1_fullscreen_v1";
+  const $ = (sel)=>document.querySelector(sel);
+
+  let pendingHeight = null;
+  let pendingFull = null;
+
+  function refreshRangeMax(){
+    const r = $("#p1HeightRange");
+    if (!r) return;
+    const maxH = Math.max(520, Math.floor(window.innerHeight * 0.95));
+    r.max = String(maxH);
+  }
+
+  function syncLabels(){
+    const btn = $("#btnP1Full");
+    if (btn) btn.textContent = (document.body.dataset.p1Fullscreen === "1") ? "退出满屏" : "满屏";
+    const lab = $("#p1HeightLabel");
+    const frame = $("#p1ConsoleFrame");
+    if (lab){
+      if (document.body.dataset.p1Fullscreen === "1") lab.textContent = "100%";
+      else if (frame && frame.style.height) lab.textContent = frame.style.height;
+      else lab.textContent = "auto";
+    }
+  }
+
+  function applyHeight(n, silent){
+    const frame = $("#p1ConsoleFrame");
+    if (!frame){
+      pendingHeight = n;
+      return;
+    }
+    if (!Number.isFinite(n) || n < 260) return;
+    const px = Math.round(n);
+    frame.style.height = px + "px";
+    document.documentElement.style.setProperty("--p1ConsoleH", px + "px");
+    const r = $("#p1HeightRange");
+    if (r) r.value = String(px);
+    try{ localStorage.setItem(HEIGHT_KEY, String(px)); }catch(e){}
+    syncLabels();
+    if (!silent && typeof toast === "function") toast("P1 高度已更新 ✅");
+  }
+
+  function resetHeight(silent){
+    const frame = $("#p1ConsoleFrame");
+    if (!frame){
+      pendingHeight = null;
+      try{ localStorage.removeItem(HEIGHT_KEY); }catch(e){}
+      syncLabels();
+      return;
+    }
+    frame.style.height = "";
+    document.documentElement.style.removeProperty("--p1ConsoleH");
+    const fallback = Math.min(980, Math.floor(window.innerHeight * 0.86));
+    const r = $("#p1HeightRange");
+    if (r) r.value = String(fallback);
+    try{ localStorage.removeItem(HEIGHT_KEY); }catch(e){}
+    syncLabels();
+    if (!silent && typeof toast === "function") toast("P1 高度已重置 ✅");
+  }
+
+  function setFull(on, silent){
+    pendingFull = on ? 1 : 0;
+    document.body.dataset.p1Fullscreen = on ? "1" : "0";
+    // If browser Fullscreen API is in use, exit when turning off
+    if (!on){
+      try{ if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(()=>{}); }catch(e){}
+    }
+    try{ localStorage.setItem(FULL_KEY, on ? "1" : "0"); }catch(e){}
+    syncLabels();
+    if (!silent && typeof toast === "function") toast(on ? "P1：满屏 ✅" : "P1：退出满屏 ✅");
+  }
+
+  // Init from storage (works even in file://)
+  function initFromStorage(){
+    refreshRangeMax();
+    try{
+      const h = localStorage.getItem(HEIGHT_KEY);
+      if (h) applyHeight(Number(h), true);
+    }catch(e){}
+    try{
+      // file:// safety: do not auto-enter fullscreen on launch (avoids "页面显示不全/无法操作" if state was saved)
+      if (location && location.protocol === "file:"){
+        localStorage.setItem(FULL_KEY, "0");
+        setFull(false, true);
+      }else{
+        const f = localStorage.getItem(FULL_KEY);
+        if (f === "1") setFull(true, true);
+      }
+    }catch(e){}syncLabels();
+  }
+
+  // Event delegation: survives re-render
+  document.addEventListener("click", (e)=>{
+    const btn = e.target && e.target.closest ? e.target.closest("button") : null;
+    if (!btn) return;
+    const id = btn.id || "";
+    if (id === "btnP1ResetH"){ e.preventDefault(); resetHeight(false); }
+    if (id === "btnP1Full"){ e.preventDefault(); setFull(!(document.body.dataset.p1Fullscreen === "1"), false); }
+    if (id === "btnP1MiniExitFull"){ e.preventDefault(); setFull(false, false); }
+    if (id === "btnP1ExitToBuiltin"){
+      e.preventDefault();
+      // Exit fullscreen overlay first (for file:// CSS fullscreen)
+      setFull(false, true);
+      try{
+        if (typeof setMusicPlayerMode === "function") setMusicPlayerMode("builtin", {silent:false});
+        else if (window.__setMusicPlayerMode) window.__setMusicPlayerMode("builtin", {silent:false});
+      }catch(err){
+        try{ setFull(false, false); }catch(e2){}
+      }
+    }
+  }, true);
+
+  document.addEventListener("input", (e)=>{
+    const t = e.target;
+    if (!t || t.id !== "p1HeightRange") return;
+    e.preventDefault();
+    applyHeight(Number(t.value), true);
+  }, true);
+
+  document.addEventListener("change", (e)=>{
+    const t = e.target;
+    if (!t || t.id !== "p1HeightRange") return;
+    e.preventDefault();
+    applyHeight(Number(t.value), false);
+  }, true);
+
+  window.addEventListener("resize", ()=>{ refreshRangeMax(); syncLabels(); });
+
+  window.addEventListener("keydown", (e)=>{
+    if (e.key === "Escape" && document.body.dataset.p1Fullscreen === "1"){
+      setFull(false, true);
+    }
+  });
+
+  // Watch DOM to apply pending settings once P1 frame appears (finite retries to avoid perf issues in file://)
+  (function(){
+    let tries = 0;
+    const maxTries = 30; // ~6s
+    const timer = setInterval(()=>{
+      tries++;
+      const frame = $("#p1ConsoleFrame");
+      if (frame){
+        if (pendingHeight != null){
+          const n = Number(pendingHeight);
+          pendingHeight = null;
+          applyHeight(n, true);
+        }
+        if (pendingFull != null){
+          const on = pendingFull === 1;
+          pendingFull = null;
+          setFull(on, true);
+        }
+        syncLabels();
+        clearInterval(timer);
+      }
+      if (tries >= maxTries) clearInterval(timer);
+    }, 200);
+  })();
+
+  // public (for debug)
+  window.__p1SetFull = setFull;
+  window.__p1SetHeight = applyHeight;
+  window.__p1ResetHeight = resetHeight;
+  try{ if (typeof setMusicPlayerMode === 'function') window.__setMusicPlayerMode = setMusicPlayerMode; }catch(e){}
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initFromStorage);
+  else initFromStorage();
+})();
+</script>
+
+</body></html>
